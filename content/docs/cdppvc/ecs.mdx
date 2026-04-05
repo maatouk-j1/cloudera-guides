@@ -4,7 +4,7 @@ summary: "This article explains the necessary steps to install the ECS platform 
 topicTitle: "CDP Private Cloud"
 topicSlug: "cdppvc"
 ---
-This article explains the necessary steps to install the ECS platform upon successful [deployment and configuration of CDP PvC Base cluster](base.md). Please ensure that all the [prerequisites](prerequisites.md) have already been prepared accordingly.
+This article explains the necessary steps to install the ECS platform upon successful [deployment and configuration of CDP PvC Base cluster](/cdppvc/base). Please ensure that all the [prerequisites](/cdppvc/prerequisites) have already been prepared accordingly.
 
 - TOC
 
@@ -48,7 +48,7 @@ This article explains the necessary steps to install the ECS platform upon succe
     Name:	console-cdp.apps.ecs1.cdpkvm.cldr
     Address: 10.15.4.166
     ```
-5. If Nvidia GPU card is involved, please install the Nvidia driver and its associated software as described in this [topic](gpuecs.md).
+5. If Nvidia GPU card is involved, please install the Nvidia driver and its associated software as described in this [topic](/cdppvc/gpuecs).
 
 ## ECS Platform Installation
 
@@ -88,7 +88,7 @@ This article explains the necessary steps to install the ECS platform upon succe
     
     ![Addecs9](/images/ecs/addecs9.png)
     
-9. Review and amend the parameters accordingly. Directory path for Longhorn storage and local SSD/NVMe (for CDW cache) in each node must be configured here in accordance to the mounted disk folder name. Dedicated storage disk that is expected to be formatted and mounted prior to this installation as explained in the [prerequisites](prerequisites.md) subtopic. The `Application Domain` field determines the subdomain of the wildcard DNS. In this case, the wildcard DNS to be set at the external DNS server is `*.apps.ecs1.cdpkvm.cldr`.
+9. Review and amend the parameters accordingly. Directory path for Longhorn storage and local SSD/NVMe (for CDW cache) in each node must be configured here in accordance to the mounted disk folder name. Dedicated storage disk that is expected to be formatted and mounted prior to this installation as explained in the [prerequisites](/cdppvc/prerequisites) subtopic. The `Application Domain` field determines the subdomain of the wildcard DNS. In this case, the wildcard DNS to be set at the external DNS server is `*.apps.ecs1.cdpkvm.cldr`.
     
     ![Addecs10](/images/ecs/addecs10.png)
     
@@ -121,5 +121,5 @@ This article explains the necessary steps to install the ECS platform upon succe
 ---    
    Next Step
    
-- Proceed to configure CDP PvC Data Services in this [topic](ds.md).
+- Proceed to configure CDP PvC Data Services in this [topic](/cdppvc/ds).
         

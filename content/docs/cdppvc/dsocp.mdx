@@ -4,7 +4,7 @@ summary: "This article describes the steps to deploy the CDP Data Services Contr
 topicTitle: "CDP Private Cloud"
 topicSlug: "cdppvc"
 ---
-This article describes the steps to deploy the CDP Data Services Control Plane on the Openshift platform. Please ensure that all the [prerequisites](prerequisites.md) have already been prepared accordingly.
+This article describes the steps to deploy the CDP Data Services Control Plane on the Openshift platform. Please ensure that all the [prerequisites](/cdppvc/prerequisites) have already been prepared accordingly.
 
 - TOC
 
@@ -23,17 +23,17 @@ This article describes the steps to deploy the CDP Data Services Control Plane o
 
     ![Addocp3](/images/ocp4/addocp3.png)  
     
-4. Select `Use a custom Docker Repository (Recommended for production)` option. Enter the fields based on the setup of the [Docker registry in the Nexus server](nexus.md).
+4. Select `Use a custom Docker Repository (Recommended for production)` option. Enter the fields based on the setup of the [Docker registry in the Nexus server](/cdppvc/nexus).
 
     ![Addocp4](/images/ocp4/addocp4.png)     
 
-5. Select `Use existing databases (Recommended for production)` option. Enter the fields based on the prerequisites highlighted in the [Installation Prerequisites](prerequisites.md) page.
+5. Select `Use existing databases (Recommended for production)` option. Enter the fields based on the prerequisites highlighted in the [Installation Prerequisites](/cdppvc/prerequisites) page.
 
     ![Addocp5](/images/ocp4/addocp5.png)  
     
-6. Select the `kubeconfig` file as highlighted in the [Installation Prerequisites](prerequisites.md) page. 
-For Vault configuration, enter the fields based on the setup of the [Hashicorp Vault](vault.md). 
-For Storage, enter the default block storageClass of the deployed [OCS](prerequisites.md).
+6. Select the `kubeconfig` file as highlighted in the [Installation Prerequisites](/cdppvc/prerequisites) page. 
+For Vault configuration, enter the fields based on the setup of the [Hashicorp Vault](/cdppvc/vault). 
+For Storage, enter the default block storageClass of the deployed [OCS](/cdppvc/prerequisites).
 
     ![Addocp6](/images/ocp4/addocp6.png)  
     
@@ -57,7 +57,7 @@ For Storage, enter the default block storageClass of the deployed [OCS](prerequi
 ---    
    Next Step
    
-- Proceed to configure CDP PvC Data Services in this [topic](ds.md).
+- Proceed to configure CDP PvC Data Services in this [topic](/cdppvc/ds).
 
 ## CDP Data Services Control Plane Artifacts
     

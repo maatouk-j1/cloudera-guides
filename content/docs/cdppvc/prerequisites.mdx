@@ -184,7 +184,7 @@ topicSlug: "cdppvc"
 - The Openshift dashboard should reflect all components in green mode as depicted below.
     ![Ocp1](/images/ocp4/ocp1.png)    
 - If custom ingress certificate is needed, deploy the certificate using [this](https://docs.openshift.com/container-platform/4.7/security/certificates/replacing-default-ingress-certificate.html) method prior to the installation of CDP Data Services Control Plane on the Openshift platform.
-- The `Local Storage Operator` must be provisioned to include the direct attached disk(s) for each Openshift worker node. See this [link](ocpcdwdisk.md) to explore the provisioning method.    
+- The `Local Storage Operator` must be provisioned to include the direct attached disk(s) for each Openshift worker node. See this [link](/cdppvc/ocpcdwdisk) to explore the provisioning method.    
     
     
 ### Openshift Container Storage
@@ -203,17 +203,17 @@ topicSlug: "cdppvc"
 
 ### Docker Registry
 
-- An external SSL-enabled Docker registry is required to store the Cloudera container images, e.g. Nexus Docker Registry. See this [link](nexus.md) to explore the sample methods to deploy the SSL-enabled Docker registry using Nexus solution.
+- An external SSL-enabled Docker registry is required to store the Cloudera container images, e.g. Nexus Docker Registry. See this [link](/cdppvc/nexus) to explore the sample methods to deploy the SSL-enabled Docker registry using Nexus solution.
 
 ### Hashicorp Vault
 
-- An external SSL-enabled Hashicorp vault is required to store and encrypt the system's secrets and certificates. See this [link](vault.md) to explore the sample methods to deploy SSL-enabled Hashicorp Vault server.
+- An external SSL-enabled Hashicorp vault is required to store and encrypt the system's secrets and certificates. See this [link](/cdppvc/vault) to explore the sample methods to deploy SSL-enabled Hashicorp Vault server.
 
 ## ECS Requirements
 
 ### Longhorn Storage
 
-- Longhorn serves as the distributed block storage subsystem to persist data for the containers in the ECS platform. Each ECS node needs to be equipped with the direct-attached SSD/NVMe disk for the [Longhorn storage](https://longhorn.io/docs/1.2.4/best-practices/#minimum-recommended-hardware). Longhorn could only use a single volume disk per node and thereby [LVM](lvm.md) is recommended to be used for exposing a single volume backed by one/many physical disk.
+- Longhorn serves as the distributed block storage subsystem to persist data for the containers in the ECS platform. Each ECS node needs to be equipped with the direct-attached SSD/NVMe disk for the [Longhorn storage](https://longhorn.io/docs/1.2.4/best-practices/#minimum-recommended-hardware). Longhorn could only use a single volume disk per node and thereby [LVM](/cdppvc/lvm) is recommended to be used for exposing a single volume backed by one/many physical disk.
 
 ### ECS Host Settings
 
@@ -241,4 +241,4 @@ topicSlug: "cdppvc"
    
    Next Step
    
-- After preparing the abovementioned prerequisites, proceed to check out the steps to install Cloudera Manager in the subsequent [topic](cm.md).
+- After preparing the abovementioned prerequisites, proceed to check out the steps to install Cloudera Manager in the subsequent [topic](/cdppvc/cm).
