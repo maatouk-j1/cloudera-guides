@@ -6,6 +6,7 @@ import AppProvider from './app-provider'
 import Header from '@/components/ui/header'
 import Sidebar from '@/components/ui/sidebar'
 import BackToTop from '@/components/ui/back-to-top'
+import ScrollToTop from '@/components/ui/scroll-to-top'
 
 const aspekta = localFont({
   src: [
@@ -73,6 +74,7 @@ export default function RootLayout({
               </main>
 
             </div>
+            <ScrollToTop />
             <BackToTop />
           </AppProvider>
         </Theme>
