@@ -37,11 +37,17 @@ const generateHeading = (headingLevel: number) => {
   };
 };
 
+const basePath = process.env.NODE_ENV === 'production' ? '/cloudera-guides' : '';
+
 const mdxComponents = {
   h1: generateHeading(1),
   h2: generateHeading(2),
   h3: generateHeading(3),
   h4: generateHeading(4),
+  img: ({ src, alt, ...props }: React.ImgHTMLAttributes<HTMLImageElement>) => (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={src && src.startsWith('/') ? `${basePath}${src}` : src} alt={alt || ''} {...props} />
+  ),
   Link: PostLink,
   Image: PostImage,
   Banner: PostBanner,
