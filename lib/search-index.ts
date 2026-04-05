@@ -4,7 +4,6 @@ import { navigation, type NavItem } from './navigation';
 export type SearchEntry = {
   title: string;
   slug: string;
-  summary: string;
   section: string;
 };
 
@@ -26,7 +25,6 @@ export function buildSearchIndex(): SearchEntry[] {
   return pages.map((page) => ({
     title: page.metadata.title || page.slug,
     slug: page.slug,
-    summary: page.metadata.summary || '',
     section: findSectionForSlug(navigation, page.slug) || page.metadata.topicTitle || '',
   }));
 }
