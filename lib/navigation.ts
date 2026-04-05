@@ -109,31 +109,11 @@ export const navigation: NavItem[] = [
       },
       {
         title: "Upgrades",
-        children: [
-          {
-            title: "7.1.9 to 7.3.1",
-            children: [
-              { title: "Overview", href: "/upgrades/7.1.9-to-7.3.1/index" },
-              { title: "Pre-Upgrade Checks", href: "/upgrades/7.1.9-to-7.3.1/pre-upgrade-checks" },
-              { title: "Upgrade Steps", href: "/upgrades/7.1.9-to-7.3.1/upgrade-steps" },
-              { title: "Post-Upgrade", href: "/upgrades/7.1.9-to-7.3.1/post-upgrade" },
-            ],
-          },
-        ],
+        href: "/upgrades/7.1.9-to-7.3.1/index",
       },
       {
         title: "Use Cases",
-        children: [
-          {
-            title: "Medallion Architecture",
-            children: [
-              { title: "Overview", href: "/use-cases/medallion-architecture/index" },
-              { title: "Bronze Layer", href: "/use-cases/medallion-architecture/bronze-layer" },
-              { title: "Silver Layer", href: "/use-cases/medallion-architecture/silver-layer" },
-              { title: "Gold Layer", href: "/use-cases/medallion-architecture/gold-layer" },
-            ],
-          },
-        ],
+        href: "/use-cases/medallion-architecture/index",
       },
       {
         title: "Troubleshooting",
