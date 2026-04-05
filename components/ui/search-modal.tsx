@@ -7,7 +7,6 @@ import { Dialog, DialogBackdrop, DialogPanel } from "@headlessui/react";
 export type SearchItem = {
   title: string;
   slug: string;
-  summary: string;
   section: string;
 };
 
@@ -29,7 +28,7 @@ export default function SearchModal({
     const terms = query.toLowerCase().split(/\s+/);
     return searchIndex
       .filter((item) => {
-        const text = `${item.title} ${item.summary} ${item.section}`.toLowerCase();
+        const text = `${item.title} ${item.section}`.toLowerCase();
         return terms.every((term) => text.includes(term));
       })
       .slice(0, 10);
