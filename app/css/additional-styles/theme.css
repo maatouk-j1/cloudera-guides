@@ -42,5 +42,9 @@
 }
 
 [data-scrollspy-link].scrollspy-active {
-    @apply font-medium text-blue-600 before:bg-blue-400;
+    @apply font-medium;
+    color: #f26622;
+}
+[data-scrollspy-link].scrollspy-active::before {
+    background-color: #f26622;
 }
