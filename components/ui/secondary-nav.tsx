@@ -53,8 +53,8 @@ export default function SecondaryNav() {
   }, [links])
 
   return (
-    <div className="hidden xl:block w-48 shrink-0">
-      {links.length > 0 &&
+    <div className={`w-48 shrink-0 ${links.length > 1 ? 'hidden xl:block' : 'hidden'}`}>
+      {links.length > 1 &&
         <nav>
           <div className="fixed bottom-0 h-[calc(100vh-5rem)] w-48 overflow-y-auto pt-32 pb-8 no-scrollbar">
             <div className="border-l border-slate-200 dark:border-slate-800">
