@@ -15,9 +15,9 @@ This article describes the steps to test the performance of these file formats i
 
 - The performance benchmarking tests are carried out using CDW on the CDP Private Cloud (Openshift) platform with the following hardware specification.
 
-| CPU          | Intel(R) Xeon(R) Gold 5220R CPU @ 2.20GHz | 
-| Memory  | DIMM DDR4 Synchronous Registered (Buffered) 2933 MHz (0.3 ns) | 
-| Disk | SSD P4610 1.6TB SFF    | 
+| CPU | Memory | Disk |
+|:---|:---|:---|
+| Intel(R) Xeon(R) Gold 5220R CPU @ 2.20GHz | DIMM DDR4 Synchronous Registered (Buffered) 2933 MHz (0.3 ns) | SSD P4610 1.6TB SFF |
 
 
 - A random sample data of 300 million CSV rows is produced using a python script with the [faker](https://faker.readthedocs.io/en/master/) generator. The schema of each row is sequenced as `Lastname, Firstname, MSISDN, Date of Birth, Postcode, City` as illustrated below.
