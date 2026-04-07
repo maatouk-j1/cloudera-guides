@@ -24,7 +24,7 @@ export default function Home() {
                 CDP Private Cloud
               </h2>
               <p className="text-sm text-slate-600 dark:text-slate-400">
-                Installations, upgrades, data services, and day-2 operations for CDP Private Cloud.
+                Cloudera Data Platform on private cloud infrastructure.
               </p>
             </Link>
 
