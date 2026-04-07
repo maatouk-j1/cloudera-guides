@@ -49,6 +49,9 @@ const mdxComponents = {
     // eslint-disable-next-line @next/next/no-img-element
     <img src={src && src.startsWith('/') ? `${basePath}${src}` : src} alt={alt || ''} {...props} />
   ),
+  a: ({ href, ...props }: React.AnchorHTMLAttributes<HTMLAnchorElement>) => (
+    <a href={href && href.startsWith('/') ? `${basePath}${href}` : href} {...props} />
+  ),
   Link: PostLink,
   Image: PostImage,
   Banner: PostBanner,
