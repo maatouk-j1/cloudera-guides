@@ -9,6 +9,7 @@ import PostTag from './tag'
 import PostTable, { TableHead, TableBody, TableHeadRow, TableBodyRow, TableTh, TableTd } from './table'
 
 import rehypePrettyCode from "rehype-pretty-code";
+import remarkGfm from "remark-gfm";
 
 const transformToSlug = (input: string) => {
   return input
@@ -90,6 +91,7 @@ export function CustomMDX(props: any) {
       components={{ ...mdxComponents, ...(props.components || {}) }}
       options={{
         mdxOptions: {
+          remarkPlugins: [remarkGfm],
           rehypePlugins: [[rehypePrettyCode, rehypePrettyCodeOptions]],
         },
       }}
