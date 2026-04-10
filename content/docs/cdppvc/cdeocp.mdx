@@ -6,6 +6,8 @@ topicSlug: "cdppvc"
 ---
 This article explains the steps to deploy the CDE service on the Openshift platform after successful configuration of the [CDP PvC Data Services Management Console](/cdppvc/dsconsole).
 
+<Banner type="info">This guide targets Cloudera Data Services on premises 1.3.4. Some referenced Cloudera docs for that release are no longer available online.</Banner>
+
 - TOC
 
 ---
@@ -31,7 +33,7 @@ This article explains the steps to deploy the CDE service on the Openshift platf
     
     ![Cdeocp4](/images/cde/cdeocp4.png)
   
-6. Read the guidance in this [link](https://docs.cloudera.com/data-engineering/1.3.4/manage-clusters/topics/cde-private-cloud-create-cluster.html) and create the self-signed certificate. Inject the certificate into the secret object of the CDE dex-base namespace.
+6. Create the self-signed certificate and inject it into the secret object of the CDE dex-base namespace.
     
     ```bash
     # ./cdp-cde-utils.sh init-virtual-cluster -h 8pzf9tsf.cde-vc4tzlpg.apps.apps.ocp4.cdpkvm.cldr -a
