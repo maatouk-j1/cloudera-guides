@@ -1,56 +1,59 @@
-import './css/style.css'
+import "./css/style.css";
 
-import localFont from 'next/font/local'
-import Theme from './theme-provider'
-import AppProvider from './app-provider'
-import Header from '@/components/ui/header'
-import Sidebar from '@/components/ui/sidebar'
-import BackToTop from '@/components/ui/back-to-top'
-import ScrollToTop from '@/components/ui/scroll-to-top'
+import type { Metadata } from "next";
+import localFont from "next/font/local";
+import Theme from "./theme-provider";
+import AppProvider from "./app-provider";
+import Header from "@/components/ui/header";
+import Sidebar from "@/components/ui/sidebar";
+import BackToTop from "@/components/ui/back-to-top";
+import ScrollToTop from "@/components/ui/scroll-to-top";
 
 const aspekta = localFont({
   src: [
     {
-      path: '../public/fonts/Aspekta-350.woff2',
-      weight: '350',
+      path: "../public/fonts/Aspekta-350.woff2",
+      weight: "350",
     },
     {
-      path: '../public/fonts/Aspekta-400.woff2',
-      weight: '400',
+      path: "../public/fonts/Aspekta-400.woff2",
+      weight: "400",
     },
     {
-      path: '../public/fonts/Aspekta-500.woff2',
-      weight: '500',
+      path: "../public/fonts/Aspekta-500.woff2",
+      weight: "500",
     },
     {
-      path: '../public/fonts/Aspekta-650.woff2',
-      weight: '650',
+      path: "../public/fonts/Aspekta-650.woff2",
+      weight: "650",
     },
   ],
-  variable: '--font-aspekta',
-  display: 'swap',
-})
+  variable: "--font-aspekta",
+  display: "swap",
+});
 
-export const metadata = {
-  title: 'Cloudera CDP Guide',
-  description: 'CDP Private Cloud - Installations, Upgrades & Use Cases',
+export const metadata: Metadata = {
+  title: "Cloudera CDP Guide",
+  description: "CDP Private Cloud - Installations, Upgrades & Use Cases",
   icons: {
-    icon: '/favicon.ico',
+    icon: "/favicon.ico",
   },
-}
+};
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="scroll-smooth" suppressHydrationWarning>{/* suppressHydrationWarning: https://github.com/vercel/next.js/issues/44343 */}
-      <body className={`${aspekta.variable} font-aspekta antialiased text-slate-800 font-[350] bg-white dark:bg-slate-900 dark:text-slate-200`}>
+    <html lang="en" className="scroll-smooth" suppressHydrationWarning>
+      {/* suppressHydrationWarning: https://github.com/vercel/next.js/issues/44343 */}
+      <body
+        className={`${aspekta.variable} font-aspekta antialiased text-slate-800 font-[350] bg-white dark:bg-slate-900 dark:text-slate-200`}
+      >
         <Theme>
           <AppProvider>
             <div className="flex flex-col min-h-screen overflow-hidden">
-
               <Header />
 
               {/*  Page content */}
@@ -72,7 +75,6 @@ export default function RootLayout({
                   </div>
                 </section>
               </main>
-
             </div>
             <ScrollToTop />
             <BackToTop />
@@ -80,5 +82,5 @@ export default function RootLayout({
         </Theme>
       </body>
     </html>
-  )
+  );
 }
