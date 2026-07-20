@@ -173,10 +173,6 @@ Paths are relative to `content/docs/installations/cdp-7-3-2/`; URLs are prefixed
 
 **43 pages across 16 phases.**
 
-> The URL for section 5 is **`accessing-cloudera`** — spelled with two `c`s. An earlier draft of the
-> index had a single-`c` typo; the repo owner confirmed the spelling above. Any older copy of the
-> index showing the single-`c` form is stale.
-
 ## 7. Definition of done (identical for all 16 tickets)
 
 1. Every MDX file for the phase exists at its **exact** path — its pre-built nav link resolves, no 404.
