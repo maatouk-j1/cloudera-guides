@@ -1,0 +1,18 @@
+{
+  "1": "Phase 1 \u00b7 VM Creation + Solution Summary (pp. 7-27)",
+  "2": "Phase 2 \u00b7 Post OS Installation - Preliminary Work (pp. 28-58)",
+  "3": "Phase 3 \u00b7 Install CDP Private Cloud: overview, prerequisites, repos and parcels (pp. 58-65)",
+  "4": "Phase 4 \u00b7 Cloudera Manager Server: overview, database, install (pp. 65-76)",
+  "5": "Phase 5 \u00b7 Cloudera Manager: Auto-TLS, Kerberos, Management Services, LDAP (pp. 77-95)",
+  "6": "Phase 6 \u00b7 CDP PvC Base Cluster: overview and Web UI installation (pp. 96-105)",
+  "7": "Phase 7 \u00b7 Data Lake Creation + Additional Requirements (pp. 105-124)",
+  "8": "Phase 8 \u00b7 Base Cluster: metadata DB TLS, scaling, HA, LDAP, log collection (pp. 125-143)",
+  "9": "Phase 9 \u00b7 CDP Data Services (ECS): overview, requirements, checklist (pp. 144-154)",
+  "10": "Phase 10 \u00b7 Install CDP Data Services using ECS: overview and cluster install (pp. 155-185)",
+  "11": "Phase 11 \u00b7 ECS: additional setup steps and dedicated workload nodes (pp. 186-190)",
+  "12": "Phase 12 \u00b7 Accessing Cloudera (pp. 191-198)",
+  "13": "Phase 13 \u00b7 Cloudera AI (CAI) (pp. 199-215)",
+  "14": "Phase 14 \u00b7 Cloudera Data Warehouse (CDW) + Cloudera Data Engineering (CDE) (pp. 216-225)",
+  "15": "Phase 15 \u00b7 Appendix: references, glossaries, FreeIPA (pp. 226-232)",
+  "16": "Phase 16 \u00b7 Validation, cleanup, error handling, k8s reference, acknowledgements (pp. 233-254)"
+}
