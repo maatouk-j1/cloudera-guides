@@ -34,3 +34,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# source PDFs for docs ingestion (large binaries, fetched by P1)
+/sources
