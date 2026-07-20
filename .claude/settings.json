@@ -9,5 +9,9 @@
       "PowerShell(gh api*)",
       "Read(~/.claude/skills/**)"
     ]
+  },
+  "enabledPlugins": {
+    "frontend-design@claude-plugins-official": true,
+    "chrome-devtools-mcp@claude-plugins-official": true
   }
 }
