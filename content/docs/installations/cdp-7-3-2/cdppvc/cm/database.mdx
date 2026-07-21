@@ -1,0 +1,578 @@
+---
+title: Setup Database for Cloudera Manager
+topicTitle: Setup Cloudera Manager Server
+topicSlug: cdp-7-3-2/cdppvc/cm
+summary: Install and configure an external PostgreSQL 17 server on the cldr-mngr host, tune it, enable TLS with a self-signed CA, and create the databases and service accounts every Cloudera component requires.
+prevTitle: Setup Cloudera Manager Server
+prevSlug: /installations/cdp-7-3-2/cdppvc/cm
+nextTitle: Install Cloudera Manager Server
+nextSlug: /installations/cdp-7-3-2/cdppvc/cm/server
+---
+
+Cloudera Manager uses various databases and datastores to store information about the Cloudera Manager configuration, as well as information such as the health of the system, or task progress.
+
+Please review Database Requirement for Cloudera on premises Base.
+
+This procedure highlights the installation and configuration steps with PostgreSQL. Please review Install and Configure Databases for Cloudera on premises Base for more details: [https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/cdp-private-cloud-base-installation/topics/cdpdc-install-config-postgresql-for-cdp.html](https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/cdp-private-cloud-base-installation/topics/cdpdc-install-config-postgresql-for-cdp.html)
+
+> **Note:** If you already have a PostgreSQL database set up, you can skip to the section Configuring and Starting the PostgreSQL Server to verify that your PostgreSQL configurations meet the requirements for Cloudera Manager.
+
+> **Note:** We will be installing the external PostgreSQL DB server on the `cldr-mngr` host.
+
+---
+
+## 1. Install PostgreSQL
+
+**Step 1.** Login on **`cldr-mngr` server** and Install PostgreSQL as shown in the steps below.
+
+```bash
+##### Install and configure POSTGRESQL DB on cldr-mngr server :
+**** When you restart any process in future, the configuration for each of the services is redeployed
+using information saved in the Cloudera Manager database. If this information is not available, your
+cluster cannot start or function correctly. So, you must schedule and maintain regular backups of the
+Cloudera Manager database to recover the cluster in the event of the loss of this database.
+
+##### Install the repository RPM:
+[root@cldr-mngr ~]# sudo dnf install -y
+https://download.postgresql.org/pub/repos/yum/reporpms/EL-9-x86_64/pgdg-redhat-repo-latest.noarch.rpm
+
+##### Disable the built-in PostgreSQL module:
+[root@cldr-mngr ~]# sudo dnf -qy module disable postgresql
+
+##### Install PostgreSQL:
+[root@cldr-mngr ~]# sudo dnf install -y postgresql17 postgresql17-server postgresql17-libs
+[root@cldr-mngr ~]#
+```
+
+**Step 2.** Install the PostgreSQL JDBC driver by running the following command on ansible-controller/ipaserver node. Rename the Postgres JDBC driver `.jar` file to `postgresql-connector-java.jar` and copy it to the `/usr/share/java` directory. The following copy command can be used if the Postgres JDBC driver `.jar` file is installed from the OS repositories: *(Skip this, as we already performed it in prior steps)*
+
+```bash
+##### Install JDBC Connector
+[root@jump ~]# wget https://jdbc.postgresql.org/download/postgresql-42.7.7.jar
+
+[root@ipaserver ~]# mv -v postgresql-42.7.7.jar postgresql-connector-java.jar
+```
+
+```bash
+[root@jump ~]# ansible all -m copy -a "src=postgresql-connector-java.jar
+dest=/usr/share/java/postgresql-connector-java.jar"
+
+[root@jump ~]# ansible all -m shell -a "sudo chmod 644 /usr/share/java/postgresql-connector-java.jar"
+
+[root@jump ~]# ansible all -m shell -a "sudo ls -l /usr/share/java/postgresql*.jar"
+ipaserver.cldrsetup.local | CHANGED | rc=0 >>
+-rw-r--r-- 1 root root 1089312 Jun 3 08:06 /usr/share/java/postgresql-connector-java.jar
+
+##### Alternate way (Not recommended)
+[root@jump ~]# ansible all -m shell -a "sudo dnf install postgresql-jdbc -y"
+[root@jump ~]# ansible all -m shell -a "java -version"
+```
+
+**Step 4.** Make sure that the data directory, which by default is `/var/lib/pgsql/17/data/`, is on a partition that has sufficient free space.
+
+> **Note:** Cloudera Manager supports the use of a custom schema name for the Cloudera Manager Server database. By default, PostgreSQL only accepts connections on the loopback interface. You must reconfigure PostgreSQL to accept connections from external hosts.
+
+> **The guide numbers this procedure 1, 2, 4, 5, … - there is no Step 3.** The `ansible` block above is printed under Step 2 without a heading of its own, which is most likely where Step 3 was meant to sit. The numbering is transcribed as published so it matches the source PDF.
+
+**Step 5.** Installing the psycopg2 Python package for PostgreSQL-backed Hue. *(Skip this, as we already performed it in prior steps)*
+
+> **Note:** If you are installing Runtime 7 and using PostgreSQL as a backend database for Hue, then you must install the 2.9.3 version (or greater) of the psycopg2 package on all Hue hosts. The psycopg2 package is automatically installed as a dependency of Cloudera Manager Agent, but the version installed is often lower than 2.9.3
+
+**Step 6.** Make sure the psycopg2 package dependencies for RHEL 9 is installed on all required hosts, by running the following commands:
+
+```bash
+##### Install the psycopg2-binary package as follows:
+[root@jump ~]# ansible all -m shell -a "pip3 install psycopg2-binary && pip3 list | grep psyc"
+
+ipaserver.cldrsetup.local | CHANGED | rc=0 >>
+Requirement already satisfied: psycopg2-binary in /usr/local/lib64/python3.9/site-packages (2.9.10)
+psycopg2-binary      2.9.10
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with
+the system package manager. It is recommended to use a virtual environment instead:
+https://pip.pypa.io/warnings/venv
+
+[root@jump ~]#
+```
+
+## 2. Initialize and configure the database
+
+**Step 7.** Initialize the database:
+
+```bash
+# Initialize the DB
+[root@cldr-mngr ~]# sudo /usr/pgsql-17/bin/postgresql-17-setup initdb
+
+# Verify PG Version
+[root@cldr-mngr ~]# cat /var/lib/pgsql/17/data/PG_VERSION
+17
+
+# Verify Psycopg Version
+[root@cldr-mngr ~]# pip3 list |grep psycopg
+psycopg2-binary       2.9.10
+
+# data directory is very critical, if you want to cleanup postgres simply rename or remove
+/var/lib/pgsql/17/data directory
+```
+
+**Step 8.** Make sure that `LC_ALL` is set to `C.UTF-8` to enable UTF-8 CHARSET and initialize the database as follows:
+
+```bash
+[root@cldr-mngr ~]# echo 'LC_ALL="C.UTF-8"' >> /etc/locale.conf
+```
+
+**Step 9.** To enable MD5 authentication, edit `/var/lib/pgsql/17/data/pg_hba.conf` by adding the following lines, to enable connection from all outside hosts:
+
+*(Enable md5 auth to serve password authentication and TLS/SSL encryption from outside world)*
+
+```ini
+[root@cldr-mngr ~]# vi /var/lib/pgsql/17/data/pg_hba.conf
+host    all              all             0.0.0.0/0              md5 # Enable md5 authentication
+host    ranger           rangeradmin     0.0.0.0/0              md5 # Allow ranger database connection
+from any host
+hostssl all              all             0.0.0.0/0              md5 # Allow SSL connection from client(s)
+# replace 127.0.0.1 with host IP if PostgreSQL access from a different host is required.
+# Edit section for replication privilege. HA not documented in this solution.
+
+##### Backup the config so you can use it in case of re-setup.
+[root@cldr-mngr ~]# cp /var/lib/pgsql/17/data/pg_hba.conf ~
+
+##### If you have the file backed up, copy it
+[root@cldr-mngr ~]# cp /var/lib/pgsql/17/data/pg_hba.conf /var/lib/pgsql/17/data/pg_hba.conf_orig
+[root@cldr-mngr ~]# cp ~/pg_hba.conf /var/lib/pgsql/17/data/pg_hba.conf
+```
+
+**Step 10.** Configure settings to ensure your system performs as expected. Update these settings in the `/var/lib/pgsql/17/data/postgresql.conf` file. Settings vary based on cluster size and resources as follows:
+
+```ini
+[root@cldr-mngr ~]# vi /var/lib/pgsql/17/data/postgresql.conf
+port = 5432                              # (change requires restart)    #### uncomment
+listen_addresses = '*'                   # what IP address(es) to listen on;
+max_connections = 1000                   # (change requires restart)
+shared_buffers = 1024MB                  # min 128kB
+wal_buffers = 16MB                       # min 32kB, -1 sets based on shared_buffers
+max_wal_size = 6GB
+min_wal_size = 512MB
+checkpoint_completion_target = 0.9       # checkpoint target duration, 0.0 - 1.0 #### uncomment
+standard_conforming_strings = off
+jit = off
+
+##### Backup the config so you can use it in case of re-setup.
+[root@cldr-mngr ~]# cp /var/lib/pgsql/17/data/postgresql.conf ~
+
+##### If you have the file backed up, copy it
+[root@cldr-mngr ~]# cp /var/lib/pgsql/17/data/postgresql.conf /var/lib/pgsql/17/data/postgresql.conf_orig
+[root@cldr-mngr ~]# cp ~/postgresql.conf /var/lib/pgsql/17/data/postgresql.conf
+```
+
+> **Note:** Settings vary based on cluster size and resources.
+
+**Step 11.** Start the PostgreSQL Server and configure it to start at boot.
+
+```bash
+[root@cldr-mngr ~]# systemctl start postgresql-17.service
+[root@cldr-mngr ~]# systemctl enable postgresql-17.service
+[root@cldr-mngr ~]# systemctl status postgresql-17.service -l
+[root@cldr-mngr ~]# netstat -ltnupa | grep LIST | grep -E '5432|postgres'
+```
+
+**Step 12.** Create or verify login
+
+```bash
+[root@cldr-mngr ~]# sudo -u postgres psql
+could not change directory to "/root": Permission denied
+psql (17.13)
+Type "help" for help.
+
+postgres=# ALTER USER postgres PASSWORD 'postgres';
+ALTER ROLE
+postgres=# \q
+
+[root@cldr-mngr ~]# psql -h cldr-mngr.cldrsetup.local -d postgres -U postgres
+Password for user postgres:
+psql (17.13)
+Type "help" for help.
+
+postgres=#\q
+```
+
+## 3. Enable TLS 1.2 for the PostgreSQL database
+
+**Step 13.** Enable TLS 1.2 for PostgreSQL database before setting up Cloudera Manager.
+
+First, confirm TLS is *not* yet on:
+
+```bash
+##### Verify TLS is enabled or not:
+[root@cldr-mngr ~]# sudo -u postgres psql
+could not change directory to "/root": Permission denied
+psql (17.13)
+Type "help" for help.
+
+postgres=# SELECT * FROM pg_stat_ssl;
+  pid | ssl | version | cipher | bits | client_dn | client_serial | issuer_dn
+-------+-----+---------+--------+------+-----------+---------------+-----------
+ 41275 | f   |         |        |      |           |               |
+(1 row)
+
+postgres=# SHOW ssl;
+ ssl
+-----
+ off
+(1 row)
+
+postgres=# \q
+```
+
+Then generate the CA and the server certificate:
+
+```bash
+[root@cldr-mngr ~]# sudo dnf install -y mod_ssl
+
+##### Stop Postgres DB service.
+[root@cldr-mngr ~]# systemctl stop postgresql-17
+
+[root@cldr-mngr ~]# cd /var/lib/pgsql/17/data/
+
+##### Generate CA-signed certificates for clients to verify with openssl command line tool.
+##### Update value for "-days 3650". Currently set for 3650 days = 10 years.
+
+##### create a certificate signing request (CSR) and a public/private key file
+[root@cldr-mngr data]# openssl req -new -nodes -text -out root.csr -keyout root.key -subj
+'/C=US/ST=California/L=Santa Clara/O=Cloudera Inc/OU=CLDR/CN=cldr-mngr.cldrsetup.local'
+
+##### Output for above command
+[root@cldr-mngr data]# ls -ltr root*
+total 8
+-rw------- 1 root root 1704 Jun 3 07:43 root.key
+-rw-r--r-- 1 root root 3589 Jun 3 07:43 root.csr
+[root@cldr-mngr data]#
+
+[root@cldr-mngr data]# chmod 400 root.key
+
+[root@cldr-mngr data]# ls -ltr root*
+total 8
+-r-------- 1 root root 1704 Jun 3 07:43 root.key
+-rw-r--r-- 1 root root 3589 Jun 3 07:43 root.csr
+[root@cldr-mngr data]#
+
+##### create a root certificate authority
+[root@cldr-mngr data]# openssl x509 -req -in root.csr -text -days 3650 -extfile /etc/ssl/openssl.cnf
+-extensions v3_ca -signkey root.key -out root.crt
+Certificate request self-signature ok
+subject=C = US, ST = California, L = Santa Clara, O = Cloudera Inc, OU = CLDR, CN =
+cldr-mngr.cldrsetup.local
+
+[root@cldr-mngr data]# ls -l
+total 16
+-r-------- 1 root root 1704 Jun                     3 07:43 root.key
+-rw-r--r-- 1 root root 3589 Jun                     3 07:43 root.csr
+-rw-r--r-- 1 root root 4592 Jun                     3 07:46 root.crt
+[root@cldr-mngr data]#
+
+# create a server certificate signed by the new root certificate authority
+[root@cldr-mngr data]# openssl req -new -nodes -text -out server.csr -keyout server.key -subj
+"/CN=cldr-mngr.cldrsetup.local"
+
+[root@cldr-mngr data]# ls -ltr root* server*
+total 24
+-r-------- 1 root root 1704 Jun 3 07:43 root.key
+-rw-r--r-- 1 root root 3589 Jun 3 07:43 root.csr
+-rw-r--r-- 1 root root 4592 Jun 3 07:46 root.crt
+-rw------- 1 root root 1704 Jun 3 07:47 server.key
+-rw-r--r-- 1 root root 3388 Jun 3 07:47 server.csr
+[root@cldr-mngr data]#
+
+[root@cldr-mngr data]# chmod 400 server.key
+
+[root@cldr-mngr data]# ls -ltr root* server*
+total 24
+-r-------- 1 root root 1704 Jun 3 07:43 root.key
+-rw-r--r-- 1 root root 3589 Jun 3 07:43 root.csr
+-rw-r--r-- 1 root root 4592 Jun 3 07:46 root.crt
+-r-------- 1 root root 1704 Jun 3 07:47 server.key
+-rw-r--r-- 1 root root 3388 Jun 3 07:47 server.csr
+[root@cldr-mngr data]#
+
+[root@cldr-mngr data]# openssl x509 -req -in server.csr -text -days 3650 -CA root.crt -CAkey root.key
+-CAcreateserial -out server.crt
+Certificate request self-signature ok
+subject=CN = cldr-mngr.cldrsetup.local
+
+[root@cldr-mngr data]# ls -ltr root* server*
+total 32
+-r-------- 1 root root 1704 Jun 3 07:43 root.key
+-rw-r--r-- 1 root root 3589 Jun 3 07:43 root.csr
+-rw-r--r-- 1 root root 4592 Jun 3 07:46 root.crt
+-r-------- 1 root root 1704 Jun 3 07:47 server.key
+-rw-r--r-- 1 root root 3388 Jun 3 07:47 server.csr
+-rw-r--r-- 1 root root    41 Jun 3 07:51 root.srl
+-rw-r--r-- 1 root root 3933 Jun 3 07:51 server.crt
+[root@cldr-mngr data]#
+
+##### The above steps will create a server.crt and server.key file in that location.
+
+[root@cldr-mngr data]# chown postgres:postgres server.crt server.key root.crt
+
+##### Artifacts generated from above command:
+[root@cldr-mngr data]# ls -l server\.* root\.*
+-rw-r--r--. 1 postgres postgres 4586 Aug 9 14:34 root.crt
+-rw-r--r--. 1 root      root     3584 Aug 9 14:33 root.csr
+-r--------. 1 root      root     1704 Aug 9 14:33 root.key
+-rw-r--r--. 1 root      root       41 Aug 9 14:37 root.srl
+-rw-r--r--. 1 postgres postgres 3928 Aug 9 14:37 server.crt
+-rw-r--r--. 1 root      root     3388 Aug 9 14:35 server.csr
+-r--------. 1 postgres postgres 1704 Aug 9 14:35 server.key
+[root@cldr-mngr data]#
+```
+
+Verify the key and certificate are well-formed. Both outputs are abridged in the guide:
+
+```bash
+##### Verify Key and Certs generated fine
+[root@cldr-mngr data]# openssl rsa -noout -text -in server.key
+Private-Key: (2048 bit, 2 primes)
+modulus:
+    00:b3:30:86:66:49:8d:c4:de:62:c6:17:e2:50:6c:
+    88:91:10:49:26:6a:7f:a7:1d:6a:33:3a:71:0d:2c:
+    f0:08:1b:3d:88:bc:73:43:b9:82:00:1a:a3:15:0f:
+    08:ed:53:94:be:1e:25:7b:dd:99:66:c0:f5:2d:42:
+    ...
+publicExponent: 65537 (0x10001)
+privateExponent:
+    12:78:80:8a:1f:af:dc:e8:bd:8e:c4:dc:7f:c4:c8:
+    49:07:c0:3a:95:04:c6:91:aa:26:50:b2:61:94:cd:
+    ...
+
+[root@cldr-mngr data]# openssl x509 -noout -text -in server.crt
+Certificate:
+    Data:
+        Version: 1 (0x0)
+        Serial Number:
+             40:26:f6:7b:84:d1:ad:30:65:2a:07:df:20:f8:4f:a3:91:0e:09:c7
+        Signature Algorithm: sha256WithRSAEncryption
+        Issuer: C = US, ST = California, L = Santa Clara, O = Cloudera Inc, OU = CLDR, CN =
+cldr-mngr.cldrsetup.local
+        Validity
+             Not Before: May 14 06:33:09 2024 GMT
+             Not After : May 12 06:33:09 2034 GMT
+        Subject: CN = cldr-mngr.cldrsetup.local
+        Subject Public Key Info:
+             Public Key Algorithm: rsaEncryption
+                 Public-Key: (2048 bit)
+                 Modulus:
+                     00:b3:30:86:66:49:8d:c4:de:62:c6:17:e2:50:6c:
+                     88:91:10:49:26:6a:7f:a7:1d:6a:33:3a:71:0d:2c:
+                     ...
+```
+
+Fix the permissions, switch SSL on in `postgresql.conf`, and restart:
+
+```bash
+# Correct permissions for the private key file
+[root@cldr-mngr data]# chmod 644 server.crt root.crt
+[root@cldr-mngr data]# chmod 0600 /var/lib/pgsql/17/data/server.key
+
+##### Edit Configuration file for PostgreSQL (postgresql.conf) to enable SSL
+[root@cldr-mngr data]# cat <<EOF >> /var/lib/pgsql/17/data/postgresql.conf
+ssl = on
+ssl_ca_file = 'root.crt'
+ssl_cert_file = 'server.crt'
+ssl_key_file = 'server.key'
+EOF
+
+# Find the location of the private key file, typically in the data directory
+[root@cldr-mngr data]# ls -l /var/lib/pgsql/17/data/server.key
+
+##### Restart PostgreSQL database service to pick up the SSL related configuration changes and verify
+login with SSL
+[root@cldr-mngr data]# systemctl restart postgresql-17.service
+[root@cldr-mngr data]# systemctl status postgresql-17.service -l
+```
+
+Confirm the connection is now encrypted:
+
+```bash
+[root@cldr-mngr data]# psql -h cldr-mngr.cldrsetup.local -d postgres -U postgres
+Password for user postgres: <postgres>
+psql (17.13)
+SSL connection (protocol: TLSv1.3, cipher: TLS_AES_256_GCM_SHA384, bits: 256, compression: off)
+Type "help" for help.
+
+postgres=# SELECT * FROM pg_stat_ssl;
+  pid | ssl | version |          cipher         | bits | client_dn | client_serial | issuer_dn
+-------+-----+---------+------------------------+------+-----------+---------------+-----------
+ 43895 | t   | TLSv1.3 | TLS_AES_256_GCM_SHA384 | 256 |            |               |
+(1 row)
+
+postgres=# SHOW ssl;
+ ssl
+-----
+ on
+(1 row)
+
+postgres=#
+##### Verify SSL is actually applied for DB
+postgres=# SELECT name, setting FROM pg_settings WHERE name LIKE '%ssl%';
+                  name                  |          setting
+----------------------------------------+--------------------------
+ ssl                                    | on
+ ssl_ca_file                            | root.crt
+ ssl_cert_file                          | server.crt
+ ssl_ciphers                            | HIGH:MEDIUM:+3DES:!aNULL
+ ssl_crl_dir                            |
+ ssl_crl_file                           |
+ ssl_dh_params_file                     |
+ ssl_ecdh_curve                         | prime256v1
+ ssl_key_file                           | server.key
+ ssl_library                            | OpenSSL
+ ssl_max_protocol_version               |
+ ssl_min_protocol_version               | TLSv1.2
+ ssl_passphrase_command                 |
+ ssl_passphrase_command_supports_reload | off
+ ssl_prefer_server_ciphers              | on
+(15 rows)
+postgres-# \q
+```
+
+Distribute the CA certificate to every host, so clients can verify the server:
+
+```bash
+##### Copy /var/lib/pgsql/17/data/root.crt to /root/.postgresql/root.crt
+[root@cldr-mngr data]# mkdir -p /root/.postgresql/
+[root@cldr-mngr data]# cp /var/lib/pgsql/17/data/root.crt /root/.postgresql/root.crt
+
+##### Copy the root.crt to all other hosts with the help of ansible, for this copy the root.crt file to
+ipaserver/ansible control node
+[root@cldr-mngr data]# scp -r /root/.postgresql/root.crt root@jump:~/
+
+##### Login to ipaserver and copy the root.crt Postgres DB certificate file to all other nodes at
+location /root/.postgresql/ with the help of ansible.
+
+[root@jump ~]# ls -l
+[root@jump ~]# chmod 644 root.crt
+[root@jump ~]# ansible all -m shell -a "mkdir -p /root/.postgresql/ && chmod -R 755 /root/.postgresql/"
+[root@jump ~]# ansible all -m copy -a "src=root.crt dest=/root/.postgresql/root.crt"
+```
+
+Finally, prove that both strict SSL modes work:
+
+```bash
+[root@cldr-mngr data]# psql -h cldr-mngr.cldrsetup.local -p 5432 -U postgres "dbname=postgres
+sslmode=verify-full"
+Password for user postgres:
+psql (17.13)
+SSL connection (protocol: TLSv1.3, cipher: TLS_AES_256_GCM_SHA384, bits: 256, compression: off)
+Type "help" for help.
+postgres=#
+postgres=# \q
+
+[root@cldr-mngr data]# psql -h cldr-mngr.cldrsetup.local -p 5432 -U postgres "dbname=postgres
+sslmode=verify-ca"
+Password for user postgres:
+psql (17.13)
+SSL connection (protocol: TLSv1.3, cipher: TLS_AES_256_GCM_SHA384, bits: 256, compression: off)
+Type "help" for help.
+postgres=#
+postgres=# \q
+[root@cldr-mngr data]#
+```
+
+## 4. Create the databases and service accounts
+
+**Step 14.** Create databases and service accounts for components that require databases. Following components requires databases:
+
+- [https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/cdp-private-cloud-base-installation/topics/cdpdc-required-databases.html](https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/cdp-private-cloud-base-installation/topics/cdpdc-required-databases.html)
+- [https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/cdp-private-cloud-base-installation/topics/cdpdc-configuring-starting-postgresql-server.html](https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/cdp-private-cloud-base-installation/topics/cdpdc-configuring-starting-postgresql-server.html)
+
+> **Note:** The databases must be configured to support the PostgreSQL UTF8 character set encoding.
+
+> **Note:** Record the values you enter for database names, usernames, and passwords. The Cloudera Manager installation wizard requires this information to correctly connect to these databases.
+
+```sql
+##### Create CM DB and USERS
+[root@cldr-mngr data]# sudo -u postgres psql
+
+CREATE ROLE scm LOGIN PASSWORD 'scm';
+CREATE DATABASE scm OWNER scm ENCODING 'UTF8';
+GRANT ALL PRIVILEGES ON DATABASE scm TO scm;
+
+CREATE ROLE rman LOGIN PASSWORD 'rman';
+CREATE DATABASE rman OWNER rman ENCODING 'UTF8';
+GRANT ALL PRIVILEGES ON DATABASE rman TO rman;
+
+CREATE ROLE hue LOGIN PASSWORD 'hue';
+CREATE DATABASE hue OWNER hue ENCODING 'UTF8';
+GRANT ALL PRIVILEGES ON DATABASE hue TO hue;
+
+CREATE ROLE hive LOGIN PASSWORD 'hive';
+CREATE DATABASE hive OWNER hive ENCODING 'UTF8';
+GRANT ALL PRIVILEGES ON DATABASE hive TO hive;
+
+CREATE ROLE oozie LOGIN PASSWORD 'oozie';
+CREATE DATABASE oozie OWNER oozie ENCODING 'UTF8';
+GRANT ALL PRIVILEGES ON DATABASE oozie TO oozie;
+
+CREATE ROLE rangeradmin LOGIN PASSWORD 'rangeradmin';
+CREATE DATABASE ranger OWNER rangeradmin ENCODING 'UTF8';
+GRANT ALL PRIVILEGES ON DATABASE ranger TO rangeradmin;
+
+/*For Ranger KMS, use rangerkms rather than rangeradmin user.*/
+CREATE ROLE rangerkms LOGIN PASSWORD 'rangerkms';
+CREATE DATABASE rangerkms OWNER rangerkms ENCODING 'UTF8';
+GRANT ALL PRIVILEGES ON DATABASE rangerkms TO rangerkms;
+
+CREATE ROLE schemaregistry LOGIN PASSWORD 'schemaregistry';
+CREATE DATABASE schemaregistry OWNER schemaregistry ENCODING 'UTF8';
+GRANT ALL PRIVILEGES ON DATABASE schemaregistry TO schemaregistry;
+
+CREATE ROLE yqm LOGIN PASSWORD 'yqm';
+CREATE DATABASE yqm OWNER yqm ENCODING 'UTF8';
+GRANT ALL PRIVILEGES ON DATABASE yqm TO yqm;
+
+CREATE ROLE nifiregistry LOGIN PASSWORD 'nifiregistry';
+CREATE DATABASE nifiregistry OWNER nifiregistry ENCODING 'UTF8';
+GRANT ALL PRIVILEGES ON DATABASE nifiregistry TO nifiregistry;
+
+CREATE ROLE impala LOGIN PASSWORD 'impala';
+CREATE DATABASE impala OWNER impala ENCODING 'UTF8';
+GRANT ALL PRIVILEGES ON DATABASE impala TO impala;
+
+CREATE ROLE dataviz LOGIN PASSWORD 'dataviz';
+CREATE DATABASE dataviz OWNER dataviz ENCODING 'UTF8';
+GRANT ALL PRIVILEGES ON DATABASE dataviz TO dataviz;
+
+CREATE ROLE knox LOGIN PASSWORD 'knox';
+CREATE DATABASE knox OWNER knox ENCODING 'UTF8';
+GRANT ALL PRIVILEGES ON DATABASE knox TO knox;
+
+/*For the SMM metadata store, create a database called smm with the password smm:*/
+CREATE ROLE smm LOGIN PASSWORD 'smm';
+CREATE DATABASE smm OWNER smm ENCODING 'UTF8';
+GRANT ALL PRIVILEGES ON DATABASE smm TO smm;
+
+CREATE ROLE das LOGIN PASSWORD 'das';
+CREATE DATABASE das OWNER das ENCODING 'UTF8';
+GRANT ALL PRIVILEGES ON DATABASE das TO das;
+
+ALTER DATABASE hive SET standard_conforming_strings=off;
+ALTER DATABASE oozie SET standard_conforming_strings=off;
+SELECT 1;
+SHOW ssl;
+\q
+```
+
+```sql
+--- Alternate commands
+--- CREATE USER registry WITH PASSWORD 'registry';
+--- GRANT ALL PRIVILEGES ON DATABASE "registry" to registry;
+```
+
+> **Note:** If you plan to use Apache Ranger, please visit Configuring a PostgreSQL Database for Ranger or Ranger KMS for instructions on creating and configuring the Ranger database. **included above- install JDBC driver, create DB for ranger etc.**
+
+> **Note:** If you plan to use Schema Registry or Streams Messaging Manager, please visit Configuring the Database for Streaming Components for instructions on configuring the database. included above- create smm and registry db etc.
+
+> **Every password above is the role name.** The guide's lab build uses `scm/scm`, `hive/hive`, `ranger/rangeradmin` and so on throughout. Substitute real credentials before running any of this outside a disposable lab, and record them - the Cloudera Manager installation wizard asks for them later.
+
+## What comes next
+
+The database is up, encrypted and populated with the roles every service needs. The next step installs the Cloudera Manager Server packages and points them at it - see [Install Cloudera Manager Server](/installations/cdp-7-3-2/cdppvc/cm/server).

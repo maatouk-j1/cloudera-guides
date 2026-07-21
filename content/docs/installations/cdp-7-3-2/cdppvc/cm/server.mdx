@@ -1,0 +1,189 @@
+---
+title: Install Cloudera Manager Server
+topicTitle: Setup Cloudera Manager Server
+topicSlug: cdp-7-3-2/cdppvc/cm
+summary: Install the Cloudera Manager Server packages, point them at the SSL-enabled PostgreSQL database with scm_prepare_database.sh, start the service, and log in to the Cloudera Manager web UI to upload the CDP license.
+prevTitle: Setup Database for Cloudera Manager
+prevSlug: /installations/cdp-7-3-2/cdppvc/cm/database
+nextTitle: Enable Auto-TLS
+nextSlug: /installations/cdp-7-3-2/cdppvc/cm/auto-tls
+---
+
+The following procedure describes how to install Cloudera Manager and then using Cloudera Manager to install Cloudera Data Platform Cloudera on premises Base 7.3.2.
+
+Cloudera Manager, an end-to-end management application, is used to install and configure Cloudera on premises Base. During CDP Installation, Cloudera Manager's Wizard will help to install Hadoop services and any other role(s)/service(s) on all nodes using the following procedure:
+
+- Discovery of the cluster nodes
+- Configure the Cloudera parcel or package repositories
+- Install Hadoop, Cloudera Manager Agent (CMA) and Impala on all the cluster nodes.
+- Install the Oracle JDK or OpenJDK if it is not already installed across all the cluster nodes.
+- Assign various services to nodes.
+- Start the Hadoop services
+
+> **Note:** Please see the JAVA requirements for Cloudera on premises Base.
+
+---
+
+## 1. Install the server packages
+
+**Step 1.** Install the Cloudera Manager Server packages by running following command:
+
+```bash
+[root@cldr-mngr data]# dnf install -y cloudera-manager-agent cloudera-manager-daemons cloudera-manager-server
+
+# Recommendation: Always install agents via CM-UI only. Never install manually as it generates agent
+config as localhost and leads to heartbeat error. If HeartBeat error comes up, then run below command to
+update agent config (before start scm-server)
+[root@cldr-mngr data]# sed -i 's/server_host=localhost/server_host=cldr-mngr.cldrsetup.local/g'
+/etc/cloudera-scm-agent/config.ini
+```
+
+## 2. Point Cloudera Manager at the SSL-enabled database
+
+**Step 2.** Enable TLS 1.2 on Cloudera Manager Server. [https://docs.cloudera.com/cloudera-manager/7.11.3/installation/topics/cdpdc-enable-tls-12-cm-server.html](https://docs.cloudera.com/cloudera-manager/7.11.3/installation/topics/cdpdc-enable-tls-12-cm-server.html)
+
+**Step 3.** Import the PostgreSQL root certificate in Step 5.
+
+**Step 4.** If the Database host and Cloudera Manager Server host are located on the same machine, then perform the following steps to import the PostgreSQL database root certificate, as mentioned below in Step 5:
+
+**Step 5.** Go to the path where root certificates are stored. By default it is `/var/lib/pgsql/17/data/`.
+
+```bash
+##### Configure CDP to use SSL Enabled DB
+
+# Create a new directory in the following path by running the following command:
+[root@cldr-mngr data]# mkdir -p /var/lib/cloudera-scm-server/.postgresql
+[root@cldr-mngr data]# chmod 755 /var/lib/cloudera-scm-server/.postgresql
+[root@cldr-mngr data]# cd /var/lib/cloudera-scm-server/.postgresql
+
+# Copy the PostgreSQL root certificate to the new directory on the Cloudera Manager server host by running
+the following command:
+[root@cldr-mngr data]# cp /var/lib/pgsql/17/data/root.crt root.crt
+
+# Change the ownership of the root certificate by running the following command:
+[root@cldr-mngr data]# chown cloudera-scm: root.crt
+[root@cldr-mngr data]# ls -lt
+total 8
+-rw-r--r-- 1 cloudera-scm cloudera-scm 4639 Mar 5 16:59 root.crt
+
+# Include this root certificate path in the JDBC URL as follows:
+# jdbc:postgresql://<DB HOSTNAME>:<DB-PORT>/<DB
+NAME>?ssl=true&sslmode=verify-ca&sslrootcert=<PATH_TO_ROOT_CERTIFICATE>
+#
+jdbc:postgresql://cldr-mngr.cldrsetup.local:5432/scm?ssl=true&sslmode=verify-ca&sslrootcert=/var/lib/cloudera
+-scm-server/.postgresql/root.crt
+
+##### Changes required for Ranger SSL
+
+[root@cldr-mngr data]# cp /usr/share/java/postgresql-connector-java.jar
+/opt/cloudera/cm/lib/postgresql-connector.jar
+[root@cldr-mngr data]# unlink /opt/cloudera/cm/lib/postgresql-42.*.jar
+[root@cldr-mngr data]# ls -ltr /opt/cloudera/cm/lib/*postgres*
+[root@cldr-mngr data]# chmod 755 /var/lib/cloudera-scm-server/
+[root@cldr-mngr data]# ls -ltr /var/lib/cloudera-scm-server/.postgresql/*.crt
+[root@cldr-mngr data]#
+```
+
+**Step 6.** Run the `scm_prepare_database.sh` script to check and generate database configuration file for cloudera-manager i.e. `db.properties` and test the database connection between cloudera-manager and database server:
+
+```bash
+# Run the script to configure PostgreSQL with TLS 1.2 enabled
+###### sudo /opt/cloudera/cm/schema/scm_prepare_database.sh -h<DB HOSTNAME> --jdbc-url
+"jdbc:postgresql://db_server_host:db_port/db_name?ssl=true&sslmode=verify-ca&sslrootcert=<PATH_TO_DB_ROOT_
+CERTIFICATE>" <db_type:postgresql> <db_name> <db_role_user> <dn_user_password> --ssl
+[root@cldr-mngr ~]# sudo /opt/cloudera/cm/schema/scm_prepare_database.sh -h cldr-mngr.cldrsetup.local
+--jdbc-url
+"jdbc:postgresql://cldr-mngr.cldrsetup.local:5432/scm?ssl=true&sslmode=verify-ca&sslrootcert=/var/lib/clouder
+a-scm-server/.postgresql/root.crt" postgresql scm scm scm --ssl
+JAVA_HOME=/usr/lib/jvm/java-17-openjdk-17.0.14.0.7-1.el9.x86_64
+Verifying that we can write to /etc/cloudera-scm-server
+Creating SCM configuration file in /etc/cloudera-scm-server
+Executing:  /usr/lib/jvm/java-17-openjdk-17.0.14.0.7-1.el9.x86_64/bin/java -cp
+/usr/share/java/mysql-connector-java.jar:/usr/share/java/oracle-connector-java.jar:/usr/share/java/postgre
+sql-connector-java.jar:/opt/cloudera/cm/schema/../lib/* com.cloudera.enterprise.dbutil.DbCommandExecutor
+/etc/cloudera-scm-server/db.properties com.cloudera.cmf.db.
+[main] DbCommandExecutor               INFO A JDBC URL override was specified. Using this as the URL to
+connect to the database and overriding all other values.
+[main] DbCommandExecutor               INFO Successfully connected to database.
+All done, your SCM database is configured correctly!
+[root@cldr-mngr ~]#
+```
+
+**Step 7.** Upon successful connection, the `scm_prepare_database.sh` script writes the content of `/etc/cloudera-scm-server/db.properties` file as shown below, verify the content, should look like below:
+
+```ini
+[root@cldr-mngr ~]# cat /etc/cloudera-scm-server/db.properties
+# Auto-generated by scm_prepare_database.sh on Tue Mar 5 08:02:56 PM PST 2024
+#
+# For information describing how to configure the Cloudera Manager Server
+# to connect to databases, see the "Cloudera Manager Installation Guide."
+#
+com.cloudera.cmf.db.type=postgresql
+com.cloudera.cmf.db.host=cldr-mngr.cldrsetup.local
+com.cloudera.cmf.db.name=scm
+com.cloudera.cmf.db.user=scm
+com.cloudera.cmf.db.setupType=EXTERNAL
+com.cloudera.cmf.db.password=scm
+com.cloudera.cmf.orm.hibernate.connection.url=jdbc:postgresql://cldr-mngr.cldrsetup.local:5432/scm?ssl=tru
+e&sslmode=verify-ca&sslrootcert=/var/lib/cloudera-scm-server/.postgresql/root.crt
+[root@cldr-mngr ~]#
+```
+
+## 3. Start the server and open the web UI
+
+**Step 8.** Start the Cloudera Manager Server:
+
+```bash
+[root@cldr-mngr ~]# systemctl start cloudera-scm-server cloudera-scm-agent
+[root@cldr-mngr ~]# systemctl enable cloudera-scm-server cloudera-scm-agent
+[root@cldr-mngr ~]# systemctl status cloudera-scm-server cloudera-scm-agent -l
+##### Run the below command to check the logs of cloudera-scm-server starting up. Wait until you see the
+Started Jetty server message on the screen.
+[root@cldr-mngr ~]# sudo tail -f /var/log/cloudera-scm-server/cloudera-scm-server.log
+```
+
+**Step 9.** The Cloudera Manager should show the below logs before the UI actually comes up.
+
+![Cloudera Manager server log showing the two INFO lines from WebServerImpl - jetty.server.Server started, then Started Jetty server](/images/cdp-7-3-2/cdppvc/cm/server/jetty-started-log.png)
+
+**Step 10.** Once the Cloudera-Manager(CM) installation is completed, open the endpoint URL `http://<cldr-mgr_ip_addr>:7180/` of the Cloudera Manager WebUI and login to the CM using default credentials.
+
+![Cloudera Manager sign-in page with the admin username filled in, a masked password field, a Remember me checkbox and a Sign In button](/images/cdp-7-3-2/cdppvc/cm/server/cm-login.png)
+
+> **Note:** Default username and password for Cloudera Manager is **admin/admin**.
+
+**Step 11.** The Welcome to Cloudera Manager page appears. Since you would have received the CDP license before, select **Upload Cloudera Data Platform License** and upload the downloaded `.txt` or `.zip` file with the license information.
+
+![Welcome to Cloudera Manager page showing the Upload License File step with Upload Cloudera Data Platform License selected and an Upload License File button accepting .txt or .zip](/images/cdp-7-3-2/cdppvc/cm/server/cm-welcome-upload-license.png)
+
+**Step 12.** Activate your license for Cloudera Data Platform by clicking the **Continue** button. Click Continue.
+
+**Step 13.** The **Add Private Cloud Base Cluster** page appears. Next, we will enable AutoTLS for CM.
+
+## 4. Verify the agent before enabling Auto-TLS
+
+**Step 14.** As a prerequisite step to **enabling AutoTLS**, login to the cldr-mngr node as user root, and verify **cloudera-manager-agent** software is installed and running successfully. Verify the logs in below file:
+
+```bash
+[root@cldr-mngr ~]# tail -f /var/log/cloudera-scm-agent/cloudera-scm-agent.log
+
+##### Verify the same by running the below command. This should return the output stating the service is
+active and in running state.
+[root@cldr-mngr ~]# systemctl status cloudera-scm-agent -l
+```
+
+![Terminal output of systemctl status cloudera-scm-agent showing the Cloudera Manager Agent Service loaded, enabled and active (running)](/images/cdp-7-3-2/cdppvc/cm/server/scm-agent-status.png)
+
+## Version strings in this section
+
+Two of the values above do not match the [version table on the CDP 7.3.2 landing page](/installations/cdp-7-3-2), because the screenshots and one link are recycled from an older lab build. The prose and the version table win - do not read a version out of a screenshot.
+
+| Where | What the guide shows | What this build actually is |
+|:--|:--|:--|
+| Step 2 documentation link | `cloudera-manager/7.11.3/installation/...` | Cloudera Manager **7.13.2.0** |
+| Welcome screenshot in Step 11 | "Welcome to Cloudera Manager 7.11.3" | Cloudera Manager **7.13.2.0** |
+| Agent status screenshot in Step 14 | prompt reads `[root@cdpbase ...]`, dated 2023, running `python2` | the node in this build is `cldr-mngr` |
+
+## What comes next
+
+Cloudera Manager is up, licensed, and its agent is running on the `cldr-mngr` node. The **Add Private Cloud Base Cluster** page is waiting - but before building the cluster, turn on Auto-TLS so Cloudera Manager issues and manages certificates for every host. See [Enable Auto-TLS](/installations/cdp-7-3-2/cdppvc/cm/auto-tls).
