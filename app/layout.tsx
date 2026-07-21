@@ -9,6 +9,9 @@ import Sidebar from "@/components/ui/sidebar";
 import BackToTop from "@/components/ui/back-to-top";
 import ScrollToTop from "@/components/ui/scroll-to-top";
 
+// `metadata.icons` is not basePath-aware, so prepend it the same way mdx.tsx does
+const basePath = process.env.NODE_ENV === "production" ? "/cloudera-guides" : "";
+
 const aspekta = localFont({
   src: [
     {
@@ -36,7 +39,7 @@ export const metadata: Metadata = {
   title: "Cloudera CDP Guide",
   description: "CDP Private Cloud - Installations, Upgrades & Use Cases",
   icons: {
-    icon: "/favicon.ico",
+    icon: `${basePath}/favicon.ico`,
   },
 };
 
