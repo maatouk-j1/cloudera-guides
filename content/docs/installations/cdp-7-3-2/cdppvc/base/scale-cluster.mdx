@@ -1,0 +1,24 @@
+---
+title: Scale the Cluster (Optional)
+topicTitle: Setup CDP PvC Base Cluster
+topicSlug: cdp-7-3-2/cdppvc/base
+summary: Optional - how the role assignment changes as the cluster grows, from a small non-HA layout with dedicated Name Node and Secondary Name Node hosts up to a three-master High Availability layout with at least eight Data Nodes.
+prevTitle: Configure services with SSL/TLS-enabled Metadata Database
+prevSlug: /installations/cdp-7-3-2/cdppvc/base/services-metadata-db-tls
+nextTitle: Enable High Availability (Optional)
+nextSlug: /installations/cdp-7-3-2/cdppvc/base/high-availability
+---
+
+> **Optional - skip this step.** The source marks this section *"Optional - Skip this step"*. It is guidance on sizing, not a procedure to run: nothing here changes the cluster you built in [Data Lake Creation](/installations/cdp-7-3-2/cdppvc/base/data-lake).
+
+## How the role assignment scales
+
+The role assignment recommendation above is for clusters with at least 64 servers and in High Availability. For smaller clusters running without High Availability the recommendation is to dedicate one server for Name Node and a second server for secondary name node and YARN Resource Manager. For larger clusters larger than 16 nodes the recommendation is to dedicate one server each for name node, YARN Resource Manager and one more for running both Name Node (High Availability) and Resource Manager (High Availability) as in the table (no Secondary Name Node when in High Availability).
+
+> **Note:** For production clusters, it is recommended to set up Name Node and Resource manager in High Availability mode.
+
+This implies that there will be at least 3 master nodes, running the Name Node, YARN Resource manager, the failover counterpart being designated to run on another node and a third node that would have similar capacity as the other two nodes.
+
+All the three nodes will also need to run zookeeper and quorum journal node services. It is also recommended to have a minimum of 8 Data Nodes in a cluster. Please refer to the next section for details on how to enable HA.
+
+The "role assignment recommendation above" and "the table" both refer back to the 22-row host and role assignment table in [Data Lake Creation](/installations/cdp-7-3-2/cdppvc/base/data-lake) - this section adds no table of its own.

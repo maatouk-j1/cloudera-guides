@@ -1,0 +1,49 @@
+---
+title: Optimize Log Collection
+topicTitle: Setup CDP PvC Base Cluster
+topicSlug: cdp-7-3-2/cdppvc/base
+summary: Enable WebHDFS and add the two hdfs-site.xml append properties so the out_webhdfs Fluentd plugin can write Data Services log files into HDFS without them growing unchecked.
+prevTitle: Configure Services authentication for LDAP (Optional)
+prevSlug: /installations/cdp-7-3-2/cdppvc/base/ldap-auth
+nextTitle: CDP Data Services Installation (ECS)
+nextSlug: /installations/cdp-7-3-2/ds
+---
+
+> **Optional - skip this step.** The source marks this section *"Optional - Skip this Step"*. It is the last configuration change on the Base cluster before the Data Services install begins, and it is what makes Data Services diagnostic bundles usable, so treat "optional" as "do it unless you have a reason not to".
+
+## Configure HDFS properties to optimize log collection
+
+CDP uses "out_webhdfs" Fluentd output plugin to write records into HDFS, in the form of log files, which are then used by different Data Services to generate diagnostic bundles. Over time, these log files can grow in size. To optimize the size of logs that are captured and stored on HDFS, you must update certain HDFS configurations in the `hdfs-site.xml` file using Cloudera Manager.
+
+**Step 1.** Login to Cloudera Manager WebUI.
+
+**Step 2.** Go to **Cluster > HDFS Service > Configuration**.
+
+**Step 3.** Enable **WebHDFS**.
+
+![HDFS service Configuration tab searched for Enable WebHDFS, with the dfs.webhdfs.enabled property checked service-wide](/images/cdp-7-3-2/cdppvc/base/optimize-log-collection/enable-webhdfs.png)
+
+**Step 4.** Edit value for **HDFS Service Advanced Configuration Snippet (Safety Valve) for hdfs-site.xml** as shown in the screenshot below:
+
+| Name | Value |
+|:--|:--|
+| `dfs.support.append` | `true` |
+| `dfs.support.broken.append` | `true` |
+
+![HDFS Service Advanced Configuration Snippet (Safety Valve) for hdfs-site.xml, hdfs_service_config_safety_valve, carrying two name/value pairs - dfs.support.append set to true and dfs.support.broken.append set to true - both with empty descriptions and Final unchecked](/images/cdp-7-3-2/cdppvc/base/optimize-log-collection/hdfs-site-safety-valve.png)
+
+**Step 5.** Click **Save Changes**.
+
+**Step 6.** Restart the HDFS service.
+
+**Step 7.** Restart Cloudera on premises Base cluster.
+
+With the Base cluster restarted, the Base half of the deployment is complete. The next section moves on to [CDP Data Services Installation (ECS)](/installations/cdp-7-3-2/ds).
+
+## Version strings in this section
+
+| Where | This guide builds | Screenshot shows |
+|:--|:--|:--|
+| Cluster name, both captures | `PvCBaseCluster1` | `cdip-cdp` |
+
+Both captures are recycled from the same older lab as the LDAP screenshots on the previous page. The property names and values above come from the guide's own text and the capture's form fields, which agree.
