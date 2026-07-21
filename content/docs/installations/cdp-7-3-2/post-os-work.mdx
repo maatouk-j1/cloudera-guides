@@ -1,0 +1,1677 @@
+---
+title: Post OS Installation - Preliminary Work
+topicTitle: CDP 7.3.2
+topicSlug: cdp-7-3-2
+summary: Prepare the freshly installed RHEL 9.5 hosts - hostnames, FreeIPA, password-less login, Ansible, DNS zones, OS tuning and a local repository host - before installing Cloudera on premises Base and Data Services.
+prevTitle: Solution Summary
+prevSlug: /installations/cdp-7-3-2/summary
+nextTitle: Install CDP Private Cloud
+nextSlug: /installations/cdp-7-3-2/cdppvc
+---
+
+Before getting into the actual installation of Cloudera on premises Base and Data Services clusters, we need to prepare our machines and perform some steps to meet the prerequisites.
+
+Choose one of the nodes of the cluster or a separate node as the Ansible Admin/Controller Node for management. In this document, we configured the `ipaserver` for this purpose.
+
+---
+
+## 1. Configure static hostnames and prepare /etc/hosts
+
+**Step 1.** Set up the hostname for each individual node by logging in using the IP addresses provided by the infrastructure team, so we can refer to them with names instead of IP addresses for simplicity and ease of identification. While you are configuring the hostname, also follow Step 2 while logging in to each host. Replace your ORG DOMAIN.
+
+```bash
+[root@ipaserver ~]# sudo hostnamectl set-hostname --static ipaserver.cldrsetup.local
+[root@cldr-mngr ~]# sudo hostnamectl set-hostname --static cldr-mngr.cldrsetup.local
+
+[root@pvcbase-master ~]# sudo hostnamectl set-hostname --static pvcbase-master.cldrsetup.local
+[root@pvcbase-worker1 ~]# sudo hostnamectl set-hostname --static pvcbase-worker1.cldrsetup.local
+[root@pvcbase-worker2 ~]# sudo hostnamectl set-hostname --static pvcbase-worker2.cldrsetup.local
+[root@pvcbase-worker3 ~]# sudo hostnamectl set-hostname --static pvcbase-worker3.cldrsetup.local
+[root@pvcbase-worker3 ~]# sudo hostnamectl set-hostname --static pvcbase-worker4.cldrsetup.local
+
+[root@pvcecs-master ~]# sudo hostnamectl set-hostname --static pvcecs-master.cldrsetup.local
+[root@pvcecs-worker1 ~]# sudo hostnamectl set-hostname --static pvcecs-worker1.cldrsetup.local
+[root@pvcecs-worker2 ~]# sudo hostnamectl set-hostname --static pvcecs-worker2.cldrsetup.local
+[root@pvcecs-worker3 ~]# sudo hostnamectl set-hostname --static pvcecs-worker3.cldrsetup.local
+[root@pvcecs-worker4 ~]# sudo hostnamectl set-hostname --static pvcecs-worker4.cldrsetup.local
+[root@pvcecs-worker5 ~]# sudo hostnamectl set-hostname --static pvcecs-worker5.cldrsetup.local
+[root@pvcecs-worker6 ~]# sudo hostnamectl set-hostname --static pvcecs-worker6.cldrsetup.local
+[root@pvcecs-worker7 ~]# sudo hostnamectl set-hostname --static pvcecs-worker7.cldrsetup.local
+```
+
+**Step 2.** While you set the hostnames by logging in to each individual host, make sure to run `dnf update` and install the Python 3 dependencies as well, since these are fresh nodes.
+
+Python 3 can be installed manually on the bare minimum (`ipaserver` / Ansible admin) and can later be installed using Ansible on the rest of the nodes, if you do not want to install it on each individual node.
+
+> **Note:** By default, running `dnf update` on RHEL may upgrade the system to the latest minor release (for example, 9.6). If you want to stay on RHEL 9.5 and receive only security and bug-fix updates, lock the system to your current minor version.
+
+Solution 1 - Lock to your current minor version (RHEL 9.5). Run the following:
+
+```bash
+sudo subscription-manager release --set=9.5
+```
+
+Then verify:
+
+```bash
+sudo subscription-manager release --show
+```
+
+Expected output:
+
+```text
+Release: 9.5
+```
+
+This locks your system repositories to RHEL 9.5 content - updates will stay within 9.5 and not move to 9.6.
+
+```bash
+[root@ipaserver ~]# sudo dnf -y update
+[root@ipaserver ~]# sudo dnf -y install wget telnet net-tools bind-utils iproute traceroute nc
+```
+
+```bash
+##### Verify If Python3 and Pip3 are already installed.
+[root@ipaserver ~]# python3 --version
+[root@ipaserver ~]# pip3 --version
+
+##### Install python3.9 - ON ALL NODES (if not Present already):
+##### Check if Python could be installed using dnf command directly:
+[root@ipaserver ~]# sudo dnf -y install python39 python3-pip
+##### If Python could not be installed using dnf command directly:
+[root@ipaserver ~]# sudo dnf -y groupinstall "Development Tools"
+[root@ipaserver ~]# sudo dnf -y install epel-release openssl-devel bzip2-devel libffi-devel xz-devel
+[root@ipaserver ~]# VERSION=3.9.22
+[root@ipaserver ~]# wget https://www.python.org/ftp/python/$VERSION/Python-$VERSION.tgz
+[root@ipaserver ~]# tar xvf Python-$VERSION.tgz
+[root@ipaserver ~]# cd Python-$VERSION/
+[root@ipaserver ~]# ./configure --enable-optimizations
+[root@ipaserver ~]# sudo make altinstall
+[root@ipaserver ~]# python3 --version
+[root@ipaserver ~]# cd -
+[root@ipaserver ~]# rm -rvf Python-$VERSION/ Python-$VERSION.tgz
+
+##### Install pip3 - ON ALL NODES (if not Present already):
+[root@ipaserver ~]# dnf install -y python3-pip
+[root@ipaserver ~]# pip3 install --upgrade pip
+[root@ipaserver ~]# pip3 --version
+[root@ipaserver ~]# pip3 install psycopg2-binary
+
+##### Verify Python and Pip Versions
+[root@ipaserver ~]# python3 -V
+Python 3.9.22
+[root@ipaserver ~]# pip3 --version
+```
+
+**Step 3.** Log in to the `ipaserver` node using the IP provided previously by the infrastructure team.
+
+```bash
+[root@ipaserver ~]# ssh 172.31.24.240
+```
+
+**Step 4.** Set up `/etc/hosts` on the `ipaserver` node; this is a pre-configuration to set up the private DNS shown in the next section. In a large-scale, production-grade deployment, a DNS server setup is highly recommended.
+
+Populate the hosts file with IP addresses and corresponding hostnames on the `ipaserver` node by taking the private IP of each machine and adding an entry in `/etc/hosts` as follows. All of the IPs mentioned below are private IP addresses. We will later copy the same hosts file to all other nodes with the help of Ansible.
+
+```bash
+[root@ipaserver ~]# sudo vi /etc/hosts
+127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
+::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+
+# Free-IPA Server
+172.31.24.240 ipaserver.cldrsetup.local ipaserver
+
+# Cloudera Manager Server
+172.31.1.38 cldr-mngr.cldrsetup.local cldr-mngr
+172.31.1.38 postgresdb.cldrsetup.local postgresdb
+
+# PvC Base Cluster Nodes
+172.31.1.34 pvcbase-master.cldrsetup.local pvcbase-master
+172.31.1.35 pvcbase-worker1.cldrsetup.local pvcbase-worker1
+172.31.1.36 pvcbase-worker2.cldrsetup.local pvcbase-worker2
+172.31.1.37 pvcbase-worker3.cldrsetup.local pvcbase-worker3
+
+# PvC Data Services ECS Cluster Nodes
+172.31.30.239 pvcecs-master.cldrsetup.local pvcecs-master
+172.31.22.43 pvcecs-worker1.cldrsetup.local pvcecs-worker1
+172.31.30.249 pvcecs-worker2.cldrsetup.local pvcecs-worker2
+172.31.26.24 pvcecs-worker3.cldrsetup.local pvcecs-worker3
+172.31.24.198 pvcecs-worker4.cldrsetup.local pvcecs-worker4
+172.31.24.53 pvcecs-worker5.cldrsetup.local pvcecs-worker5
+172.31.22.44 pvcecs-worker6.cldrsetup.local pvcecs-worker6
+172.31.30.250 pvcecs-worker7.cldrsetup.local pvcecs-worker7
+172.31.26.25 pvcecs-worker8.cldrsetup.local pvcecs-worker8
+172.31.24.199 pvcecs-worker9.cldrsetup.local pvcecs-worker9
+172.31.24.54 pvcecs-worker10.cldrsetup.local pvcecs-worker10
+```
+
+**Step 5.** Perform the basic validation of the OS version and hostname/IP configuration.
+
+```bash
+## Ensure that the OS version is RHEL 9.x.
+## To verify the version, run the below command. It should return RedHat Linux version 9.x.
+
+[root@ipaserver ~]# cat /etc/*rel* |grep -E 'NAME|VERSION'
+NAME="Red Hat Enterprise Linux"
+VERSION="9.4 (Plow)"
+VERSION_ID="9.4"
+PRETTY_NAME="Red Hat Enterprise Linux 9.4 (Plow)"
+CPE_NAME="cpe:/o:redhat:enterprise_linux:9::baseos"
+REDHAT_BUGZILLA_PRODUCT_VERSION=9.4
+REDHAT_SUPPORT_PRODUCT_VERSION="9.4"
+
+## Verify Hostname and IP addresses
+[root@ipaserver ~]# hostname -f
+ipaserver.cldrsetup.local
+
+[root@ipaserver ~]# hostname -i
+172.31.24.240
+
+[root@ipaserver ~]# cat /etc/hostname
+ipaserver.cldrsetup.local
+
+[root@ipaserver ~]# ip addr show eth0 | grep -e inet
+    inet 10.0.2.2/24 brd 10.0.2.255 scope global dynamic noprefixroute eth0
+    inet6 fe80::c3:16ff:fe00:9/64 scope link noprefixroute
+
+[root@ipaserver ~]# ip addr show eth1 | grep -e inet
+    inet 172.31.24.240/24 brd 172.31.1.255 scope global dynamic noprefixroute eth1
+    inet6 fe80::65b3:25c6:8b2a:b4ae/64 scope link noprefixroute
+
+[root@ipaserver ~]# ip addr show |grep $(hostname -i)
+    inet 172.31.24.240/24 brd 172.31.1.255 scope global dynamic noprefixroute eth1
+
+[root@ipaserver ~]# host -v -t A $(hostname) | grep -A2 ANSWER
+;; flags: qr aa rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 0
+
+;; QUESTION SECTION:
+--
+;; ANSWER SECTION:
+ipaserver.cldrsetup.local. 1200                            IN       A   172.31.24.240
+
+[root@ipaserver ~]#
+[root@ipaserver ~]# uname -a
+Linux ipaserver.cldrsetup.local 5.14.0-427.26.1.el9_4.x86_64 #1 SMP PREEMPT_DYNAMIC Fri Jul 5 11:34:54
+EDT 2024 x86_64 x86_64 x86_64 GNU/Linux
+```
+
+## 2. Set up the ipaserver
+
+Set up the `ipaserver`, which includes the private DNS server, MIT Kerberos KDC, Directory Server, Chrony, Dogtag certificate system and SSSD.
+
+> **Note:** You can skip this procedure if you are going with an existing AD server instead of FreeIPA.
+
+In this step, a private DNS server and other services such as KDC and Directory Service are configured on the `ipaserver`. Note that the hostnames used in this installation can be modified as per your requirements. Follow the on-screen instructions and provide the inputs for the parameters as per the table below.
+
+| Parameter | Value |
+|:--|:--|
+| `Server host name [ipaserver.cldrsetup.local]:` | `ipaserver.cldrsetup.local` |
+| `Please confirm the domain name [cldrsetup.local]:` | `cldrsetup.local` |
+| `Please provide a realm name [CLDRSETUP.LOCAL]:` | `CLDRSETUP.LOCAL` |
+| `Directory Manager password:` | `<Password For Directory Manager>` (`cloudera123`) |
+| `Password (confirm):` | `<Confirm Password>` (`cloudera123`) |
+| `IPA admin password:` | `<Password For IPA Admin>` (`cloudera123`) |
+| `Password (confirm):` | `<Confirm Password>` (`cloudera123`) |
+| `Do you want to configure DNS forwarders? [yes]:` | `<ENTER>` |
+| `Do you want to search for missing reverse zones?[yes]:` | `no` |
+| `NetBIOS domain name [CLDRSETUP]:` | `CLDRSETUP` |
+| `Do you want to configure chrony with NTP server or pool address? [no]:` | `yes` |
+| `Enter NTP source server addresses separated by comma, or press Enter to skip:` | `<ENTER>` |
+| `Enter a NTP source pool address, or press Enter to skip:` | `<ENTER>` |
+| `Continue to configure the system with these values?[no]:` | `yes` |
+
+Please keep the same password for both the Directory Manager and the IPA admin so that there is no confusion in future while using the same. Also, note down the password separately.
+
+**Step 1.** Log in to the `ipaserver` node and install the `ipa-server` packages.
+
+```bash
+# Install ipa server dependencies packages through dnf using the below command.
+[root@ipaserver ~]# sudo dnf install -y ipa-server bind bind-dyndb-ldap ipa-server-dns firewalld
+
+# If required, use below command to set the java version
+[root@ipaserver ~]# update-alternatives --config java
+
+# Configure ipa-server and DNS by using command: ipa-server-install --setup-dns
+[root@ipaserver ~]# ipa-server-install --setup-dns
+The log file for this installation can be found in /var/log/ipaserver-install.log
+==============================================================================
+This program will set up the IPA Server.
+Version 4.11.0
+
+This includes:
+  * Configure a stand-alone CA (dogtag) for certificate management
+  * Configure the NTP client (chronyd)
+  * Create and configure an instance of Directory Server
+  * Create and configure a Kerberos Key Distribution Center (KDC)
+  * Configure Apache (httpd)
+  * Configure DNS (bind)
+  * Configure SID generation
+  * Configure the KDC to enable PKINIT
+
+To accept the default shown in brackets, press the Enter key.
+
+Enter the fully qualified domain name of the computer
+on which you're setting up server software. Using the form
+<hostname>.<domainname>
+Example: ipaserver.cldrsetup.local
+
+Server host name [ipaserver.cldrsetup.local]: <ENTER>
+
+Warning: skipping DNS resolution of host ipaserver.cldrsetup.local
+The domain name has been determined based on the host name.
+
+Please confirm the domain name [cldrsetup.local]: <ENTER>
+
+The kerberos protocol requires a Realm name to be defined.
+This is typically the domain name converted to uppercase.
+
+Please provide a realm name [CLDRSETUP.LOCAL]: <ENTER>
+Certain directory server operations require an administrative user.
+This user is referred to as the Directory Manager and has full access
+to the Directory for system management tasks and will be added to the
+instance of directory server created for IPA.
+The password must be at least 8 characters long.
+
+Directory Manager password: <cloudera123>
+Password (confirm): <cloudera123>
+
+The IPA server requires an administrative user, named 'admin'.
+This user is a regular system account used for IPA server administration.
+
+IPA admin password: <cloudera123>
+Password (confirm): <cloudera123>
+
+Checking DNS domain cldrsetup.local., please wait ...
+Do you want to configure DNS forwarders? [yes]: no
+No DNS forwarders configured
+Do you want to search for missing reverse zones? [yes]: no
+Trust is configured but no NetBIOS domain name found, setting it now.
+Enter the NetBIOS name for the IPA domain.
+Only up to 15 uppercase ASCII letters, digits and dashes are allowed.
+Example: EXAMPLE.
+
+NetBIOS domain name [CLDRSETUP]: <ENTER>
+
+Do you want to configure chrony with NTP server or pool address? [no]: yes
+Enter NTP source server addresses separated by comma, or press Enter to skip: <ENTER>
+Enter a NTP source pool address, or press Enter to skip: <ENTER>
+
+The IPA Master Server will be configured with:
+Hostname:       ipaserver.cldrsetup.local
+IP address(es): 172.31.24.240
+Domain name:    cldrsetup.local
+Realm name:     CLDRSETUP.LOCAL
+
+The CA will be configured with:
+Subject DN:   CN=Certificate Authority,O=CLDRSETUP.LOCAL
+Subject base: O=CLDRSETUP.LOCAL
+Chaining:     self-signed
+
+BIND DNS server will be configured to serve IPA domain with:
+Forwarders:       No forwarders
+Forward policy:   only
+Reverse zone(s): No reverse zone
+
+Continue to configure the system with these values? [no]: yes
+
+The following operations may take some minutes to complete.
+Please wait until the prompt is returned.
+
+Disabled p11-kit-proxy
+Synchronizing time
+No SRV records of NTP servers were found and no NTP server or pool address was provided.
+Using default chrony configuration.
+Attempting to sync time with chronyc.
+Time synchronization was successful.
+Configuring directory server (dirsrv). Estimated time: 30 seconds
+  [1/43]: creating directory server instance
+Validate installation settings ...
+Create file system structures ...
+Perform SELinux labeling ...
+Create database backend: dc=cldrsetup,dc=local ...
+Perform post-installation tasks ...
+  [2/43]: tune ldbm plugin
+  [3/43]: adding default schema
+—-----
+—-----
+—-----
+—-----
+—-----
+  [6/8]: restarting Directory Server to take MS PAC and LDAP plugins changes into account
+  [7/8]: adding fallback group
+  [8/8]: adding SIDs to existing users and groups
+This step may take a considerable amount of time, please wait..
+Done.
+Configuring client side components
+This program will set up an IPA client.
+Version 4.11.0
+
+Using the existing certificate '/etc/ipa/ca.crt'.
+Client hostname: ipaserver.cldrsetup.local
+Realm: CLDRSETUP.LOCAL
+DNS Domain: cldrsetup.local
+IPA Server: ipaserver.cldrsetup.local
+BaseDN: dc=cldrsetup,dc=local
+
+Configured /etc/sssd/sssd.conf
+Systemwide CA database updated.
+Adding SSH public key from /etc/ssh/ssh_host_rsa_key.pub
+Adding SSH public key from /etc/ssh/ssh_host_ecdsa_key.pub
+Adding SSH public key from /etc/ssh/ssh_host_ed25519_key.pub
+SSSD enabled
+Configured /etc/openldap/ldap.conf
+Configured /etc/ssh/ssh_config
+Configured /etc/ssh/sshd_config.d/04-ipa.conf
+Configuring cldrsetup.local as NIS domain.
+Client configuration complete.
+The ipa-client-install command was successful
+
+==============================================================================
+Setup complete
+
+Next steps:
+        1. You must make sure these network ports are open:
+                TCP Ports:
+                  * 80, 443: HTTP/HTTPS
+                  * 389, 636: LDAP/LDAPS
+                  * 88, 464: kerberos
+                  * 53: bind
+                UDP Ports:
+                  * 88, 464: kerberos
+                  * 53: bind
+                  * 123: ntp
+
+             2. You can now obtain a kerberos ticket using the command: 'kinit admin'
+                This ticket will allow you to use the IPA tools (e.g., ipa user-add)
+                and the web user interface.
+
+Be sure to back up the CA certificates stored in /root/cacert.p12
+These files are required to create replicas. The password for these
+files is the Directory Manager password
+The ipa-server-install command was successful
+[root@ipaserver ~]#
+
+##### Disable the firewall on ipaserver to be able to connect from rest of hosts
+[root@ipaserver ~]# systemctl stop firewalld
+[root@ipaserver ~]# systemctl disable firewalld
+Removed "/etc/systemd/system/multi-user.target.wants/firewalld.service".
+Removed "/etc/systemd/system/dbus-org.fedoraproject.FirewallD1.service".
+[root@ipaserver ~]#
+
+##### If Fail, do: If the installation fails, then run the below command to uninstall and retry with the
+above command for installation.
+[root@ipaserver ~]# ipa-server-install --uninstall
+[root@ipaserver ~]# ipa-server-install --setup-dns (again)
+```
+
+The setup will take 10-15 minutes. If everything goes fine, you should get an output similar to the screenshot below.
+
+![Terminal output at the end of ipa-server-install showing "The ipa-client-install command was successful", "Setup complete" and the list of TCP and UDP ports that must be open](/images/cdp-7-3-2/post-os-work/ipa-server-install-setup-complete.png)
+
+**Step 2.** Verify the KDC setup: check that the Kerberos ticket is working fine by generating a ticket for the `admin` user.
+
+```bash
+##### Run the kinit admin command to authenticate as admin and enter the directory password provided during
+ipa server installation. The command should generate the ticket and should be listed by executing klist -e.
+
+[root@ipaserver ~]# kinit admin
+Password for admin@CLDRSETUP.LOCAL: <cloudera123>
+
+[root@ipaserver ~]# klist -e
+Ticket cache: KCM:0
+Default principal: admin@CLDRSETUP.LOCAL
+
+Valid starting       Expires              Service principal
+05/13/2024 04:07:15 05/14/2024 03:30:48 krbtgt/CLDRSETUP.LOCAL@CLDRSETUP.LOCAL
+        Etype (skey, tkt): aes256-cts-hmac-sha384-192, aes256-cts-hmac-sha384-192
+
+##### try kinit admin@CLDRSETUP.LOCAL
+##### (if fails anytime, run below commands)
+[root@ipaserver ~]# ipactl stop && ipactl start && ipactl status
+
+##### Verify the status of ipa services installed
+
+[root@ipaserver ~]# ipactl status
+Directory Service: RUNNING
+krb5kdc Service: RUNNING
+kadmin Service: RUNNING
+named Service: RUNNING
+httpd Service: RUNNING
+ipa-custodia Service: RUNNING
+pki-tomcatd Service: RUNNING
+ipa-otpd Service: RUNNING
+ipa-dnskeysyncd Service: RUNNING
+ipa: INFO: The ipactl command was successful
+```
+
+This command should return the below output:
+
+![Terminal showing kinit admin followed by klist -e, listing a valid krbtgt ticket for the admin principal](/images/cdp-7-3-2/post-os-work/kinit-klist-ipaserver.png)
+
+## 3. Set up password-less login
+
+To manage all the nodes in a cluster from the admin/controller node, password-less login needs to be set up. It assists in automating common tasks with Ansible and shell scripts without having to use passwords.
+
+Enable password-less login across all the nodes when Red Hat Linux is installed across all the nodes in the cluster.
+
+**Step 1.** Log in to the `ipaserver` node.
+
+```bash
+[root@ipaserver ~]# ssh 172.31.24.240
+```
+
+**Step 2.** Run the `ssh-keygen` command to create both the public and private SSH key pair on the Ansible controller node.
+
+```bash
+[root@ipaserver ~]# ssh-keygen -N '' -f ~/.ssh/id_rsa
+[root@ipaserver ~]# ls -l /root/.ssh
+[root@ipaserver ~]# chmod 600 /root/.ssh/id_rsa
+```
+
+![Terminal running ssh-keygen -t rsa -f /root/.ssh/id_rsa_new and prompting for a passphrase](/images/cdp-7-3-2/post-os-work/ssh-keygen-prompt.png)
+
+**Step 3.** Run the following commands from the Ansible controller / `ipaserver` node to copy the public key `id_rsa.pub` to all the nodes of the cluster. `ssh-copy-id` appends the keys to the remote hosts' `.ssh/authorized_keys`.
+
+> Not applicable on AWS EC2 - this needs to be done manually, as password-based authentication for non-root users is disabled there.
+
+```bash
+[root@ipaserver ~]# for i in {1}; do echo "copying ipaserver.cldrsetup.local"; ssh-copy-id -i
+~/.ssh/id_rsa.pub root@ipaserver.cldrsetup.local; done;
+[root@ipaserver ~]# for i in {1}; do echo "copying cldr-mngr.cldrsetup.local"; ssh-copy-id -i
+~/.ssh/id_rsa.pub root@cldr-mngr.cldrsetup.local; done;
+[root@ipaserver ~]# for i in {1}; do echo "copying pvcbase-master.cldrsetup.local"; ssh-copy-id -i
+~/.ssh/id_rsa.pub root@pvcbase-master.cldrsetup.local; done;
+[root@ipaserver ~]# for i in {1..3}; do echo "copying pvcbase-worker$i.cldrsetup.local"; ssh-copy-id -i
+~/.ssh/id_rsa.pub root@pvcbase-worker$i.cldrsetup.local; done;
+[root@ipaserver ~]# for i in {1}; do echo "copying pvcecs-master.cldrsetup.local"; ssh-copy-id -i
+~/.ssh/id_rsa.pub root@pvcecs-master.cldrsetup.local; done;
+[root@ipaserver ~]# for i in {1..10}; do echo "copying pvcecs-worker$i.cldrsetup.local"; ssh-copy-id -i
+~/.ssh/id_rsa.pub root@pvcecs-worker$i.cldrsetup.local; done;
+
+##### Alternate way is to add pub key to authorized_keys file manually on ipaserver node and copy the entire
+.ssh directory to all other NODES; otherwise login into each hosts and manually update authorized_keys:
+
+[root@ipaserver ~]# cat /root/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys
+
+##### copy the entire .ssh directory to all NODES
+[root@ipaserver ~]# scp -r /root/.ssh root@cldr-mngr.cldrsetup.local:/root/.
+##### (provide root user password when prompted)
+
+##### Download the id_rsa and id_rsa.pub to your local machine by either using scp or sftp (as it will be
+required later)
+```
+
+**Step 4.** Enter `yes` for *Are you sure you want to continue connecting (yes/no)?*
+
+**Step 5.** Enter the password of the remote host.
+
+## 4. Set up Ansible
+
+We will be using the Bastion host as the Ansible controller/admin node.
+
+**Step 1.** Log in to the Bastion node and install `ansible-core`.
+
+```bash
+[root@jump ~]# dnf install -y ansible-core
+[root@jump ~]# ansible --version
+ansible [core 2.14.14]
+  config file = /etc/ansible/ansible.cfg
+  configured module search path = ['/root/.ansible/plugins/modules',
+'/usr/share/ansible/plugins/modules']
+  ansible python module location = /usr/lib/python3.9/site-packages/ansible
+  ansible collection location = /root/.ansible/collections:/usr/share/ansible/collections
+  executable location = /bin/ansible
+  python version = 3.9.22 (main, Jan 24 2024, 00:00:00) [GCC 11.4.1 20231218 (Red Hat 11.4.1-3)]
+(/usr/bin/python3)
+  jinja version = 3.1.2
+  libyaml = True
+[root@jump ~]# echo "export ANSIBLE_HOST_KEY_CHECKING=False" >> ~/.bashrc && source ~/.bashrc
+```
+
+**Step 2.** Prepare the host inventory file for Ansible as shown below. Various host groups have been created based on any specific installation requirements of certain hosts.
+
+```ini
+[root@jump ~]# vi /etc/ansible/hosts
+
+[admin]
+ipaserver.cldrsetup.local
+
+[ipaserver]
+ipaserver.cldrsetup.local
+
+[cldr-mngr]
+cldr-mngr.cldrsetup.local
+
+[namenodes]
+pvcbase-master.cldrsetup.local
+
+[datanodes]
+pvcbase-worker1.cldrsetup.local
+pvcbase-worker2.cldrsetup.local
+pvcbase-worker3.cldrsetup.local
+
+[ecsmasternodes]
+pvcecs-master.cldrsetup.local
+
+[ecsnodes]
+pvcecs-worker1.cldrsetup.local
+pvcecs-worker2.cldrsetup.local
+pvcecs-worker3.cldrsetup.local
+pvcecs-worker4.cldrsetup.local
+pvcecs-worker5.cldrsetup.local
+pvcecs-worker6.cldrsetup.local
+pvcecs-worker7.cldrsetup.local
+pvcecs-worker8.cldrsetup.local
+pvcecs-worker9.cldrsetup.local
+pvcecs-worker10.cldrsetup.local
+
+[nodes]
+pvcbase-master.cldrsetup.local
+pvcbase-worker1.cldrsetup.local
+pvcbase-worker2.cldrsetup.local
+pvcbase-worker3.cldrsetup.local
+pvcecs-master.cldrsetup.local
+pvcecs-worker1.cldrsetup.local
+pvcecs-worker2.cldrsetup.local
+pvcecs-worker3.cldrsetup.local
+pvcecs-worker4.cldrsetup.local
+pvcecs-worker5.cldrsetup.local
+pvcecs-worker6.cldrsetup.local
+pvcecs-worker7.cldrsetup.local
+pvcecs-worker8.cldrsetup.local
+pvcecs-worker9.cldrsetup.local
+pvcecs-worker10.cldrsetup.local
+```
+
+**Step 3.** Verify the host group by running the following command.
+
+```bash
+[root@jump ~]# ansible datanodes -m ping
+pvcbase-worker2.cldrsetup.local | SUCCESS => {
+    "ansible_facts": {
+        "discovered_interpreter_python": "/usr/bin/python3"
+    },
+    "changed": false,
+    "ping": "pong"
+}
+pvcbase-worker3.cldrsetup.local | SUCCESS => {
+    "ansible_facts": {
+        "discovered_interpreter_python": "/usr/bin/python3"
+    },
+    "changed": false,
+    "ping": "pong"
+}
+pvcbase-worker1.cldrsetup.local | SUCCESS => {
+    "ansible_facts": {
+        "discovered_interpreter_python": "/usr/bin/python3"
+    },
+    "changed": false,
+    "ping": "pong"
+}
+```
+
+**Step 4.** Copy the `/etc/hosts` file to each node that is part of the Cloudera deployment, to resolve FQDNs across the cluster.
+
+```bash
+[root@jump ~]# ansible all -m copy -a "src=/etc/hosts dest=/etc/hosts"
+```
+
+## 5. Set up network configuration files and DNS zones/records
+
+**Step 1.** Update the network configuration file `/etc/resolv.conf` on the IPA / AD server to use the name server created in the previous steps. We will later copy this file to the rest of the nodes using Ansible - after installing `freeipa-client`, as it overrides `resolv.conf` and may lead to rework - to make them able to resolve FQDNs across the cluster.
+
+Open the file `/etc/resolv.conf` in edit mode and add the following. Make sure the new entry is added above any other `nameserver` entry. The contents of the file must look similar to the below.
+
+> **Note:** Make sure that the `/etc/resolv.conf` file on the ECS hosts contains a maximum of 2 active search domains. See [Known issues in ECS environments](https://docs.cloudera.com/data-warehouse/1.5.5/release-notes/topics/dw-private-cloud-known-issues-ecs-environments.html).
+
+```bash
+[root@jump ~]# cp /etc/resolv.conf /etc/resolv.conf.orig
+[root@jump ~]# cat /etc/resolv.conf
+search ap-southeast-1.compute.internal cldrsetup.local
+nameserver 172.31.24.240 # PrivateIP of FreeIPA /AD Server must be first nameserver entry after search
+nameserver 172.31.0.2
+nameserver 127.0.0.1
+[root@jump ~]#
+```
+
+**Step 2.** Update the network configuration file `/etc/sysconfig/network` on the IPA server to use the name server created in the previous steps. We will later copy this file to the rest of the nodes to make them able to resolve FQDNs across the cluster.
+
+The changes to `/etc/resolv.conf` above are temporary and would get overwritten if the machine is rebooted. In order to keep the nameserver entry persistent, open the file `/etc/sysconfig/network` in edit mode and add the entries below.
+
+```bash
+[root@jump ~]# cp /etc/sysconfig/network /etc/sysconfig/network.orig
+[root@jump ~]# cat /etc/sysconfig/network
+NETWORKING=yes
+NISDOMAIN=cldrsetup.local             # our DNS DOMAIN
+DNS1=172.31.24.240            # PRIVATE_IP_OF_IPASERVER / AD Server
+NOZEROCONF=yes
+[root@jump ~]#
+```
+
+![Contents of /etc/sysconfig/network showing NETWORKING, NISDOMAIN, DNS1 and NOZEROCONF entries](/images/cdp-7-3-2/post-os-work/sysconfig-network.png)
+
+**Step 3.** Copy the `/etc/resolv.conf` file to each node to make them able to resolve FQDNs across the cluster.
+
+```bash
+[root@ipaserver ~]# ansible all -m copy -a "src=/etc/resolv.conf dest=/etc/resolv.conf" --become
+```
+
+**Step 4.** Copy the `/etc/sysconfig/network` file to each node to make them able to resolve FQDNs across the cluster. `/etc/resolv.conf` changes may vanish after a reboot, so to persist those changes we need the configuration below.
+
+```bash
+[root@ipaserver ~]# ansible all -m copy -a "src=/etc/sysconfig/network dest=/etc/sysconfig/network" --become
+```
+
+**Step 5.** Update the network config to make sure DNS entries persist, even after reboot.
+
+```bash
+# Extract DNS entries
+[root@jump ~]# grep '^nameserver' /etc/resolv.conf | awk '{print "DNS" NR "=" $2}' > /tmp/dns_entries.txt
+
+# Update ifcfg-eth0 with DNS entries
+[root@jump ~]# while IFS= read -r line; do
+  ansible all -m lineinfile -a "path=/etc/sysconfig/network-scripts/ifcfg-eth0 line='${line}' state=present
+backup=true" --become
+done < /tmp/dns_entries.txt
+
+# Clean up
+[root@jump ~]# rm -vf /tmp/dns_entries.txt
+```
+
+**Step 6.** Set up the reverse DNS zone on the `ipaserver` / AD server. `--name-from-ip` is the VPC CIDR. In this step we set up a reverse DNS zone on the FreeIPA server for reverse lookup.
+
+> **Note:** In case of an AD server, this would already be created/present. No need to perform the below steps - jump to Step 8.
+
+```bash
+##### Take the CIDR block of the network in which the instances are created and create a reverse DNS zone by
+executing the below command on the IPA Server machine.
+##### ipa dnszone-add --name-from-ip=<YOUR_VPC_CIDR>
+
+##### If your VPC has a CIDR 172.16.0.0/16, then the command looks as below.
+
+[root@ipaserver ~]# ipa dnszone-add --name-from-ip=172.31.0.0/16
+Zone name [31.172.in-addr.arpa.]:
+  Zone name: 31.172.in-addr.arpa.
+  Active zone: True
+  Authoritative nameserver: ipaserver.cldrsetup.local.
+  Administrator e-mail address: hostmaster
+  SOA serial: 1715598489
+  SOA refresh: 3600
+  SOA retry: 900
+  SOA expire: 1209600
+  SOA minimum: 3600
+  BIND update policy: grant CLDRSETUP.LOCAL krb5-subdomain 31.172.in-addr.arpa. PTR;
+  Dynamic update: False
+  Allow query: any;
+  Allow transfer: none;
+
+##### Once you execute the above command, accept the default value by hitting the enter key. It will create a
+reverse DNS zone by name 16.172.in-addr.arpa. (with a trailing dot)
+```
+
+![Terminal output of ipa dnszone-add --name-from-ip=172.31.0.0/16 showing the created 31.172.in-addr.arpa. reverse zone and its SOA settings](/images/cdp-7-3-2/post-os-work/ipa-dnszone-add.png)
+
+**Step 7.** Disable the krb5 ccache config and verify.
+
+```bash
+##### OPEN /etc/krb5.conf on IPASERVER and comment ccache conf: (this step is not needed on any cluster node,
+as CDP will manage the krb5.conf in further steps config)
+#### After the setup is complete, we need to make a kerberos config change which gets enabled automatically
+post the ipa server setup.
+
+##### Open the file /etc/krb5.conf in edit mode and comment out the line related to ccache_name as shown
+below.
+[root@ipaserver ~]# vi /etc/krb5.conf
+##### Comment the below ccache config
+#default_ccache_name = KEYRING:persistent:%{uid}
+
+##### After any changes of /etc/krb5.conf anytime, do run the below commands to restart all the IPA services.
+[root@ipaserver ~]# ipactl restart
+```
+
+![Contents of /etc/krb5.conf with the default_ccache_name = KEYRING:persistent line commented out and highlighted](/images/cdp-7-3-2/post-os-work/krb5-conf-ccache-commented.png)
+
+**Step 8.** Prepare the commands for adding DNS records and configuring reverse lookup.
+
+> **Note:** If you are using an AD server instead of FreeIPA, you must manually create the required PTR records in both the forward lookup zones and the reverse lookup zones on the AD server. If you check the option "Create associated pointer (PTR) record" while creating the records in forward lookup zones, records will automatically be created in reverse lookup zones. You need to do this for all the nodes.
+
+![Windows New Host dialog with a Name of cldr-mngr, an FQDN of cldr-mngr.ntnxlab.local, an IP address and the "Create associated pointer (PTR) record" checkbox ticked](/images/cdp-7-3-2/post-os-work/ad-new-host-dialog.png)
+
+![Windows DNS Manager showing the ntnxlab.local forward lookup zone with Host (A) records for cldr-mngr, pvcbase-master, the pvcbase workers and the pvcecs master and workers](/images/cdp-7-3-2/post-os-work/ad-dns-manager-forward-zone.png)
+
+Skip the steps below if you are using an AD server.
+
+```bash
+##### ADD The entry of all individual machines (separate IP separate command) to reverse DNS zone:
+
+##### We need to create a record for each machine in the reverse DNS zone, created previously.
+##### Use the below command as reference and make changes as per your configuration/machine's private IP and
+Hostname.
+
+##### Add the entry of this e.g. IPA server machine to the reverse DNS zone.
+##### We need to add the IPV4 address in reverse order. The first two octets are already added in the reverse
+zone above. Now we need to create a record for this machine inside that zone by using the last two octets.
+
+##### In the command below you need to add the record by providing the last two octets of your machine's
+private IPV4 in reverse order. Include the trailing dot after the machine name FQDN in the above command.
+
+##### Generate the command as shown below and run the same for all the FreeIPA agents, that includes all the
+nodes of Base and ECS cluster.
+        ipa dnsrecord-add <2nd>.<1st>.in-addr.arpa. <4th>.<3rd> --ptr-rec <server FQDN>.
+##### Example:
+        ipa dnsrecord-add 16.172.in-addr.arpa. 226.31 --ptr-rec ipaserver.cldrsetup.local.
+
+##### Following the same, The record for the machine should be created in the Reverse DNS zone.
+```
+
+![Terminal running ipa dnsrecord-add against the 31.172.in-addr.arpa. zone and returning the PTR record for the IPA server](/images/cdp-7-3-2/post-os-work/ipa-dnsrecord-add-ptr-1.png)
+
+![Terminal running ipa dnsrecord-add for the base cluster node and returning its PTR record](/images/cdp-7-3-2/post-os-work/ipa-dnsrecord-add-ptr-2.png)
+
+```bash
+[root@ipaserver ~]# ipa dnsrecord-add 31.172.in-addr.arpa. 240.24   --ptr-rec ipaserver.cldrsetup.local.
+  Record name: 240.24
+  PTR record: ipaserver.cldrsetup.local.
+
+[root@ipaserver ~]# ipa dnsrecord-add 31.172.in-addr.arpa. 139.27 --ptr-rec cldr-mngr.cldrsetup.local.
+  Record name: 139.27
+  PTR record: cldr-mngr.cldrsetup.local.
+
+[root@ipaserver ~]# ipa dnsrecord-add 31.172.in-addr.arpa. 104.21 --ptr-rec pvcbase-master.cldrsetup.local.
+  Record name: 104.21
+  PTR record: pvcbase-master.cldrsetup.local.
+
+[root@ipaserver ~]# ipa dnsrecord-add 31.172.in-addr.arpa. 185.16 --ptr-rec pvcbase-worker1.cldrsetup.local.
+  Record name: 185.16
+  PTR record: pvcbase-worker1.cldrsetup.local.
+
+[root@ipaserver ~]# ipa dnsrecord-add 31.172.in-addr.arpa. 0.23 --ptr-rec pvcbase-worker2.cldrsetup.local.
+  Record name: 0.23
+  PTR record: pvcbase-worker2.cldrsetup.local.
+
+[root@ipaserver ~]# ipa dnsrecord-add 31.172.in-addr.arpa. 240.18 --ptr-rec pvcbase-worker3.cldrsetup.local.
+  Record name: 240.18
+  PTR record: pvcbase-worker3.cldrsetup.local.
+
+[root@ipaserver ~]# ipa dnsrecord-add 31.172.in-addr.arpa. 239.30 --ptr-rec pvcecs-master.cldrsetup.local.
+  Record name: 239.30
+  PTR record: pvcecs-master.cldrsetup.local.
+
+[root@ipaserver ~]# ipa dnsrecord-add 31.172.in-addr.arpa. 43.22 --ptr-rec pvcecs-worker1.cldrsetup.local.
+  Record name: 43.22
+  PTR record: pvcecs-worker1.cldrsetup.local.
+
+[root@ipaserver ~]# ipa dnsrecord-add 31.172.in-addr.arpa. 249.30 --ptr-rec pvcecs-worker2.cldrsetup.local.
+  Record name: 249.30
+  PTR record: pvcecs-worker2.cldrsetup.local.
+
+[root@ipaserver ~]# ipa dnsrecord-add 31.172.in-addr.arpa. 24.26 --ptr-rec pvcecs-worker3.cldrsetup.local.
+  Record name: 24.26
+  PTR record: pvcecs-worker3.cldrsetup.local.
+
+[root@ipaserver ~]# ipa dnsrecord-add 31.172.in-addr.arpa. 198.24 --ptr-rec pvcecs-worker4.cldrsetup.local.
+  Record name: 198.24
+  PTR record: pvcecs-worker4.cldrsetup.local.
+
+[root@ipaserver ~]# ipa dnsrecord-add 31.172.in-addr.arpa. 53.24 --ptr-rec pvcecs-worker5.cldrsetup.local.
+  Record name: 53.24
+  PTR record: pvcecs-worker5.cldrsetup.local.
+
+[root@ipaserver ~]# ipa dnsrecord-add 31.172.in-addr.arpa. 43.22 --ptr-rec pvcecs-worker6.cldrsetup.local.
+  Record name: 43.22
+  PTR record: pvcecs-worker6.cldrsetup.local.
+
+[root@ipaserver ~]# ipa dnsrecord-add 31.172.in-addr.arpa. 249.30 --ptr-rec pvcecs-worker7.cldrsetup.local.
+  Record name: 249.30
+  PTR record: pvcecs-worker7.cldrsetup.local.
+
+[root@ipaserver ~]# ipa dnsrecord-add 31.172.in-addr.arpa. 24.26 --ptr-rec pvcecs-worker8.cldrsetup.local.
+  Record name: 24.26
+  PTR record: pvcecs-worker8.cldrsetup.local.
+
+[root@ipaserver ~]# ipa dnsrecord-add 31.172.in-addr.arpa. 198.24 --ptr-rec pvcecs-worker9.cldrsetup.local.
+  Record name: 198.24
+  PTR record: pvcecs-worker9.cldrsetup.local.
+
+[root@ipaserver ~]# ipa dnsrecord-add 31.172.in-addr.arpa. 53.24 --ptr-rec pvcecs-worker10.cldrsetup.local.
+  Record name: 53.24
+  PTR record: pvcecs-worker10.cldrsetup.local.
+```
+
+**Step 9.** Verify that the DNS records have been added successfully.
+
+```bash
+[root@ipaserver ~]# ipa dnsrecord-find 31.172.in-addr.arpa.
+  Record name: @
+  NS record: ipaserver.cldrsetup.local.
+
+  Record name: 240.24
+  PTR record: ipaserver.cldrsetup.local.
+
+  Record name: 139.27
+  PTR record: cldr-mngr.cldrsetup.local.
+
+  Record name: 104.21
+  PTR record: pvcbase-master.cldrsetup.local.
+
+  Record name: 185.16
+  PTR record: pvcbase-worker1.cldrsetup.local.
+
+  Record name: 0.23
+  PTR record: pvcbase-worker2.cldrsetup.local.
+
+  Record name: 240.18
+  PTR record: pvcbase-worker3.cldrsetup.local.
+
+  Record name: 239.30
+  PTR record: pvcecs-master.cldrsetup.local.
+
+  Record name: 43.22
+  PTR record: pvcecs-worker1.cldrsetup.local.
+
+  Record name: 249.30
+  PTR record: pvcecs-worker2.cldrsetup.local.
+
+  Record name: 198.24
+  PTR record: pvcecs-worker3.cldrsetup.local.
+
+  Record name: 53.24
+  PTR record: pvcecs-worker4.cldrsetup.local.
+
+  Record name: 24.26
+  PTR record: pvcecs-worker5.cldrsetup.local.
+
+  Record name: 43.22
+  PTR record: pvcecs-worker6.cldrsetup.local.
+
+  Record name: 0.23
+  PTR record: pvcecs-worker7.cldrsetup.local.
+
+  Record name: 198.24
+  PTR record: pvcecs-worker8.cldrsetup.local.
+
+  Record name: 53.24
+  PTR record: pvcecs-worker9.cldrsetup.local.
+
+  Record name: 24.26
+  PTR record: pvcecs-worker10.cldrsetup.local.
+
+-----------------------------
+Number of entries returned 18
+-----------------------------
+[root@ipaserver ~]#
+```
+
+## 6. Configure freeipa-client on all other nodes
+
+Configure the FreeIPA client on every other node so that it is managed by the `ipaserver`.
+
+### Option 1: If using FreeIPA
+
+**Step 1.** Install the FreeIPA client along with the other packages needed on all hosts except the `ipaserver`.
+
+> **Note:** Set up the `ipaserver` client and krb5 libs on each node before copying `resolv.conf`, as installation of `ipa-client` will override this. UDP port 123 and TCP port 389 need to be enabled for IPA services, NTP and timesync.
+
+> **Note:** Remove chrony from all hosts using Ansible, as it creates issues in installing and configuring IPA services successfully.
+
+> **Note:** Please review the Java requirement in the Cloudera on premises Base Requirements and Supported Versions sections. We installed OpenJDK 11 for this solution validation; `ipa-client` will also require and auto-install Java 11 on all hosts if it is not present or a different version, for example Java 17, is installed. See [Java requirements](https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/cdp-private-cloud-base-installation/topics/cdpdc-java-requirements.html).
+
+```bash
+[root@jump ~]# ansible all -m shell -a "sudo subscription-manager repos
+--enable=rhel-9-for-x86_64-baseos-rpms && sudo subscription-manager repos
+--enable=rhel-9-for-x86_64-appstream-rpms && sudo dnf install -y java-17-openjdk java-17-openjdk-devel
+python3-pip wget telnet mlocate tar traceroute net-tools bind-utils traceroute nc && java -version &&
+python3 -V && pip3 install --upgrade pip && pip3 -V && pip3 install psycopg2-binary && pip3 list |grep
+psy"
+
+[root@jump ~]# ansible all -m shell -a "sudo dnf install -y
+https://download.postgresql.org/pub/repos/yum/reporpms/EL-9-x86_64/pgdg-redhat-repo-latest.noarch.rpm &&
+sudo dnf install -y postgresql14"
+
+[root@jump ~]# ansible all -m shell -a "sudo subscription-manager repos
+--enable=rhel-9-for-x86_64-baseos-rpms && sudo subscription-manager repos
+--enable=rhel-9-for-x86_64-appstream-rpms && sudo dnf install -y freeipa-client openldap-clients
+krb5-workstation krb5-libs && chronyc tracking && chronyc sources" -l 'all:!admin'
+```
+
+**Step 2.** Install and set up the IPA services by configuring the FreeIPA client on all machines except the `ipaserver`, and add all the machines to the DNS server, by running the command `ipa-client-install` to set up the IPA client.
+
+Enter the values for these parameters as below. After entering these values, it should return the message *"The ipa-client-install command was successful"*.
+
+| Parameter | Value |
+|:--|:--|
+| `Do you want to configure chrony with NTP server or pool address? [no]:` | `yes` |
+| `Enter NTP source server addresses separated by comma, or press Enter to skip:` | `<ENTER>` |
+| `Enter a NTP source pool address, or press Enter to skip:` | `<ENTER>` |
+| `Continue to configure the system with these values? [no]:` | `yes` |
+| `User authorized to enroll computers:` | `admin` |
+| `Password for admin@<Your_Domain>:` | `<Password created earlier>` (`cloudera123`) |
+
+```bash
+[root@pvcbase-master ~]# ipa-client-install --force-join
+This program will set up IPA client.
+Version 4.11.0
+
+Discovery was successful!
+Do you want to configure chrony with NTP server or pool address? [no]: yes
+Enter NTP source server addresses separated by comma, or press Enter to skip: <ENTER>
+Enter a NTP source pool address, or press Enter to skip: <ENTER>
+Client hostname: cldr-mngr.cldrsetup.local
+Realm: CLDRSETUP.LOCAL
+DNS Domain: cldrsetup.local
+IPA Server: ipaserver.cldrsetup.local
+BaseDN: dc=cldrsetup,dc=local
+
+Continue to configure the system with these values? [no]: yes
+Synchronizing time
+No SRV records of NTP servers were found and no NTP server or pool address was provided.
+Using default chrony configuration.
+Attempting to sync time with chronyc.
+Time synchronization was successful.
+User authorized to enroll computers: <admin>
+Password for admin@CLDRSETUP.LOCAL: <cloudera123>
+Successfully retrieved CA cert
+    Subject:     CN=Certificate Authority,O=CLDRSETUP.LOCAL
+    Issuer:      CN=Certificate Authority,O=CLDRSETUP.LOCAL
+    Valid From: 2024-05-13 10:59:53+00:00
+    Valid Until: 2044-05-13 10:59:53+00:00
+
+Enrolled in IPA realm CLDRSETUP.LOCAL
+Created /etc/ipa/default.conf
+Configured /etc/sssd/sssd.conf
+Systemwide CA database updated.
+Hostname (pvcbase-master.cldrsetup.local) does not have A/AAAA record.
+Adding SSH public key from /etc/ssh/ssh_host_rsa_key.pub
+Adding SSH public key from /etc/ssh/ssh_host_ecdsa_key.pub
+Adding SSH public key from /etc/ssh/ssh_host_ed25519_key.pub
+SSSD enabled
+Configured /etc/openldap/ldap.conf
+Configured /etc/ssh/ssh_config
+Configured /etc/ssh/sshd_config.d/04-ipa.conf
+Configuring cldrsetup.local as NIS domain.
+Configured /etc/krb5.conf for IPA realm CLDRSETUP.LOCAL
+Client configuration complete.
+The ipa-client-install command was successful
+[root@pvcbase-master ~]#
+```
+
+![Terminal output of ipa-client-install showing realm discovery, CA certificate retrieval, enrollment in the IPA realm and the final "The ipa-client-install command was successful" line](/images/cdp-7-3-2/post-os-work/ipa-client-install-force-ntpd.png)
+
+**Step 3.** Verify the KDC setup: check that Kerberos ticket generation is working fine by generating a ticket for the `admin` user from all individual hosts.
+
+```bash
+##### Run the kinit admin command to authenticate as admin and enter the directory password provided during
+ipa server installation. The command should generate the ticket and should be listed by executing klist -e.
+
+[root@ipaserver ~]# kinit admin
+Password for admin@CLDRSETUP.LOCAL: <cloudera123>
+
+[root@ipaserver ~]# klist -e
+Ticket cache: KCM:0
+Default principal: admin@CLDRSETUP.LOCAL
+
+Valid starting       Expires              Service principal
+05/13/2024 04:07:15 05/14/2024 03:30:48 krbtgt/CLDRSETUP.LOCAL@CLDRSETUP.LOCAL
+        Etype (skey, tkt): aes256-cts-hmac-sha384-192, aes256-cts-hmac-sha384-192
+
+##### try kinit admin@CLDRSETUP.LOCAL
+##### (if fails anytime, run below commands
+
+[root@ipaserver ~]# ipactl stop && ipactl start && ipactl status
+
+##### Verify the status of ipa services installed
+
+[root@ipaserver ~]# ipactl status
+Directory Service: RUNNING
+krb5kdc Service: RUNNING
+kadmin Service: RUNNING
+named Service: RUNNING
+httpd Service: RUNNING
+ipa-custodia Service: RUNNING
+ntpd Service: RUNNING
+pki-tomcatd Service: RUNNING
+ipa-otpd Service: RUNNING
+ipa-dnskeysyncd Service: RUNNING
+ipa: INFO: The ipactl command was successful
+```
+
+This command should return the below output:
+
+![Terminal showing kinit admin and klist -e returning a valid krbtgt ticket for the admin principal on a client node](/images/cdp-7-3-2/post-os-work/kinit-klist-admin.png)
+
+### Option 2: If using an AD server
+
+If you are using an AD server as Kerberos instead of FreeIPA, run the following command on all the client machines and skip the `ipa-client-install` steps.
+
+```bash
+[root@pvcbase-master ~]# realm join --user=administrator ntnxlab.local
+
+# Non-interactive command
+[root@pvcbase-master ~]# echo '<password>' | realm join --user=administrator ntnxlab.local
+```
+
+Verify the KDC setup: check that Kerberos ticket generation is working fine by generating a ticket for the `administrator` user from all individual hosts.
+
+![Terminal showing kinit administrator@NTNXLAB.LOCAL followed by klist -e, listing a valid krbtgt ticket for the AD realm](/images/cdp-7-3-2/post-os-work/kinit-klist-ad-administrator.png)
+
+**Step 4.** Verify the network configuration file `/etc/resolv.conf` on the Bastion server, so that it uses the name server created in the previous steps. Do this after installing `freeipa-client`, as it overrides `resolv.conf` and may lead to rework.
+
+Open the file `/etc/resolv.conf` in edit mode and verify the following. Make sure the new entry is added above any other `nameserver` entry. The contents of the file must look similar to the below.
+
+> **Note:** Make sure that the `/etc/resolv.conf` file on the ECS hosts contains a maximum of 2 active search domains. See [Known issues in ECS environments](https://docs.cloudera.com/data-warehouse/1.5.5/release-notes/topics/dw-private-cloud-known-issues-ecs-environments.html).
+
+```bash
+[root@jump ~]# cp /etc/resolv.conf /etc/resolv.conf.orig
+[root@jump ~]# cat /etc/resolv.conf
+search ap-southeast-1.compute.internal cldrsetup.local
+nameserver 172.31.24.240  # PrivateIP of FreeIPA Server must be first nameserver entry after search
+nameserver 172.31.0.2      # DNS of AWS i.e. in case of PvC Configured on EC2
+nameserver 127.0.0.1
+[root@jump ~]#
+```
+
+![Contents of a generated /etc/resolv.conf showing the dhclient-script header, the search domain and the nameserver entry](/images/cdp-7-3-2/post-os-work/resolv-conf-dhclient.png)
+
+**Step 5.** Verify the network configuration file `/etc/sysconfig/network` on the Bastion server, so that it uses the name server created in the previous steps.
+
+The changes in `/etc/resolv.conf` above are temporary and would get overwritten if the machine is rebooted. In order to keep the nameserver entry persistent, open the file `/etc/sysconfig/network` in edit mode and verify the entries below.
+
+```bash
+[root@jump ~]# cp /etc/sysconfig/network /etc/sysconfig/network.orig
+[root@jump ~]# cat /etc/sysconfig/network
+NETWORKING=yes
+NISDOMAIN=cldrsetup.local             # our DNS DOMAIN
+DNS1=172.31.24.240            # PRIVATE_IP_OF_IPASERVER
+NOZEROCONF=yes
+[root@jump ~]#
+```
+
+**Step 6.** Copy the `/etc/resolv.conf` file to each node again, to make them able to resolve FQDNs across the cluster.
+
+```bash
+[root@jump ~]# ansible all -m copy -a "src=/etc/resolv.conf dest=/etc/resolv.conf"
+```
+
+**Step 7.** Copy the `/etc/sysconfig/network` file again to each node, to make them able to resolve FQDNs across the cluster. `/etc/resolv.conf` changes may vanish after a reboot, so to persist those changes we need the configuration below.
+
+```bash
+[root@jump ~]# ansible all -m copy -a "src=/etc/sysconfig/network dest=/etc/sysconfig/network"
+```
+
+**Step 8.** Enable permissions for HDFS and for PAM authentication.
+
+```bash
+[root@jump ~]# ansible all -m shell -a "chmod 1777 /tmp && chmod 444 /etc/shadow"
+```
+
+**Step 9.** Log in to the `pvcbase-master` node and verify that forward and reverse DNS lookup is working fine from each machine.
+
+> **Note:** In case of an AD server, you can verify on any client machine such as `pvcbase-master`.
+
+```bash
+[root@pvcbase-master ~]# nslookup cldr-mngr.cldrsetup.local
+Server:          172.31.24.240
+Address:         172.31.24.240#53
+
+Name:   cldr-mngr.cldrsetup.local
+Address: 172.31.27.139
+
+#(forward lookup)Running the below command should return the IPV4 of the machine in the Answer Section.
+
+# dig <FQDN of the SERVER> A
+# dig $(hostname) A | grep -A2 ANSWER
+# Ex:- dig ipaserver.cldrsetup.local A
+
+[root@pvcbase-master ~]# dig $(hostname -f) A | grep -A2 ANSWER
+;; flags: qr aa rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+--
+;; ANSWER SECTION:
+pvcbase-master.ntnxlab.local. 3600 IN                               A     10.8.16.132
+
+#(reverse lookup) Running the below command should return the hostname of the machine in the Answer Section.
+
+# dig -x <Private_IP_of_SERVER>
+# dig -x $(hostname -i)|grep -A2 ANSWER
+# Ex:- dig -x 172.31.40.119
+
+[root@pvcbase-master ~]# dig -x $(hostname -i) | grep -A2 ANSWER
+;; flags: qr aa rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+--
+;; ANSWER SECTION:
+132.16.8.10.in-addr.arpa. 3600                        IN            PTR   pvcbase-master.ntnxlab.local.
+
+[root@pvcbase-master ~]$
+```
+
+**Step 10.** Log in to the `ipaserver`, then configure and validate that the wildcard DNS record is working fine and resolvable. This is required later for the ECS Data Services cluster - if it is not set properly, there is a good chance the ECS installation gets corrupted.
+
+> **Note:** In case of an AD server, you need to create the wildcard DNS record on the AD DNS server manually in the forward and reverse lookup zones, and then you can verify by running the command `nslookup console-cdp.apps.cldrsetup.local` on the `pvcecs-master` node.
+
+![Windows DNS Manager showing an apps sub-zone under the forward lookup zone containing a wildcard Host (A) record pointing at the ECS master](/images/cdp-7-3-2/post-os-work/ad-dns-manager-wildcard-apps.png)
+
+![Terminal running nslookup console-cdp.apps.ntnxlab.local and resolving it to the ECS master IP address](/images/cdp-7-3-2/post-os-work/nslookup-console-cdp-wildcard.png)
+
+Skip the steps below if you are using an AD server - jump to Step 11.
+
+```bash
+[root@ipaserver ~]# ipa dnsrecord-add cldrsetup.local *.apps
+Please choose a type of DNS resource record to be added
+The most common types for this type of zone are: A, AAAA
+
+DNS resource record type: A
+A IP Address: 172.31.30.239                               #Provide the IP address of ecs-master node
+  Record name: *.apps
+  A record: 172.31.30.239
+
+[root@ipaserver ~]# nslookup console-cdp.apps.cldrsetup.local
+Server:          172.31.24.240
+Address:         172.31.24.240#53
+
+Name:   console-cdp.apps.cldrsetup.local
+Address: 172.31.30.239
+
+[root@ipaserver ~]# dig console-cdp.apps.cldrsetup.local A | grep -A2 ANSWER
+;; flags: qr aa rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+--
+;; ANSWER SECTION:
+console-cdp.apps.cldrsetup.local. 86400 IN A                                 172.31.30.239
+
+[root@ipaserver ~]# dig -x 172.31.30.239 | grep -A2 ANSWER
+;; flags: qr aa rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+--
+;; ANSWER SECTION:
+239.30.31.172.in-addr.arpa. 86400 IN                                PTR   pvcecs-master.cldrsetup.local.
+
+[root@ipaserver ~]#
+```
+
+**Step 11.** Download and copy the PostgreSQL JDBC driver to all hosts.
+
+```bash
+[root@jump ~]# wget https://jdbc.postgresql.org/download/postgresql-42.7.7.jar
+[root@jump ~]# chmod 644 postgresql-42.7.7.jar
+[root@jump ~]# ansible all -m copy -a "src=postgresql-42.7.7.jar
+dest=/usr/share/java/postgresql-connector-java.jar"
+[root@jump ~]# ansible all -m shell -a "sudo ls -l /usr/share/java/postgresql-connector-java.jar"
+[root@jump ~]#
+```
+
+## 7. Disable the Linux firewall
+
+Ignore the errors if the firewall is not installed.
+
+> **Note:** The default Linux firewall settings are too restrictive for any Hadoop deployment. Since the Cloudera on premises deployment will be in its own isolated network in the on-premises environment, there is no need for that additional firewall. Not applicable on AWS EC2.
+
+```bash
+##### Either disable the firewall or update the rules: (ON ALL HOSTS)
+[root@jump ~]# ansible all -m command -a "firewall-cmd --zone=public --add-port=80/tcp --permanent"
+[root@jump ~]# ansible all -m command -a "firewall-cmd --zone=public --add-port=443/tcp --permanent"
+[root@jump ~]# ansible all -m command -a "firewall-cmd --reload"
+[root@jump ~]# ansible all -m command -a "systemctl disable firewalld && systemctl stop firewalld &&
+systemctl status firewalld | grep -e disabled -e inactive"
+```
+
+## 8. Disable SELinux
+
+> **Note:** SELinux must be disabled during the install procedure and cluster setup. SELinux can be enabled after installation and while the cluster is running.
+
+**Step 1.** SELinux can be disabled by editing `/etc/selinux/config` (on some systems it would be `/etc/sysconfig/selinux`). To disable SELinux, change `SELINUX=enforcing` to `SELINUX=disabled` or `SELINUX=permissive`. Follow these steps:
+
+```bash
+[root@jump ~]# ansible all -m shell -a "sed -i 's/SELINUX=enforcing/SELINUX=disabled/g'
+/etc/selinux/config"
+[root@jump ~]# ansible all -m shell -a "setenforce 0"
+[root@jump ~]# ansible all -m shell -a "getenforce"
+```
+
+> **Note:** This command may fail if SELinux is already disabled. This requires a reboot to take effect.
+
+> **Note:** While the suggested configuration is to disable SELinux as shown below, if for any reason SELinux needs to be enabled on the cluster, run the following command to make sure that httpd can read the Yum profiles.
+
+```bash
+[root@jump ~]# chcon -R -t httpd_sys_content_t /var/www/html/
+```
+
+![Contents of /etc/selinux/config with SELINUX=disabled highlighted and SELINUXTYPE set to targeted](/images/cdp-7-3-2/post-os-work/selinux-config-disabled.png)
+
+## 9. Enable syslog
+
+Syslog must be enabled on each node to preserve logs regarding killed processes or failed jobs. Modern versions such as syslog-ng and rsyslog are possible, making it more difficult to be sure that a syslog daemon is present.
+
+**Step 1.** Use one of the following commands to confirm that the service is properly configured.
+
+```bash
+[root@jump ~]# ansible all -m command -a "rsyslogd -v"
+[root@jump ~]# ansible all -m command -a "service rsyslog status"
+```
+
+## 10. Set ulimit
+
+On each node, `ulimit -n` specifies the number of inodes that can be opened simultaneously. With the default value of 1024, the system appears to be out of disk space and shows no inodes available. This value should be set to 64000 on every node. Higher values are unlikely to result in an appreciable performance gain.
+
+**Step 1.** For setting the ulimit on Red Hat, edit `/etc/security/limits.conf` on the admin node and add the following lines.
+
+```bash
+[root@jump ~]# vi /etc/security/limits.conf
+* soft nofile 1048576
+* hard nofile 1048576
+```
+
+**Step 2.** Copy the `/etc/security/limits.conf` file from the admin node (`ipaserver`) to all the nodes using the following command.
+
+```bash
+[root@jump ~]# ansible all -m copy -a "src=/etc/security/limits.conf dest=/etc/security/limits.conf"
+```
+
+**Step 3.** Make sure that the `/etc/pam.d/su` file contains the following settings.
+
+```text
+[root@ipaserver ~]# vi /etc/pam.d/su
+#%PAM-1.0
+auth             required        pam_env.so
+auth             sufficient      pam_rootok.so
+# Uncomment the following line to implicitly trust users in the "wheel" group.
+#auth            sufficient      pam_wheel.so trust use_uid
+# Uncomment the following line to require a user to be in the "wheel" group.
+#auth            required        pam_wheel.so use_uid
+auth             include         system-auth
+auth             include         postlogin
+account          sufficient      pam_succeed_if.so uid = 0 use_uid quiet
+account          include         system-auth
+password         include         system-auth
+session          include         system-auth
+session          include         postlogin
+session          optional        pam_xauth.so
+```
+
+**Step 4.** Copy the `/etc/pam.d/su` file from the admin node (`ipaserver`) to all the nodes using the following command.
+
+```bash
+[root@jump ~]# ansible all -m copy -a "src=/etc/pam.d/su dest=/etc/pam.d/su"
+```
+
+> **Note:** The ulimit values are applied on a new shell; running the command on a node on an earlier instance of a shell will show old values.
+
+## 11. Set TCP retries
+
+Adjusting the `tcp_retries` parameter for the system network enables faster detection of failed nodes. Given the advanced networking features of UCS, this is a safe and recommended change - failures observed at the operating system layer are most likely serious rather than transitory.
+
+> **Note:** On each node, setting the number of TCP retries to 5 can help detect unreachable nodes with less latency.
+
+**Step 1.** Edit the file `/etc/sysctl.conf` on the `ipaserver` node and add the following lines.
+
+```bash
+[root@jump ~]# vi /etc/sysctl.conf
+net.ipv4.tcp_retries2=5
+fs.inotify.max_user_instances=512
+sysctl -p
+```
+
+**Step 2.** Copy the `/etc/sysctl.conf` file from the admin node to all the nodes using the following command.
+
+```bash
+[root@jump ~]# ansible all -m copy -a "src=/etc/sysctl.conf dest=/etc/sysctl.conf"
+```
+
+## 12. Disable IPv6 defaults
+
+**Step 1.** Run the following commands.
+
+```bash
+[root@jump ~]# ansible all -m shell -a "echo 'net.ipv6.conf.all.disable_ipv6 = 1' >> /etc/sysctl.conf" -l
+'all:!ecsmasternodes:!ecsnodes'
+[root@jump ~]# ansible all -m shell -a "echo 'net.ipv6.conf.default.disable_ipv6 = 1' >> /etc/sysctl.conf"
+-l 'all:!ecsmasternodes:!ecsnodes'
+[root@jump ~]# ansible all -m shell -a "echo 'net.ipv6.conf.lo.disable_ipv6 = 0' >> /etc/sysctl.conf" -l
+'all:!ecsmasternodes:!ecsnodes'
+```
+
+## 13. Disable swapping
+
+**Step 1.** Run the following to set VM swappiness to 1, by updating the `/etc/sysctl.conf` file on all nodes.
+
+```bash
+[root@jump ~]# ansible all -m shell -a "echo 'vm.swappiness=1' >> /etc/sysctl.conf"
+```
+
+## 14. Disable memory overcommit
+
+**Step 1.** Run the following on all nodes. The variable is `vm.overcommit_memory=0`.
+
+```bash
+[root@jump ~]# ansible all -m shell -a "echo 'vm.overcommit_memory=0' >> /etc/sysctl.conf"
+```
+
+**Step 2.** Load the settings from the default sysctl file `/etc/sysctl.conf` and verify the content of `sysctl.conf`.
+
+```bash
+[root@jump ~]# ansible all -m shell -a "sysctl -p"     ## Reload sysctl.conf
+[root@jump ~]# ansible all -m shell -a "cat /etc/sysctl.conf"
+net.ipv4.tcp_retries2=5
+net.ipv6.conf.all.disable_ipv6 = 1
+net.ipv6.conf.default.disable_ipv6 = 1
+net.ipv6.conf.lo.disable_ipv6 = 0
+vm.swappiness=1
+vm.overcommit_memory=0
+[root@jump ~]#
+```
+
+## 15. Disable Transparent Huge Pages
+
+Disabling Transparent Huge Pages (THP) reduces elevated CPU usage caused by THP.
+
+**Step 1.** You must run the following commands for every reboot.
+
+```bash
+[root@jump ~]# ansible all -m shell -a "echo never > /sys/kernel/mm/transparent_hugepage/enabled"
+[root@jump ~]# ansible all -m shell -a "echo never > /sys/kernel/mm/transparent_hugepage/defrag"
+```
+
+**Step 2.** On the Ansible controller / `ipaserver` node, run the following commands.
+
+```bash
+[root@jump ~]# rm –f /root/thp_disable
+[root@jump ~]# echo "echo never > /sys/kernel/mm/transparent_hugepage/enabled" >> /root/thp_disable
+[root@jump ~]# echo "echo never > /sys/kernel/mm/transparent_hugepage/defrag" >> /root/thp_disable
+
+##### Disable IPV6
+[root@jump ~]# echo "sysctl -w net.ipv6.conf.all.disable_ipv6=1" >> /root/thp_disable
+[root@jump ~]# echo "sysctl -w net.ipv6.conf.default.disable_ipv6=1" >> /root/thp_disable
+[root@jump ~]# echo "sysctl -w net.ipv6.conf.lo.disable_ipv6=0" >> /root/thp_disable
+```
+
+**Step 3.** Copy the file to each node to copy the commands to `/etc/rc.d/rc.local`, so they are executed automatically for every reboot.
+
+```bash
+[root@jump ~]# ansible all -m copy -a "src=/root/thp_disable dest=/root/thp_disable"
+
+##### Append the content of file thp_disable to /etc/rc.d/rc.local:
+[root@jump ~]# ansible all -m shell -a "cat /root/thp_disable >> /etc/rc.d/rc.local"
+[root@jump ~]# ansible all -m shell -a "chmod +x /etc/rc.d/rc.local"
+[root@jump ~]# ansible all -m shell -a "cat /etc/rc.d/rc.local"
+#!/bin/bash
+# Please note that you must run 'chmod +x /etc/rc.d/rc.local' to ensure
+# that this script will be executed during boot.
+touch /var/lock/subsys/local
+# Disable Transparent Huge Pages
+echo never > /sys/kernel/mm/transparent_hugepage/enabled
+echo never > /sys/kernel/mm/transparent_hugepage/defrag
+# Disable IPV6
+sysctl -w net.ipv6.conf.all.disable_ipv6=1
+sysctl -w net.ipv6.conf.default.disable_ipv6=1
+sysctl -w net.ipv6.conf.lo.disable_ipv6=0
+[root@jump ~]#
+```
+
+![Contents of /etc/rc.d/rc.local with the appended transparent_hugepage and IPv6 sysctl lines highlighted](/images/cdp-7-3-2/post-os-work/rc-local-thp-ipv6.png)
+
+## 16. Disable the tuned service
+
+For a Cloudera cluster with hosts running RHEL/CentOS 7.x, 8.x or 9.x, disable the `tuned` service by running the following commands.
+
+**Step 1.** Ensure that the `tuned` service is started.
+
+```bash
+[root@jump ~]# ansible all -m shell -a "systemctl start tuned"
+```
+
+**Step 2.** Turn the `tuned` service off.
+
+```bash
+[root@jump ~]# ansible all -m shell -a "tuned-adm off"
+```
+
+**Step 3.** Ensure that there are no active profiles.
+
+```bash
+[root@jump ~]# ansible all -m shell -a "tuned-adm list"
+# The output should contain the following line:
+# pvcecs-worker4.cldrsetup.local | CHANGED | rc=0 >>
+Available profiles:
+- accelerator-performance      - Throughput performance based tuning with disabled higher latency STOP
+states
+- aws                          - Optimize for aws ec2 instances
+- balanced                     - General non-specialized tuned profile
+- desktop                      - Optimize for the desktop use-case
+- hpc-compute                 - Optimize for HPC compute workloads
+- intel-sst                   - Configure for Intel Speed Select Base Frequency
+- latency-performance         - Optimize for deterministic performance at the cost of increased power
+consumption
+- network-latency             - Optimize for deterministic performance at the cost of increased power
+consumption, focused on low latency network performance
+- network-throughput          - Optimize for streaming network throughput, generally only necessary on
+older CPUs or 40G+ networks
+- optimize-serial-console     - Optimize for serial console use.
+- powersave                   - Optimize for low power consumption
+- throughput-performance      - Broadly applicable tuning that provides excellent performance across a
+variety of common server workloads
+- virtual-guest               - Optimize for running inside a virtual guest
+- virtual-host                - Optimize for running KVM guests
+No current active profile.
+```
+
+**Step 4.** Shut down and disable the `tuned` service.
+
+```bash
+[root@jump ~]# ansible all -m shell -a "systemctl stop tuned"
+[root@jump ~]# ansible all -m shell -a "systemctl disable tuned"
+```
+
+## 17. Turn off TCP checksum offload on the ECS nodes
+
+This applies to the network interface of all ECS nodes, both master and worker, and is **only applicable for VMware machines**.
+
+The default CNI (Canal) that comes with ECS (RKE2 from SUSE) does not support VMs. Customers have reported escalations with the default CNI when they use VMware. Customers may experience network connectivity issues or degraded performance when deploying ECS clusters on VMware environments with the default CNI, so they use a workaround by turning off TCP checksum offload on the interface.
+
+> **Note:** Disabling TCP checksum offload may have implications on network performance or security. Evaluate the impact of this workaround in the specific environment and consider reverting the changes once a permanent solution or alternative workaround is available. Additionally, consult with the VMware documentation or support resources for guidance on network configuration and optimization in VMware environments.
+
+**Step 1.** Identify the network interface.
+
+```bash
+##### Determine the network interface used by the affected ECS nodes. This can typically be found using
+the `ifconfig` or `ip addr` command:
+[root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "ifconfig | grep flags | grep -v lo && ip addr |
+grep mtu | grep -v lo"
+
+[root@jump ~]$ ifconfig | grep flags | grep -v lo
+eth0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST> mtu 9001
+[root@jump ~]$ ip addr | grep mtu | grep -v lo
+2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 9001 qdisc mq state UP group default qlen 1000
+[root@jump ~]$
+```
+
+**Step 2.** Disable TCP checksum offload. Use the appropriate commands or configuration settings to disable TCP checksum offload on the identified network interface. For example, using `ethtool`:
+
+```bash
+##### Replace `<interface_name>` with the name of the network interface identified in step 1.
+[root@ipaserver ~]# ansible ecsmasternodes,ecsnodes -m shell -a "sudo ethtool -K <interface_name> tx off"
+##### After disabling TCP checksum offload, verify that the changes have been applied correctly and that the
+affected ECS nodes no longer experience the reported issues.
+```
+
+## 18. Create partitions on the ECS nodes
+
+Create partitions on the ECS nodes - master and worker - manually if they are not present. Check with `df -h` first; the guide marks this procedure as skippable when the partitions already exist.
+
+**Step 1.** Create partitions on the attached disks. We require three partitions: `/docker`, `/cdwdata` and `/lhdata`.
+
+```bash
+[root@pvcecs-master ~]# lsblk
+NAME    MAJ:MIN RM    SIZE RO TYPE MOUNTPOINTS
+xvda    202:0     0   600G 0 disk
+├─xvda1 202:1     0     1M 0 part
+├─xvda2 202:2     0   200M 0 part /boot/efi
+├─xvda3 202:3     0   600M 0 part /boot
+└─xvda4 202:4     0 599.2G 0 part /
+xvdb    202:16    0   600G 0 disk
+xvdc    202:32    0   600G 0 disk
+xvdd    202:48    0   600G 0 disk
+xvde    202:48    0   600G 0 disk
+
+[root@pvcecs-master ~]# fdisk -l
+Disk /dev/sda: 268.4 GB, 268435456000 bytes, 524288000 sectors
+Units = sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
+Disk label type: dos
+Disk identifier: 0x000a04a5
+
+Device Boot             Start                 End               Blocks    Id System
+/dev/sda1   *               2048             2099199              1048576    83 Linux
+/dev/sda2                2099200           524287999            261094400    8e Linux LVM
+/dev/xvdb                2099200           524287999            261094400    8e Linux LVM
+/dev/xvdc                2099200           524287999            261094400    8e Linux LVM
+/dev/xvdd                2099200           524287999            261094400    8e Linux LVM
+/dev/xvde                2099200           524287999            261094400    8e Linux LVM
+
+Disk /dev/sdb: 644.2 GB, 644245094400 bytes, 1258291200 sectors
+Units = sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
+[root@pvcecs-master ~]#
+
+[root@pvcecs-master ~]# sudo parted /dev/xvdb mklabel gpt
+Information: You may need to update /etc/fstab.
+
+[root@pvcecs-master ~]# sudo parted /dev/xvdc mklabel gpt
+[root@pvcecs-master ~]# sudo parted /dev/xvdd mklabel gpt
+
+[root@pvcecs-master ~]# sudo parted -a opt /dev/xvdb mkpart primary ext4 0% 100%
+Information: You may need to update /etc/fstab.
+
+[root@pvcecs-master ~]# sudo parted -a opt /dev/xvdc mkpart primary ext4 0% 100%
+[root@pvcecs-master ~]# sudo parted -a opt /dev/xvdd mkpart primary ext4 0% 100%
+
+[root@pvcecs-master ~]# sudo mkfs.ext4 /dev/xvdb
+mke2fs 1.46.5 (30-Dec-2021)
+Found a gpt partition table in /dev/xvdb
+Proceed anyway? (y,N) y
+Creating filesystem with 157286400 4k blocks and 39321600 inodes
+Filesystem UUID: 934fece5-074e-4102-8481-6ed3a3b10931
+Superblock backups stored on blocks:
+        32768, 98304, 163840, 229376, 294912, 819200, 884736, 1605632, 2654208,
+        4096000, 7962624, 11239424, 20480000, 23887872, 71663616, 78675968,
+        102400000
+
+Allocating group tables: done
+Writing inode tables: done
+Creating journal (262144 blocks):
+done
+Writing superblocks and filesystem accounting information: done
+
+[root@pvcecs-master ~]# sudo mkfs.ext4 /dev/xvdc
+[root@pvcecs-master ~]# sudo mkfs.ext4 /dev/xvdd
+
+[root@pvcecs-master ~]# sudo mkdir -p /docker /cdwdata /lhdata
+
+[root@pvcecs-master ~]# sudo mount /dev/xvdb /docker
+[root@pvcecs-master ~]# sudo mount /dev/xvdc /cdwdata
+[root@pvcecs-master ~]# sudo mount /dev/xvdd /lhdata
+
+[root@pvcecs-master ~]# sudo blkid /dev/xvdb
+[root@pvcecs-master ~]# sudo blkid /dev/xvdc
+[root@pvcecs-master ~]# sudo blkid /dev/xvdd
+
+[root@pvcecs-master ~]# cat /etc/fstab
+UUID=497ad222-04fa-453f-b110-ba8001d38788       /       xfs     defaults        0                               0
+UUID=2e0d9ec9-a82a-43cc-a8e2-c6db30e7f6a4       /boot   xfs     defaults        0                               0
+UUID=7B77-95E7 /boot/efi         vfat   defaults,uid=0,gid=0,umask=077,shortname=winnt                          0           2
+[root@pvcecs-master ~]#
+
+[root@pvcecs-master ~]# cat>> /etc/fstab
+UUID=497ad222-04fa-453f-b110-ba8001d38788        /       xfs     defaults         0       0
+UUID=2e0d9ec9-a82a-43cc-a8e2-c6db30e7f6a4        /boot   xfs     defaults         0       0
+UUID=7B77-95E7 /boot/efi         vfat    defaults,uid=0,gid=0,umask=077,shortname=winnt 0                                   2
+UUID="934fece5-074e-4102-8481-6ed3a3b10931"    /docker xfs defaults 0 0
+UUID="52f4940d-3dca-4b90-a223-3bef6eee2b74" /cdwdata     xfs     defaults         0       0
+UUID="d7e9640b-cc12-49ac-b6c2-6eb3136679a1" /lhdata     xfs     defaults        0       0
+
+[root@pvcecs-master ~]# mount -av
+[root@pvcecsmaster overlay2]# lvs
+  LV      VG      Attr       LSize    Pool Origin Data%                     Meta%   Move Log Cpy%Sync Convert
+  home    centos -wi-ao---- 183.24g
+  root    centos -wi-ao----    50.00g
+  swap    centos -wi-ao----    15.75g
+  cdwdata vgcdp -wi-ao---- 600.00g
+  docker vgcdp -wi-ao---- <600.00g
+  var     vgcdp -wi-ao---- <600.00g
+  lhdata vgcdp -wi-ao---- 1200.00g
+[root@pvcecsmaster overlay2]#
+
+[root@pvcecsmaster overlay2]# pvs
+  PV         VG      Fmt Attr PSize  PFree
+  /dev/sda2 centos lvm2 a-- <249.00g    4.00m
+  /dev/sdb   vgcdp lvm2 a-- <600.00g <224.96g
+  /dev/sdc   vgcdp lvm2 a-- <600.00g <224.96g
+  /dev/sdd   vgcdp lvm2 a-- <1200.00g<224.96g
+  /dev/sde   vgcdp lvm2 a-- <600.00g <224.96g
+[root@pvcecs-master ~]#
+```
+
+## 19. Install httpd on the Cloudera Manager node
+
+Install httpd on the Cloudera Manager node - `cldr-mngr` - to host a local parcel repository. Setting up the RHEL repository on the Cloudera Manager node requires httpd.
+
+**Step 1.** Install httpd on the Cloudera Manager node (`cldr-mngr`) to host the repositories.
+
+> **Note:** The Red Hat repository is hosted using HTTP on the admin node; this machine is accessible by all the hosts in the cluster.
+
+```bash
+[root@cldr-mngr ~]# dnf install -y httpd mod_ssl createrepo_c
+```
+
+**Step 2.** Generate the CA certificate.
+
+```bash
+[root@cldr-mngr ~]# openssl req -newkey rsa:2048 -nodes -keyout /etc/pki/tls/private/httpd.key -x509 -days
+3650 -out /etc/pki/tls/certs/httpd.crt \
+-subj "/C=US/ST=North Carolina/L=Raleigh/O=Red Hat Inc/OU=CLDR/CN=cldr-mngr.cldrsetup.local"
+
+[root@cldr-mngr ~]# ls -l /etc/pki/tls/private/ /etc/pki/tls/certs/
+/etc/pki/tls/certs/:
+total 8
+lrwxrwxrwx. 1 root root    49 Jul 28 2022 ca-bundle.crt ->
+/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
+lrwxrwxrwx. 1 root root    55 Jul 28 2022 ca-bundle.trust.crt ->
+/etc/pki/ca-trust/extracted/openssl/ca-bundle.trust.crt
+-rw-r--r--. 1 root root 1432 Mar 4 13:34 httpd.crt
+-rw-r--r--. 1 root root 2260 Mar 1 16:36 postfix.pem
+
+/etc/pki/tls/private/:
+total 8
+-rw-------. 1 root root 1700 Mar                       4 13:33 httpd.key
+-rw-------. 1 root root 3268 Mar                       1 16:36 postfix.key
+[root@cldr-mngr ~]#
+```
+
+**Step 3.** Create the certificate directory to serve content from.
+
+```bash
+[root@cldr-mngr ~]# mkdir -p /var/www/https/
+[root@cldr-mngr ~]# echo secure content > /var/www/https/index.html
+[root@cldr-mngr ~]# cat /var/www/https/index.html
+secure content
+```
+
+**Step 4.** Edit the `httpd.conf` file; add `ServerName` and make the necessary changes to the server configuration file.
+
+```bash
+[root@cldr-mngr ~]# vi /etc/httpd/conf/httpd.conf
+ServerName cldr-mngr.cldrsetup.local:80
+```
+
+**Step 5.** Start the httpd service.
+
+```bash
+[root@cldr-mngr ~]# systemctl start httpd
+[root@cldr-mngr ~]# systemctl enable httpd
+[root@cldr-mngr ~]# systemctl is-enabled httpd
+```
