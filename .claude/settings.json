@@ -1,12 +1,13 @@
 {
   "permissions": {
     "allow": [
-      "PowerShell(gh issue*)",
-      "PowerShell(gh label*)",
-      "PowerShell(gh repo list*)",
-      "PowerShell(gh repo create*)",
+      "PowerShell(gh issue *)",
+      "PowerShell(gh label *)",
+      "PowerShell(gh repo list *)",
+      "PowerShell(gh repo create *)",
       "PowerShell(gh --version)",
-      "PowerShell(gh api*)",
+      "PowerShell(gh api *)",
+      "PowerShell(git checkout *)",
       "Read(~/.claude/skills/**)"
     ]
   },
