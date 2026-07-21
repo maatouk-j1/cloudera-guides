@@ -1,0 +1,169 @@
+---
+title: VM Creation
+topicTitle: CDP 7.3.2
+topicSlug: cdp-7-3-2
+summary: Create the virtual machines for the Cloudera on premises Base and ECS clusters on Nutanix hardware using Prism Central.
+prevTitle: CDP 7.3.2
+prevSlug: /installations/cdp-7-3-2
+nextTitle: Solution Summary
+nextSlug: /installations/cdp-7-3-2/summary
+---
+
+Follow these steps **only** if you have existing Nutanix hardware and want to deploy Cloudera on premises on Nutanix. Skip this section if you are using any other bare-metal or hypervisor platform.
+
+This page outlines the step-by-step procedure to create virtual machines (VMs) on Nutanix hardware/clusters using Prism Central. The process includes image creation, VM configuration, disk attachment, networking, and powering on the VM.
+
+---
+
+## Prerequisites
+
+- Access to Prism Central
+- Required VM image (ISO or disk image)
+- Appropriate permissions to create images and VMs
+- Available storage container and subnet
+
+## Step 1: Create an Image
+
+1. Log in to the Prism Central Dashboard.
+
+2. From the left navigation panel, go to `Compute` > `Images`.
+
+3. Click `Add Image`.
+
+    ![Prism Central Images page listing existing images, with the Add Image button in the toolbar](/images/cdp-7-3-2/vm/prism-images-list.png)
+
+4. You will see the following options to create an image:
+
+    - Upload an image file
+    - Provide an ISO image URL
+    - Select an existing VM disk
+
+5. Choose the appropriate option and click `Next`.
+
+    ![Add Image wizard on the Select Image step, with Image Source set to Image File and an Add File button](/images/cdp-7-3-2/vm/add-image-source.png)
+
+6. Complete the image creation process.
+
+## Step 2: Create a Virtual Machine
+
+1. From the Prism Central Dashboard, navigate to `Compute` > `VMs`.
+
+2. Click `Create VM`.
+
+3. Enter the following details:
+
+    - VM Name
+    - Number of VMs
+    - CPUs
+    - Cores per CPU
+    - Memory
+
+4. Click `Next`.
+
+    ![Create VM Configuration step showing Name, Project, Cluster, Number of VMs and the VM Properties fields for CPUs, Cores Per CPU and Memory](/images/cdp-7-3-2/vm/create-vm-configuration.png)
+
+## Step 3: Attach Disks
+
+### 3.1 Attach Boot Disk (CD-ROM)
+
+1. Click `Attach Disk`.
+
+2. Select Type as `CD-ROM`.
+
+3. Under Operation, select `Clone from Image`.
+
+4. Choose the image created in Step 1.
+
+5. Set Bus Type to `SATA`.
+
+6. Click `Save`.
+
+    ![Create VM Resources step with the Disks, Network and Boot Configuration panels](/images/cdp-7-3-2/vm/create-vm-resources.png)
+
+    ![Attach Disk dialog with Type CD-ROM, Operation Clone from Image, the RHEL 9.5 boot ISO selected and Bus Type SATA](/images/cdp-7-3-2/vm/attach-disk-cdrom.png)
+
+### 3.2 Attach Storage Disk
+
+1. Click `Attach Disk` again.
+
+2. Select Type as `Disk`.
+
+3. Under Operation, select `Allocate on Storage Container`.
+
+4. Choose the storage container (for example, `default`).
+
+5. Enter the disk capacity (for example, `900 GB`).
+
+6. Set Bus Type to `SCSI`.
+
+7. Click `Save`.
+
+    ![Attach Disk dialog with Type Disk, Operation Allocate on Storage Container, Storage Container default, Capacity 900 GiB and Bus Type SCSI](/images/cdp-7-3-2/vm/attach-disk-storage.png)
+
+## Step 4: Configure Networking
+
+1. Click `Attach to Subnet`.
+
+2. Select the desired subnet (for example, `aux1`).
+
+3. Choose the IP assignment type:
+
+    - DHCP (IP assigned dynamically)
+    - Static IP (manually enter the IP address)
+
+4. Keep the remaining settings as default.
+
+5. Click `Save`.
+
+    ![Attach to Subnet dialog showing the selected subnet with its VLAN ID, IPAM and virtual switch, the private IP assignment pool and the Assign with DHCP assignment type](/images/cdp-7-3-2/vm/attach-to-subnet.png)
+
+## Step 5: Boot Configuration
+
+1. Set Boot Configuration to `UEFI BIOS Mode`.
+
+2. Keep all other settings as default.
+
+3. Click `Next`.
+
+    ![Create VM Resources step listing the attached CD-ROM and 900 GiB SCSI disk together with the Normal Nic entry for the subnet](/images/cdp-7-3-2/vm/vm-resources-summary.png)
+
+    ![Boot Configuration panel with UEFI BIOS Mode selected and the Shield VM security settings left unchecked](/images/cdp-7-3-2/vm/boot-configuration.png)
+
+## Step 6: Management Settings
+
+1. Under the `Management` tab, keep all settings unchanged.
+
+2. Click `Next`.
+
+## Step 7: Review and Create VM
+
+1. Review all VM configurations and settings.
+
+2. Click `Create VM` to provision the VM.
+
+    ![Create VM Review step summarising the VM configuration and the attached disks before creation](/images/cdp-7-3-2/vm/review-and-create-vm.png)
+
+## Step 8: Power On and Access the VM
+
+1. Once the VM is created, click on the VM name.
+
+2. Go to the `Console` tab.
+
+3. Click `Power On` to start the VM.
+
+4. Access the VM either:
+
+    - From the `Console` tab, or
+    - From the `Summary` tab by clicking `Launch Console`.
+
+    ![VM Console tab reporting that the VM is powered off, with the Power On button](/images/cdp-7-3-2/vm/vm-console-power-on.png)
+
+    ![VM Summary tab showing the details, IP addresses, boot configuration and host placement of the new VM](/images/cdp-7-3-2/vm/vm-summary-tab.png)
+
+## Additional Notes
+
+- Follow the same steps to create all required VMs for PVC Base and PVC ECS master and worker nodes.
+
+- Ensure sufficient CPU, memory, and storage are available before VM creation.
+
+    ![Prism Central VMs list showing the full set of pvcbase and pvcecs master and worker VMs with their vCPU, memory and IP address assignments](/images/cdp-7-3-2/vm/vms-list.png)
