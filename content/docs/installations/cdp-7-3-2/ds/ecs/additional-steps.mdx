@@ -1,0 +1,42 @@
+---
+title: Additional Steps for ECS Cluster Setup
+topicTitle: Install CDP Data Services using ECS
+topicSlug: cdp-7-3-2/ds/ecs
+summary: Optional post-install steps for the ECS cluster - patch the GPU feature discovery pods if they crashloop, then reserve GPU nodes through the node_taint host override.
+prevTitle: Install ECS Cluster
+prevSlug: /installations/cdp-7-3-2/ds/ecs/installation
+nextTitle: Dedicating ECS Nodes for Specific Workloads (Optional)
+nextSlug: /installations/cdp-7-3-2/ds/ecs/specific-workloads
+---
+
+These steps are **optional** - the guide marks the whole section *"Optional, Skip this step"*. Perform them only if you need to fix crashlooping GPU feature discovery pods or reserve GPU nodes for specific workloads on the ECS cluster.
+
+## Patch the GPU feature discovery pods
+
+> **Note:** If `nvgfd-gpu-feature-discovery-xxxx` pods remain in crashlookbackoff, apply this patch to fix the issue.
+
+```bash
+[root@pvcecs-master ~]# kubectl patch clusterrolebinding gpu-feature-discovery -p '{"subjects":[{"kind":"ServiceAccount","name":"gpu-feature-discovery","namespace":"kube-system"}]}'
+```
+
+![ContainerizedCluster1 status page in Cloudera Manager showing ECS 1.5.5 (Parcels), 11 Hosts, and the DOCKER and ECS services all in good health, with an empty Tags section below](/images/cdp-7-3-2/ds/ecs/additional-steps/01-containerized-cluster-status.png)
+
+## Set up a GPU node
+
+To reserve a GPU node in Cloudera on premises Data Services ECS cluster, assign a taint to the node. Set the node taint `nvidia.com/gpu: true:NoSchedule`. For more details on setting up a GPU node, see [the Cloudera Machine Learning GPU node setup documentation](https://docs.cloudera.com/machine-learning/1.5.5/private-cloud-requirements/topics/ml-gpu-node-setup.html).
+
+**Step 1.** To set up a GPU node for ECS, go to **Hosts > Configuration**.
+
+![Cloudera Manager All Hosts page filtered by the search term ecs, listing pvcecs-master and eleven pvcecs-worker hosts on the cldrsetup.local domain, all in Good Health with 2 Roles each](/images/cdp-7-3-2/ds/ecs/additional-steps/02-all-hosts-ecs-search.png)
+
+**Step 2.** Edit the value for **Data Services: Restrict workload types** (`node_taint`) by clicking on **Add Host Overrides**.
+
+![Hosts Configuration page filtered by gpu, showing the Data Services: Restrict workloads types (node_taint) property with the radio options Dedicated GPU Node, Dedicated NVME Node and None - None is selected - and an Add Host Overrides link](/images/cdp-7-3-2/ds/ecs/additional-steps/03-hosts-configuration-node-taint.png)
+
+**Step 3.** Add Host Overrides for the ECS nodes as per the requirement. For example, we selected two of the four nodes as **Dedicated GPU Nodes**.
+
+![Add Host Overrides - Data Services: Restrict workloads types dialog with Dedicated GPU Node selected and two of four cdp-ecs hosts on the cdip.cisco.local domain checked, each showing 128 cores and 1007 GiB physical memory](/images/cdp-7-3-2/ds/ecs/additional-steps/04-add-host-overrides-dialog.png)
+
+**Step 4.** Click on **Add** and click **Save Changes**.
+
+> **Note:** These captures are recycled from different lab builds and their hostnames do not agree. The **All Hosts** capture shows `pvcecs-master.cldrsetup.local` and `pvcecs-worker[1-10]` on `172.31.x`, while the **Add Host Overrides** dialog shows `cdp-ecs[1-4].cdip.cisco.local` on `10.29.148.x`. Read them for the procedure, not for the specific host names.
