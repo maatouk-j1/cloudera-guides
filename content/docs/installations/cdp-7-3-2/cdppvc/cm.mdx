@@ -1,0 +1,33 @@
+---
+title: Setup Cloudera Manager Server
+topicTitle: Install CDP Private Cloud
+topicSlug: cdp-7-3-2/cdppvc
+summary: Overview of the Cloudera Manager Server setup - the external PostgreSQL database it depends on, the server packages themselves, and the security and management configuration that follows.
+prevTitle: Setup Repositories and Parcels
+prevSlug: /installations/cdp-7-3-2/cdppvc/repos-and-parcels
+nextTitle: Setup Database for Cloudera Manager
+nextSlug: /installations/cdp-7-3-2/cdppvc/cm/database
+---
+
+With the repositories and parcels hosted locally on the `cldr-mngr` node, Cloudera Manager itself can be installed. Cloudera Manager is the end-to-end management application used to install, configure and operate Cloudera on premises Base - everything from here to the end of this chapter is driven from it.
+
+Cloudera Manager needs a database before it needs anything else. It uses various databases and datastores to store information about its own configuration, as well as information such as the health of the system or task progress - so the external PostgreSQL server is built first, then the Cloudera Manager Server packages are installed against it.
+
+---
+
+## Order of work
+
+| Step | Page |
+|:--|:--|
+| Install PostgreSQL 17 on `cldr-mngr`, enable TLS, and create the databases and service accounts every component requires | [Setup Database for Cloudera Manager](/installations/cdp-7-3-2/cdppvc/cm/database) |
+| Install the Cloudera Manager Server packages, point them at the SSL-enabled database, start the service and log in to the web UI | [Install Cloudera Manager Server](/installations/cdp-7-3-2/cdppvc/cm/server) |
+| Turn on Auto-TLS so Cloudera Manager issues and manages certificates for the cluster | [Enable Auto-TLS](/installations/cdp-7-3-2/cdppvc/cm/auto-tls) |
+| Kerberize the cluster against the FreeIPA realm built during the preliminary work | [Enable Kerberos](/installations/cdp-7-3-2/cdppvc/cm/kerberos) |
+| Add the Cloudera Management Service roles - Host Monitor, Service Monitor, Reports Manager and the rest | [Setup Cloudera Management Services](/installations/cdp-7-3-2/cdppvc/cm/mgmt-services) |
+| Point Cloudera Manager at LDAP for external authentication | [Configure CM for external authentication using LDAP](/installations/cdp-7-3-2/cdppvc/cm/ldap-auth) |
+
+## Before you start
+
+The external PostgreSQL DB server is installed on the **`cldr-mngr`** host, alongside the local `httpd` repository server set up in the [preliminary work](/installations/cdp-7-3-2/post-os-work). The database and the Cloudera Manager Server therefore share a host in this reference build, which is why the certificate import in the next two pages is a local file copy rather than a transfer.
+
+For the supported combinations of Cloudera Manager, Cloudera Runtime, Data Services, JDK, Python and PostgreSQL, check the compatibility matrix: [https://supportmatrix.cloudera.com/](https://supportmatrix.cloudera.com/)
