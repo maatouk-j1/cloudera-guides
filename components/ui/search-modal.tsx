@@ -79,7 +79,12 @@ export default function SearchModal({
                 <ul>
                   {results.map((item) => (
                     <li key={item.slug}>
+                      {/* prefetch={false} for the same reason as the sidebar (issue #35):
+                          every result prefetches its route's RSC payload, and React then
+                          preloads that page's screenshots against the current document.
+                          The result set changes on each keystroke, so this fans out fast. */}
                       <Link
+                        prefetch={false}
                         className="flex items-center px-2 py-1.5 leading-6 text-sm text-slate-800 hover:bg-slate-100 rounded-sm dark:text-slate-200 dark:hover:bg-slate-700 outline-hidden"
                         href={`/${item.slug}`}
                         onClick={() => { setIsOpen(false); setQuery(''); }}
