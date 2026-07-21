@@ -139,6 +139,157 @@ export const navigation: NavItem[] = [
               },
             ],
           },
+          {
+            title: "CDP 7.3.2",
+            children: [
+              { title: "Overview", href: "/installations/cdp-7-3-2" },
+              { title: "VM Creation", href: "/installations/cdp-7-3-2/vm" },
+              { title: "Solution Summary", href: "/installations/cdp-7-3-2/summary" },
+              {
+                title: "Post OS Installation - Preliminary Work",
+                href: "/installations/cdp-7-3-2/post-os-work",
+              },
+              {
+                title: "Install CDP Private Cloud",
+                children: [
+                  { title: "Overview", href: "/installations/cdp-7-3-2/cdppvc" },
+                  {
+                    title: "Prerequisites Overview",
+                    href: "/installations/cdp-7-3-2/cdppvc/prerequisites",
+                  },
+                  {
+                    title: "Setup Repositories and Parcels",
+                    href: "/installations/cdp-7-3-2/cdppvc/repos-and-parcels",
+                  },
+                  {
+                    title: "Setup Cloudera Manager Server",
+                    children: [
+                      { title: "Overview", href: "/installations/cdp-7-3-2/cdppvc/cm" },
+                      {
+                        title: "Setup Database for Cloudera Manager",
+                        href: "/installations/cdp-7-3-2/cdppvc/cm/database",
+                      },
+                      {
+                        title: "Install Cloudera Manager Server",
+                        href: "/installations/cdp-7-3-2/cdppvc/cm/server",
+                      },
+                      { title: "Enable Auto-TLS", href: "/installations/cdp-7-3-2/cdppvc/cm/auto-tls" },
+                      { title: "Enable Kerberos", href: "/installations/cdp-7-3-2/cdppvc/cm/kerberos" },
+                      {
+                        title: "Setup Cloudera Management Services",
+                        href: "/installations/cdp-7-3-2/cdppvc/cm/mgmt-services",
+                      },
+                      {
+                        title: "Configure CM for external authentication using LDAP",
+                        href: "/installations/cdp-7-3-2/cdppvc/cm/ldap-auth",
+                      },
+                    ],
+                  },
+                  {
+                    title: "Setup CDP PvC Base Cluster",
+                    children: [
+                      { title: "Overview", href: "/installations/cdp-7-3-2/cdppvc/base" },
+                      {
+                        title: "Install CDP PvC Base using the CM Web UI",
+                        href: "/installations/cdp-7-3-2/cdppvc/base/installation",
+                      },
+                      {
+                        title: "Data Lake Creation",
+                        href: "/installations/cdp-7-3-2/cdppvc/base/data-lake",
+                      },
+                      {
+                        title: "Additional Requirements and Details",
+                        href: "/installations/cdp-7-3-2/cdppvc/base/additional-requirements",
+                      },
+                      {
+                        title: "Configure services with SSL/TLS-enabled Metadata Database",
+                        href: "/installations/cdp-7-3-2/cdppvc/base/services-metadata-db-tls",
+                      },
+                      {
+                        title: "Scale the Cluster (Optional)",
+                        href: "/installations/cdp-7-3-2/cdppvc/base/scale-cluster",
+                      },
+                      {
+                        title: "Enable High Availability (Optional)",
+                        href: "/installations/cdp-7-3-2/cdppvc/base/high-availability",
+                      },
+                      {
+                        title: "Configure Services authentication for LDAP (Optional)",
+                        href: "/installations/cdp-7-3-2/cdppvc/base/ldap-auth",
+                      },
+                      {
+                        title: "Optimize Log Collection",
+                        href: "/installations/cdp-7-3-2/cdppvc/base/optimize-log-collection",
+                      },
+                    ],
+                  },
+                ],
+              },
+              {
+                title: "CDP Data Services Installation (ECS)",
+                children: [
+                  { title: "Overview", href: "/installations/cdp-7-3-2/ds" },
+                  {
+                    title: "Embedded Container Service (ECS) Requirements",
+                    href: "/installations/cdp-7-3-2/ds/ecs-requirements",
+                  },
+                  { title: "Checklist", href: "/installations/cdp-7-3-2/ds/checklist" },
+                  {
+                    title: "Install CDP Data Services using ECS",
+                    children: [
+                      { title: "Overview", href: "/installations/cdp-7-3-2/ds/ecs" },
+                      {
+                        title: "Install ECS Cluster",
+                        href: "/installations/cdp-7-3-2/ds/ecs/installation",
+                      },
+                      {
+                        title: "Additional Steps for ECS Cluster Setup",
+                        href: "/installations/cdp-7-3-2/ds/ecs/additional-steps",
+                      },
+                      {
+                        title: "Dedicating ECS Nodes for Specific Workloads (Optional)",
+                        href: "/installations/cdp-7-3-2/ds/ecs/specific-workloads",
+                      },
+                    ],
+                  },
+                ],
+              },
+              {
+                title: "Accessing Cloudera",
+                href: "/installations/cdp-7-3-2/accessing-cloudera",
+              },
+              { title: "Cloudera AI (CAI)", href: "/installations/cdp-7-3-2/cai" },
+              { title: "Cloudera Data Warehouse (CDW)", href: "/installations/cdp-7-3-2/cdw" },
+              { title: "Cloudera Data Engineering (CDE)", href: "/installations/cdp-7-3-2/cde" },
+              {
+                title: "Appendix",
+                children: [
+                  { title: "Overview", href: "/installations/cdp-7-3-2/appendix" },
+                  {
+                    title: "References Used in Guide",
+                    href: "/installations/cdp-7-3-2/appendix/references",
+                  },
+                  {
+                    title: "Glossary of Terms",
+                    href: "/installations/cdp-7-3-2/appendix/glossary-terms",
+                  },
+                  {
+                    title: "Glossary of Acronyms",
+                    href: "/installations/cdp-7-3-2/appendix/glossary-acronyms",
+                  },
+                  { title: "FreeIPA Reference", href: "/installations/cdp-7-3-2/appendix/freeipa" },
+                ],
+              },
+              { title: "Cluster Validation", href: "/installations/cdp-7-3-2/validation" },
+              { title: "Cluster Cleanup", href: "/installations/cdp-7-3-2/cleanup" },
+              { title: "Error Handling", href: "/installations/cdp-7-3-2/error-handling" },
+              {
+                title: "Kubernetes Command Reference",
+                href: "/installations/cdp-7-3-2/kubernetes-commands",
+              },
+              { title: "Acknowledgements", href: "/installations/cdp-7-3-2/acknowledgements" },
+            ],
+          },
         ],
       },
     ],
