@@ -1,0 +1,255 @@
+---
+title: Configure Services authentication for LDAP (Optional)
+topicTitle: Setup CDP PvC Base Cluster
+topicSlug: cdp-7-3-2/cdppvc/base
+summary: Optional - point the Base cluster services at the FreeIPA directory, one service at a time - Ranger admin authentication and Usersync, Hue, Atlas and Hive - with the full property tables for both LDAP and Active Directory setups.
+prevTitle: Enable High Availability (Optional)
+prevSlug: /installations/cdp-7-3-2/cdppvc/base/high-availability
+nextTitle: Optimize Log Collection
+nextSlug: /installations/cdp-7-3-2/cdppvc/base/optimize-log-collection
+---
+
+> **Optional - skip this step.** All four procedures on this page are marked *"Optional - Skip this Step"* in the source. Without them the services fall back to their existing authentication: Ranger to UNIX, Atlas to the local OS users on the host where the Atlas server runs.
+
+This page configures **service** authentication against the directory. It is a different page from [Configure CM for external authentication using LDAP](/installations/cdp-7-3-2/cdppvc/cm/ldap-auth), which does the same job for Cloudera Manager itself. The directory is the FreeIPA server stood up in [Post OS Installation - Preliminary Work](/installations/cdp-7-3-2/post-os-work), and the bind password is the KDC admin password configured there.
+
+Every screenshot on this page is recycled from an unrelated Active Directory lab - see [Version strings and lab domains in this section](#version-strings-and-lab-domains-in-this-section) at the foot of the page. **Use the tables, never the captures.**
+
+## 1. Configure Ranger authentication for LDAP
+
+Follow steps below to configure Ranger for LDAP authentication.
+
+**Step 1.** In Cloudera Manager, select **Ranger**, then click the **Configuration** tab.
+
+**Step 2.** To display the authentication settings, type `authentication` in the Search box. Scroll down to see all of the LDAP settings.
+
+**Step 3.** Select LDAP for "Admin Authentication Method".
+
+![Ranger Configuration tab searched for authentication, with Admin Authentication Method set to LDAP among the UNIX, LDAP, ACTIVE_DIRECTORY, PAM and NONE options, and Admin UNIX Auth Remote Login checked](/images/cdp-7-3-2/cdppvc/base/ldap-auth/ranger-admin-authentication-method.png)
+
+**Step 4.** Configure the following settings for LDAP authentication as shown below, the details depends on your configuration, based on existing LDAP/AD setup:
+
+**Table 8. User LDAP Integration**
+
+| Component | Value |
+|:--|:--|
+| Admin LDAP/AD Auth URL: | `ldap://ipaserver.cldrsetup.local:389/` (Give LDAP or AD Server LDAP ADDR) |
+| Admin LDAP/AD Auth Bind User/ Bind DN: | `uid=admin,cn=users,cn=accounts,dc=cldrsetup,dc=local` |
+| Admin LDAP/AD Auth Bind User Password: | `<cloudera123>` (password for KDC admin, configured earlier) |
+| Admin LDAP/AD Auth User DN Pattern: | `uid=admin,cn=users,cn=accounts,dc=cldrsetup,dc=local` |
+| Admin LDAP/AD Auth User Search Filter: | For AD: `(&(objectClass=user)(sAMAccountName={0}))` — For LDAP: `(&(objectClass=person)(uid={0}))` |
+| Admin LDAP/AD Auth Group Search Base: | `cn=groups,cn=accounts,dc=cldrsetup,dc=local` |
+| Admin LDAP/AD Auth Group Search Filter: | For AD: `(&(objectClass=group)(member={0}))` — For LDAP: `(&(objectClass=posixGroup)(memberUid={0}))` |
+| Admin LDAP/AD Auth Group Role Attribute: | `cn` |
+| Admin LDAP/AD Auth Base DN: | `dc=cldrsetup,dc=local` |
+| Admin LDAP/AD Auth Referral: | `follow` |
+| Admin AD Auth Domain Name: (For AD Setup) | `cldrsetup.local` |
+
+Search under Configuration for `ranger.ldap`.
+
+![Ranger Configuration filtered on ranger.ldap, showing Admin LDAP Auth URL, Bind User, Bind User Password, User DN Pattern, User Search Filter, Group Search Base, Group Search Filter, Group Role Attribute, Base DN and Referral set to follow](/images/cdp-7-3-2/cdppvc/base/ldap-auth/ranger-ldap-config.png)
+
+Additional parameters required for AD Based integration: search under Configuration for `ranger.ldap.ad`.
+
+![Ranger Configuration filtered on ranger.ldap.ad, showing the seven Admin AD Auth properties - URL, Bind DN, Bind Password, Domain Name, Base DN, Referral and User Search Filter - all left empty in this LDAP-based setup](/images/cdp-7-3-2/cdppvc/base/ldap-auth/ranger-ldap-ad-config.png)
+
+The guide overlays a corrected crop of the **Admin AD Auth Referral** row on top of that capture: the underlying screenshot has `ignore` selected, while the crop - and Table 8 - call for `follow`.
+
+![Close-up of the Admin AD Auth Referral property, ranger.ldap.ad.referral, with follow selected out of ignore, follow and throw](/images/cdp-7-3-2/cdppvc/base/ldap-auth/ranger-ldap-ad-referral.png)
+
+**Step 5.** Edit Usersync configuration. Example values set are shown in the screenshots below:
+
+![Ranger Usersync configuration part 1 - Source for Syncing User and Groups set to org.apache.ranger.ldapusersync.process.LdapUserGroupBuilder, Usersync LDAP/AD URL, Bind User, Bind User Password, Incremental Sync checked, Enable STARTTLS unchecked and User Search Base](/images/cdp-7-3-2/cdppvc/base/ldap-auth/ranger-usersync-config-1.png)
+
+![Ranger Usersync configuration part 2 - User Search Scope sub, User Object Class, User Search Filter, User Name Attribute, Referral follow, Username Case Conversion and Groupname Case Conversion](/images/cdp-7-3-2/cdppvc/base/ldap-auth/ranger-usersync-config-2.png)
+
+![Ranger Usersync configuration part 3 - Enable User Search checked, Group Search Base, Group Object Class, Group Name Attribute, Group Member Attribute, Group Hierarchy Levels 0 and Ldap Group Names](/images/cdp-7-3-2/cdppvc/base/ldap-auth/ranger-usersync-config-3.png)
+
+**Table 9. UserSync LDAP Integration**
+
+| Component | Value |
+|:--|:--|
+| Source for Syncing User and Groups: | `org.apache.ranger.ldapusersync.process.LdapUserGroupBuilder` |
+| Ranger Usersync Unix Backend: | `nss` |
+| Usersync LDAP/AD URL: | `ldap://ipaserver.cldrsetup.local:389/` |
+| Usersync Bind User: | `uid=admin,cn=users,cn=accounts,dc=cldrsetup,dc=local` |
+| Usersync Bind User Password: | `<cloudera123>` (password for KDC admin, configured earlier) |
+| Usersync User Search Base: | `cn=users,cn=accounts,dc=cldrsetup,dc=local` |
+| Usersync User Search Scope: | `sub` |
+| Usersync User Object Class: | `person` |
+| Usersync User Search Filter: | `uid=*` |
+| Usersync User Name Attribute: | `uid` |
+| Usersync Referral: | `follow` |
+| Usersync Username Case Conversion: | `none` |
+| Usersync Groupname Case Conversion: | `none` |
+| Usersync Enable User Search: | Ranger Usersync Default Group |
+| Usersync Group Search Base: | `cn=groups,cn=accounts,dc=cldrsetup,dc=local` |
+| Usersync Group Search Filter: | For AD: `(&(objectClass=group)(member={0}))` — For LDAP: `(&(objectClass=posixGroup)(memberUid={0}))` |
+| Usersync Group Search Scope: | `sub` |
+| Usersync Group Object Class: | `ipausergroup` |
+| Usersync Group Name Attribute: | `cn` |
+| Usersync Group Member Attribute: | `member` |
+
+**Table 10. UserSync AD Integration**
+
+| Component | Value |
+|:--|:--|
+| Source for Syncing User and Groups: | `org.apache.ranger.ldapusersync.process.LdapUserGroupBuilder` |
+| Ranger Usersync Unix Backend: | `nss` |
+| Usersync LDAP/AD URL: | `ldap://ipaserver.cldrsetup.local:389/` |
+| Usersync Bind User: | `Administrator@cldrsetup.local` |
+| Usersync Bind User Password: | `<cloudera123>` (password for KDC admin, configured earlier) |
+| Usersync User Search Base: | `OU=cloudera,DC=cldrsetup,DC=local` |
+| Usersync User Search Scope: | `sub` |
+| Usersync User Object Class: | `user` |
+| Usersync User Search Filter: | `(sAMAccountName=*)` |
+| Usersync User Name Attribute: | `sAMAccountName` |
+| Usersync Referral: | `follow` |
+| Usersync Username Case Conversion: | `none` |
+| Usersync Groupname Case Conversion: | `none` |
+| Usersync Enable User Search: | Ranger Usersync Default Group |
+| Usersync Group Search Base: | `OU=cloudera,DC=cldrsetup,DC=local` — *An OU would need to be mentioned to configure ldap if you are using AD based setup* |
+| Usersync Group Search Scope: | `sub` |
+| Usersync Group Object Class: | `group` |
+| Usersync Group Name Attribute: | `cn` |
+| Usersync Group Member Attribute: | `(member={1})` |
+
+**Step 6.** Click on save changes.
+
+**Step 7.** Restart Ranger service.
+
+**Step 8.** Login to Ranger Admin WebUI with ldap authentication.
+
+For more details, the guide points at `https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/security-ranger-authentication-unix-ldap-ad/topics/security-ranger-authentication-ldap-settings.html`.
+
+## 2. Configure Hue for LDAP Authentication
+
+Configuring Hue for Lightweight Directory Access Protocol (LDAP) enables you to import users and groups from a directory service, synchronize group membership manually or automatically at login, and authenticate with an LDAP server. Hue supports Microsoft Active Directory (AD) and open standard LDAP such as OpenLDAP and Forgerock OpenDJ Directory Services.
+
+**Step 1.** Login to Cloudera Manager. Go to **Cluster > Hue > Configuration**.
+
+**Step 2.** Change value for Authentication Backend:
+
+```text
+desktop.auth.backend.LdapBeckend,desktop.auth.backend.AllowFirstUserDjangoBackend
+```
+
+![Hue Authentication Backend property, backend / auth_backend, set service-wide to desktop.auth.backend.LdapBackend,desktop.auth.backend.AllowFirstUserDjangoBackend](/images/cdp-7-3-2/cdppvc/base/ldap-auth/hue-authentication-backend.png)
+
+The prose spells the first class `LdapBeckend` while the screenshot shows `LdapBackend`; the prose is transcribed as printed, and the screenshot spelling is the one Hue actually accepts.
+
+**Step 3.** Edit value for LDAP configuration. Example values set are shown in the screenshots below:
+
+![Hue LDAP configuration part 1 - LDAP URL, LDAP Server CA Certificate, Enable LDAP TLS checked, Active Directory Domain, LDAP Username Pattern, Use Search Bind Authentication checked, Create LDAP users on login checked and LDAP Search Base](/images/cdp-7-3-2/cdppvc/base/ldap-auth/hue-ldap-config-1.png)
+
+![Hue LDAP configuration part 2 - LDAP Bind User Distinguished Name, Bind Password, Username and Group Name for Test LDAP Configuration, LDAP User Filter, Username Attribute, Group Filter, Group Name Attribute and Group Membership Attribute](/images/cdp-7-3-2/cdppvc/base/ldap-auth/hue-ldap-config-2.png)
+
+**Table: LDAP Integration**
+
+| Component | Value |
+|:--|:--|
+| LDAP URL: | `ldap://ipaserver.cldrsetup.local:389/` |
+| LDAP Server CA Certificate (Optional): | Leave it blank |
+| Enable LDAP TLS (Hue): | True (Checked) |
+| LDAP Search Base: | `cn=users,cn=accounts,dc=cldrsetup,dc=local` |
+| LDAP Bind User Distinguished Name: | `uid=admin,cn=users,cn=accounts,dc=cldrsetup,dc=local` |
+| LDAP Bind Password: | `<cloudera123>` (password for KDC admin, configured earlier) |
+| LDAP Username for Test LDAP Config: | `admin` |
+| LDAP Group Name for Test LDAP Config: | Leave it blank |
+| LDAP User filter: | Leave it blank |
+| LDAP Group filter: | Leave it blank |
+| LDAP Group Name Attribute: | `cn` |
+| LDAP Group Membership Attribute: | `member` |
+
+**Step 4.** Click on save changes.
+
+**Step 5.** Restart HUE service.
+
+**Step 6.** Click on Actions next to Hue. Click on Test LDAP Configuration.
+
+![Hue service page with the Actions menu open, showing Start, Stop, Restart, Rolling Restart, Add Role Instances, Rename, Delete, Enter Maintenance Mode, Dump Database, Synchronize database, Load Database, Create the Hue User Directory and Test LDAP Configuration](/images/cdp-7-3-2/cdppvc/base/ldap-auth/hue-actions-test-ldap.png)
+
+**Step 7.** Click on Test LDAP Configuration.
+
+![Test LDAP Configuration confirmation dialog for the Hue service, explaining that the command tests Hue's LDAP configuration and should be run whenever it is modified, with Cancel and Test LDAP Configuration buttons](/images/cdp-7-3-2/cdppvc/base/ldap-auth/hue-test-ldap-dialog.png)
+
+**Step 8.** Click on Finish.
+
+![Test LDAP Configuration command finished for the Hue context, reporting that Hue's LDAP configuration is valid, 1 of 1 steps completed, with the Testing the Hue LDAP configuration step green](/images/cdp-7-3-2/cdppvc/base/ldap-auth/hue-test-ldap-finished.png)
+
+For more details, the guide points at `https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/securing-hue/topics/hue-authenticate-users-with-ldap.html`.
+
+## 3. Configure Atlas for LDAP authentication
+
+Follow steps below to configure Atlas authentication for LDAP. If LDAP is not integrated for Atlas, we need to use local OS users present on the node where Atlas server is installed i.e. `base-master`.
+
+**Step 1.** Login to Cloudera Manager WebUI. Go to **Cluster > Atlas > Configuration**.
+
+**Step 2.** Edit LDAP configuration. Sample configuration is shown in the screenshots below:
+
+![Atlas LDAP configuration part 1 - Enable LDAP Authentication checked, LDAP Server URL, User DN Pattern, Group-Search Base, Group-Search Filter, Group-Role Attribute, LDAP DN, Bind DN Username, Bind DN Password, Referral set to follow and User Search Filter](/images/cdp-7-3-2/cdppvc/base/ldap-auth/atlas-ldap-config-1.png)
+
+![Atlas LDAP configuration part 2 - AD Referral set to follow, AD User Search Filter, AD User Default Role ROLE_USER and LDAP Authentication Type set to ldap out of none, ldap and ad](/images/cdp-7-3-2/cdppvc/base/ldap-auth/atlas-ldap-config-2.png)
+
+**Table 11. Atlas LDAP Integration**
+
+| Component | Value |
+|:--|:--|
+| Enable LDAP Authentication (Atlas): | True (Checked) |
+| LDAP Server URL: | `ldap://ipaserver.cldrsetup.local:389/` |
+| User DN Pattern: | `uid=admin,cn=users,cn=accounts,dc=cldrsetup,dc=local` |
+| LDAP Group Search filter: | `(&(member={1})(objectClass=posixgroup))` |
+| LDAP Group Search Base: | `cn=groups,cn=accounts,dc=cldrsetup,dc=local` |
+| LDAP Group-Role Attribute: | `cn` |
+| LDAP DN: | `dc=cldrsetup,dc=local` |
+| LDAP Bind DN Username: | `uid=admin,cn=users,cn=accounts,dc=cldrsetup,dc=local` |
+| LDAP Bind DN Password: | `<cloudera123>` (password for KDC admin, configured earlier) |
+| LDAP Referral: | `follow` |
+| LDAP User filter: | `(&(uid={0})(objectClass=person))` |
+| LDAP Authentication Type: | `LDAP` |
+| AD Referral: (Only for AD Setup) | `follow` |
+| AD User Search Filter: (Only for AD Setup) | `(sAMAccountName={0})` |
+| AD User Default Role: (Only for AD Setup) | `ROLE_USER` |
+
+**Step 3.** Click on save changes.
+
+**Step 4.** Restart Atlas service.
+
+For more details, the guide points at `https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/atlas-securing/topics/atlas-configure-ldap-authentication.html`.
+
+## 4. Configure Hive for LDAP Authentication
+
+The source gives this section no numbered steps - only the capture and the property table. The properties are service-wide under **Hive > Configuration**, and both HiveServer2 and the Hive Metastore are enabled separately with the same URL and base DN.
+
+![Hive LDAP configuration - LDAP username and password, Enable LDAP Authentication for HiveServer2 checked with its LDAP URL, Active Directory Domain and empty LDAP BaseDN, then Enable LDAP Authentication for Hive Metastore checked with the same three properties](/images/cdp-7-3-2/cdppvc/base/ldap-auth/hive-ldap-config.png)
+
+**Table 12. LDAP Integration-Hive**
+
+| Component | Value |
+|:--|:--|
+| LDAP Username: | `admin` |
+| LDAP Password: | `<cloudera123>` (password for KDC admin, configured earlier) |
+| Enable LDAP Authentication for HiveS2: | True (Checked) |
+| LDAP URL: | `ldap://ipaserver.cldrsetup.local:389/` |
+| LDAP Base DN: | `dc=cldrsetup,dc=local` |
+| Enable LDAP Authentication for HMS: | True (Checked) |
+| LDAP URL: | `ldap://ipaserver.cldrsetup.local:389/` |
+| LDAP Base DN: | `dc=cldrsetup,dc=local` |
+
+## Version strings and lab domains in this section
+
+Every capture on this page comes from a different lab than the one this guide builds - an Active Directory domain, not the FreeIPA server the tables target. The values are transcribed from the tables; the screenshots are kept because they show *where* each property lives in Cloudera Manager, not what to type into it.
+
+| Where | Tables say | Screenshots show |
+|:--|:--|:--|
+| Directory server | `ldap://ipaserver.cldrsetup.local:389/` | `ldaps://winjb-ucsg16.cdip.cisco.local:636` |
+| Base DN | `dc=cldrsetup,dc=local` | `DC=cdip,DC=cisco,DC=local` |
+| Bind user | `uid=admin,cn=users,cn=accounts,dc=cldrsetup,dc=local` | `CN=cdpbind,OU=cloudera,DC=cdip,DC=cisco,DC=local` |
+| AD domain (Hue, Hive) | `cldrsetup.local` | `cdip.cisco.local` |
+| Cluster name (Hue, HDFS captures) | `PvCBaseCluster1` | `cdip-cdp` |
+
+Three further disagreements are internal to the source and are transcribed as printed rather than reconciled:
+
+- **Table 9 against the Usersync captures.** The table sets `Usersync User Object Class: person`, `Usersync User Search Filter: uid=*`, `Usersync User Name Attribute: uid` and both case conversions to `none`; the captures show `user`, `(&(objectClass=user)(sAMAccountName={0}))`, `sAMAccountName` and `lower`. The captures are the AD lab's values - Table 9 is the LDAP column and Table 10 the AD one.
+- **Ranger's AD Referral.** The base capture shows `ignore`, the corrected crop laid over it shows `follow`, and Table 8 says `follow`.
+- **Documentation links.** The displayed URLs all read `7.3.2`, but their PDF link annotations point at `7.1.9` (Ranger PostgreSQL) and `7.3.1` (Ranger LDAP settings, Hue, Atlas). They are transcribed as plain text rather than linked to a stale target.

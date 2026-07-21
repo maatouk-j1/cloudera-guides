@@ -1,0 +1,91 @@
+---
+title: Configure services with SSL/TLS-enabled Metadata Database
+topicTitle: Setup CDP PvC Base Cluster
+topicSlug: cdp-7-3-2/cdppvc/base
+summary: Point Ranger and the Hive metastore at the SSL/TLS-enabled PostgreSQL metadata database - copy the database server certificate onto each service host, set the Ranger DB SSL properties, and override both JDBC URLs with sslmode=verify-full.
+prevTitle: Additional Requirements and Details
+prevSlug: /installations/cdp-7-3-2/cdppvc/base/additional-requirements
+nextTitle: Scale the Cluster (Optional)
+nextSlug: /installations/cdp-7-3-2/cdppvc/base/scale-cluster
+---
+
+The Cloudera Manager metadata database was created with TLS enabled back in [Setup Database for Cloudera Manager](/installations/cdp-7-3-2/cdppvc/cm/database). The services that keep their own schemas in that database - Ranger and the Hive metastore - do not inherit that setting from Cloudera Manager: each one needs its own copy of the database server certificate and its own JDBC URL override. Both procedures below are mandatory for a TLS-enabled metadata database, and the Hive one is additionally called out in the source as a **mandatory step for CDW**.
+
+## 1. Configure Ranger with SSL/TLS enabled PostgreSQL Database
+
+Login to Cloudera Manager Web Console. Go to **Ranger > Configuration**.
+
+> **Note**: Make sure that:
+>
+> - The database and database user for Ranger service are created in the required postgreSQL.
+> - A database server certificate is issued by a trusted certificate authority.
+> - The server host name matches the host name in the database server certificate.
+
+From CDPDC-7.1.5 onwards, Ranger service requires postgres JDBC driver **version >= 42.2.5**. The Ranger code also constructs the JDBC connection string to have `sslmode=verify-full`, if Ranger Database SSL configurations are set in case of postgresql database type.
+
+For more details, the guide points at `https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/installation/topics/cdpdc-enable-ssl-tls-ranger-postgres-db.html`.
+
+**Step 1.** Copy the database server certificate to `/var/lib/ranger/` path, or use any custom path.
+
+```bash
+[root@pvcbase-master ~]# cp -rv /root/.postgresql/root.crt /var/lib/ranger/root.crt
+```
+
+**Step 2.** In Review Config, search for SSL and update the following configurations:
+
+| Component | Value |
+|:--|:--|
+| Ranger DB SSL Enabled: (`ranger.db.ssl.enabled`) | true (Checked) |
+| Ranger DB SSL Required: (`ranger.db.ssl.required`) | true (Checked) |
+| Ranger DB SSL Verify Server Certificate: (`ranger.db.ssl.verifyServerCertificate`) | true (Checked) |
+| Ranger DB Auth Type: (`ranger.db.ssl.auth.type`) | 1-way |
+| Ranger Admin Database SSL Certificate File: (`ranger.db.ssl.certificateFile`) | `<path-to-db-server-certificate>`: `/var/lib/ranger/root.crt` or custom path `/var/lib/cloudera-scm-server/.postgresql/root.crt` |
+| Ranger Database JDBC URL Override: | `jdbc:postgresql://<db_host>:<db_port>/<db_name>?sslmode=verify-full&sslrootcert=<server_certificate_path>` — here `jdbc:postgresql://cldr-mngr.cldrsetup.local:5432/ranger?ssl=true&sslmode=verify-full&cert=/var/lib/ranger/root.crt` |
+| Set Load Balancer Address (Optional) | `http://<ranger_host>:6080` — here `http://pvcbase-master.cldrsetup.local:6080`, and `https://<ranger_host>:6182` — here `https://pvcbase-master.cldrsetup.local:6182` |
+
+![Ranger Configuration filtered on ssl, with Ranger DB SSL Enabled, Ranger DB SSL Required and Ranger DB SSL Verify Server Certificate checked, Ranger DB Auth Type set to 1-way and the Ranger Admin Database SSL Certificate File carrying the JDBC URL, with 4 edited values pending Save Changes](/images/cdp-7-3-2/cdppvc/base/services-metadata-db-tls/ranger-ssl-config.png)
+
+The guide's own template uses `sslrootcert=` while the worked example uses `cert=`; both are transcribed as printed.
+
+**Step 3.** After updating the configurations, click on **Save Changes**.
+
+**Step 4.** Ranger Service restart is required for rangeradmin after updating Ranger configuration. Click on **Actions -> Restart** under Ranger Service.
+
+**Step 5.** Run below command on `pvcbase-master` node to check the Ranger logs, during restart.
+
+```bash
+[root@pvcbase-master ~]# tail -f /var/log/ranger/admin/catalina.out
+```
+
+## 2. Configure Hive metastore with SSL/TLS enabled PostgreSQL Database (Mandatory Step for CDW)
+
+In the Cloudera Manager Web console; go to **Hive > Configuration > Hive Metastore Database JDBC URL Override**.
+
+**Step 1.** Copy the database server certificate to `/var/lib/hive/` path, or use any custom path.
+
+```bash
+[root@pvcbase-master ~]# cp -rv /root/.postgresql/root.crt /var/lib/hive/root.crt
+```
+
+**Step 2.** Edit value as:
+
+```text
+jdbc:postgresql://<db_host>:<db_port>/<db_name>?sslmode=verify-full&sslrootcert=<server_certificate_path>
+jdbc:postgresql://cldr-mngr.cldrsetup.local:5432/hive?ssl=true&sslmode=verify-full&sslrootcert=/var/lib/hive/root.crt
+```
+
+![Hive Metastore Database JDBC URL Override set service-wide to the postgresql JDBC URL with ssl=true, sslmode=verify-full and sslrootcert pointing at /var/lib/hive/root.crt](/images/cdp-7-3-2/cdppvc/base/services-metadata-db-tls/hive-metastore-jdbc-url-override.png)
+
+> **Note:** Restart required for Hive Metastore Server and HiveServer2 after updating Hive configuration.
+
+> **Note:** Click on **Actions -> Restart** under **Hive** and **Hive-on-Tez** Services.
+
+## Version strings in this section
+
+Both screenshots on this page are recycled from an older lab build, so what they display does not match the values the procedure asks you to enter.
+
+| Where | Prose / table says | Screenshot shows |
+|:--|:--|:--|
+| Ranger and Hive JDBC URL host | `cldr-mngr.cldrsetup.local` | `cldr-mngr.cdppvcds.com` |
+
+The prose and the tables win. Transcribe the JDBC URLs from this page, not from the captures.
