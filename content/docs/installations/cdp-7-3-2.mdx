@@ -1,0 +1,54 @@
+---
+title: CDP 7.3.2
+topicTitle: CDP 7.3.2
+topicSlug: cdp-7-3-2
+summary: Deployment guide for Cloudera on premises 7.3.2 with Data Services on the Embedded Container Service (ECS).
+nextTitle: VM Creation
+nextSlug: /installations/cdp-7-3-2/vm
+---
+
+Deployment guide for **Cloudera on premises** 7.3.2, covering a Base cluster and Data Services on the
+Embedded Container Service (ECS), from VM creation through cluster validation.
+
+"CDP 7.3.2" is kept as the short name in the sidebar for symmetry with CDP 7.1.7. The product itself
+was rebranded: what was *CDP Private Cloud Base* is now **Cloudera on premises Base**, and *CDP
+Private Cloud Data Services* is now **Cloudera on premises Data Services**.
+
+## Versions
+
+| Component | Version |
+|:----------|:--------|
+| Cloudera on premises Base (Runtime) | 7.3.2.0 (`7.3.2-1.cdh7.3.2.p0.77083870`) |
+| Cloudera on premises Data Services | 1.5.5 SP2 (`1.5.5-h2000-b238`) |
+| Cloudera Manager | 7.13.2.0 (`7.13.2.0-77091850`) |
+| Operating system | RHEL 9.5 |
+
+Cloudera Manager repository paths use `7.13.2.400` rather than the release string above — take repo
+URLs verbatim from the [repositories and parcels](/installations/cdp-7-3-2/cdppvc/repos-and-parcels)
+page.
+
+### If Cloudera AI is in scope
+
+Cloudera AI is not certified against Base Runtime 7.3.2.0 at the time of writing. A cluster that will
+run [Cloudera AI](/installations/cdp-7-3-2/cai) must be deployed on **Base Runtime 7.3.1 SP3 CHF2**
+instead — every other version in the table above is unchanged. Decide this before
+[setting up repositories and parcels](/installations/cdp-7-3-2/cdppvc/repos-and-parcels), because the
+parcel and repository URLs differ and changing them afterwards means redeploying the cluster.
+
+## How this guide is ordered
+
+The guide is **chronological** — it follows a single deployment from an empty hypervisor to a
+validated cluster, so the pages are meant to be read and executed in order:
+
+1. **VM Creation** and **Solution Summary** — the target architecture and the machines it runs on.
+2. **Post OS Installation** — everything the OS needs before Cloudera software is installed.
+3. **Install CDP Private Cloud** — repositories and parcels, Cloudera Manager, then the Base cluster
+   and its Data Lake.
+4. **CDP Data Services Installation (ECS)** — requirements, the pre-install checklist, and the ECS
+   cluster itself.
+5. **Accessing Cloudera**, then the data services: **Cloudera AI**, **CDW**, **CDE**.
+6. **Appendix**, **Cluster Validation**, **Cleanup**, **Error Handling** — reference material and
+   what to do when something goes wrong.
+
+This differs from the [CDP 7.1.7 guide](/installations/cdp-7-1-7), which is organised by topic rather
+than as one continuous procedure.
