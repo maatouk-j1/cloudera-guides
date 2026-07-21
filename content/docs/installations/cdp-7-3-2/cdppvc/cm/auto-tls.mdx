@@ -1,0 +1,74 @@
+---
+title: Enable Auto-TLS
+topicTitle: Setup Cloudera Manager Server
+topicSlug: cdp-7-3-2/cdppvc/cm
+summary: Run the Cloudera Manager Auto-TLS wizard from the Add Private Cloud Base Cluster page so Cloudera Manager becomes its own certificate authority, then restart the server and confirm the UI redirects to HTTPS on port 7183.
+prevTitle: Install Cloudera Manager Server
+prevSlug: /installations/cdp-7-3-2/cdppvc/cm/server
+nextTitle: Enable Kerberos
+nextSlug: /installations/cdp-7-3-2/cdppvc/cm/kerberos
+---
+
+Auto-TLS is managed using the `certmanager` utility, which is included in the Cloudera Manager Agent software, and not the Cloudera Manager Server software. You must install the Cloudera Manager Agent software on the Cloudera Manager Server host to be able to use the utility. You can use `certmanager` to manage auto-TLS on a new installation. For more information, go to: [Configuring TLS Encryption for Cloudera Manager Using Auto-TLS](https://docs.cloudera.com/cdp-private-cloud-base/7.3.1/security-encrypting-data-in-transit/topics/cm-security-auto-tls.html)
+
+---
+
+## 1. Start the Auto-TLS wizard
+
+**Step 1.** Click on the link **here to setup Enable AutoTLS** to set up AutoTLS through Cloudera Manager on the **Add Private Cloud Base Cluster** page.
+
+![Add Private Cloud Base Cluster page with the Private Cloud Base Cluster tile selected, an information banner reading AutoTLS is currently not enabled with the here to setup Enable AutoTLS link highlighted, and a warning banner about no KDC being configured](/images/cdp-7-3-2/cdppvc/cm/auto-tls/add-cluster-autotls-banner.png)
+
+**Step 2.** Below screen will appear. Enter the values for the parameters as shown below. (We will be using the **private key approach**, you can use password option as well, both options should considerably work.)
+
+| Component | Value |
+|:--|:--|
+| Enable TLS for | All existing and future clusters |
+| SSH username | root |
+| Authentication method | All hosts accept same private key / All hosts accept same password |
+| Private Key (If using Key approach) | Choose the private key created and downloaded in earlier section |
+| Password (If using Password approach) | Enter VM's root users' password |
+| Confirm Password | Enter VM's root users' password (again) |
+
+a. Screenshot for using the **Password** based authentication method.
+
+![Generate CA step of the Auto-TLS wizard, with Enable TLS for set to All existing and future clusters, SSH Username root, Authentication Method set to All hosts accept same password, masked Password and Confirm Password fields and SSH Port 22](/images/cdp-7-3-2/cdppvc/cm/auto-tls/generate-ca-password-auth.png)
+
+b. Screenshot for using the **Private Key** based authentication method.
+
+![Enter Login Credentials step of the Add Private Cloud Base Cluster wizard, with SSH Username root, Authentication Method set to All hosts accept same private key, a Private Key file chooser showing id_rsa, empty passphrase fields, SSH Port 22 and Simultaneous Installations 10](/images/cdp-7-3-2/cdppvc/cm/auto-tls/login-credentials-private-key.png)
+
+**Step 3.** Click **Next** to continue. Below screen will appear, if all the values are entered properly.
+
+![Remaining Steps panel instructing you to restart the Cloudera Manager server manually, listing ssh my_cloudera_manager_server_host, systemctl restart cloudera-scm-server and tail -f of the server log, and to wait for the Started Jetty server message before clicking Finish](/images/cdp-7-3-2/cdppvc/cm/auto-tls/remaining-steps-restart.png)
+
+**Step 4.** Click on **Finish**.
+
+## 2. Restart Cloudera Manager Server
+
+**Step 5.** After enabling the AutoTLS for the CM-UI through the browser, login to `cldr-mngr` node at backend as user root and restart Cloudera Manager Server, suggested in the previous screenshot.
+
+```bash
+[root@cldr-mngr ~]# systemctl restart cloudera-scm-server
+[root@cldr-mngr ~]# systemctl status cloudera-scm-server -l
+
+##### Run the below command to check the logs of cloudera-scm-server starting up. Wait until you see the
+Started Jetty server message on the screen.
+[root@cldr-mngr ~]# sudo tail -f /var/log/cloudera-scm-server/cloudera-scm-server.log
+```
+
+## 3. Verify the HTTPS redirect
+
+**Step 6.** Once you see the message **Started Jetty server** in the logs, Login to Cloudera Manager using URL endpoint, `http://<IP_for_CM_Server>:7180`, in a new incognito window.
+
+**Step 7.** The URL should get redirected to https at 7183 port i.e. `https://<CM_SRVR_IP_ADDR>:7183/` This means that the AutoTLS configuration is successful. You might get a warning message on the browser related to the certificate. You can ignore the warning and visit the website as this is not a signed certificate.
+
+**Step 8.** Enter the default credentials (admin/admin) and click on **Login**. You should see AutoTLS enabled as shown in the image below.
+
+![Add Cluster / Select Cluster Type page showing a green banner reading AutoTLS has already been enabled, alongside a warning banner that a KDC is currently not configured](/images/cdp-7-3-2/cdppvc/cm/auto-tls/autotls-enabled-select-cluster-type.png)
+
+> **Note:** The documentation link at the top of this page points at the **7.3.1** security guide, not 7.3.2 - that is the target the source guide carries. The build described here is Cloudera Manager **7.13.2.0** on Cloudera on premises Base **7.3.2.0**; see the [version table on the CDP 7.3.2 landing page](/installations/cdp-7-3-2).
+
+## What comes next
+
+Cloudera Manager now issues and distributes its own certificates, and every agent talks to the server over TLS. That encryption is a prerequisite for the next step, because the Kerberos wizard ships keytab files from the server to the agent hosts over the same channel. See [Enable Kerberos](/installations/cdp-7-3-2/cdppvc/cm/kerberos).

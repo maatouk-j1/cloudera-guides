@@ -1,0 +1,168 @@
+---
+title: Enable Kerberos
+topicTitle: Setup Cloudera Manager Server
+topicSlug: cdp-7-3-2/cdppvc/cm
+summary: Integrate the cluster with the FreeIPA KDC using the Cloudera Manager Setup KDC wizard - fix krb5.conf, enter the realm and KDC hosts, let Cloudera Manager manage krb5.conf, import the account manager credentials, then verify with kinit and klist.
+prevTitle: Enable Auto-TLS
+prevSlug: /installations/cdp-7-3-2/cdppvc/cm/auto-tls
+nextTitle: Setup Cloudera Management Services
+nextSlug: /installations/cdp-7-3-2/cdppvc/cm/mgmt-services
+---
+
+Cloudera Manager provides a wizard for integrating your organization's Kerberos with your cluster to provide authentication services. Cloudera Manager clusters can be integrated with MIT Kerberos, Red Hat Identity Management (or the upstream FreeIPA), or Microsoft Active Directory. For more information, see [Enable Kerberos Authentication for CDP](https://docs.cloudera.com/cdp-private-cloud-base/7.1.9/security-kerberos-authentication/topics/cm-security-kerberos-enabling-intro.html).
+
+> **Note:** In our lab, we configured AD based Kerberos authentication. We presume that AD is pre-configured with user(s) and proper authentication is set up for Kerberos Authentication.
+
+> **Note:** Before integrating Kerberos with your cluster, configure TLS encryption between Cloudera Manager Server and all Cloudera Manager Agent host systems in the cluster. During the Kerberos integration process, Cloudera Manager Server sends keytab files to the Cloudera Manager Agent hosts, and TLS encrypts the network communication, so these files are protected.
+
+> **Note:** For FreeIPA, you must have administrative privileges to the `ipaserver` instance for initial setup and for on-going management, or you will need to have the help of your LDAP administrator prior to and during the integration process. For example, administrative access is needed to access the FreeIPA Kerberos KDC, create principals, and troubleshoot Kerberos TGT/TGS-ticket-renewal and take care of any other issues that may arise.
+
+> **Note:** In case, you configure **Active-Directory** based Kerberos authentication. We presume that Active Directory is pre-configured with OU, user(s) and proper authentication is setup for Kerberos Authentication. LDAP users and bind users are expected to be in the same branch/OU.
+
+> **Note:** For **Active Directory**, you must have administrative privileges to the Active Directory instance for initial setup and for on-going management, or you will need to have the help of your AD administrator prior to and during the integration process. For example, administrative access is needed to access the Active Directory KDC, create principals, and troubleshoot Kerberos TGT/TGS-ticket-renewal and take care of any other issues that may arise.
+
+---
+
+## 1. Check krb5.conf before starting
+
+**Step 1.** Before proceeding further with KDC setup, we need to ensure that the changes to `krb5.conf` related to the default cache is not reversed. View the contents of the file `/etc/krb5.conf` after logging in to both **ipaserver** node and **cldr-mngr** node and check whether the property **default_ccache_name** is commented out. If not, then open the file and comment it out.
+
+```bash
+[root@ipaserver ~]# sudo vi /etc/krb5.conf
+#default_ccache_name = KEYRING:persistent:%{uid}
+```
+
+![Terminal view of the libdefaults section of /etc/krb5.conf showing default_realm, dns_lookup_realm false, dns_lookup_kdc true, rdns false, ticket_lifetime 24h, forwardable true, udp_preference_limit 0 and the commented-out default_ccache_name line highlighted in red](/images/cdp-7-3-2/cdppvc/cm/kerberos/krb5-conf-default-ccache-commented.png)
+
+If you have made any changes, only then run the below commands to restart all the IPA services. If not, skip to the next step.
+
+```bash
+[root@ipaserver ~]# ipactl restart
+```
+
+## 2. Launch the Setup KDC wizard
+
+**Step 2.** Now, move to CM-UI on your browser.
+
+**Step 3.** In the Cloudera manager console click on **here to set up a KDC**, on the same TLS page, to enable the kerberos authentication on the cluster.
+
+![Add Cluster / Select Cluster Type page showing a green banner reading AutoTLS has already been enabled and a warning banner with the here to setup a KDC link](/images/cdp-7-3-2/cdppvc/cm/auto-tls/autotls-enabled-select-cluster-type.png)
+
+**Step 4.** Click **Continue**.
+
+**Step 5.** Select **RedHat IPA** as shown below and check the box for **I have completed all the above steps.**
+
+We have already installed the required RedHat FreeIPA/ Kerberos dependency packages `openldap-clients`, `krb5-workstation` and `krb5-libs` in previous steps.
+
+![Getting Started page of the Setup KDC wizard with KDC Type set to Red Hat IPA, the package install snippets for RHEL/CentOS, SUSE and Ubuntu, and the green I have completed all the above steps checkbox ticked](/images/cdp-7-3-2/cdppvc/cm/kerberos/kdc-type-redhat-ipa.png)
+
+**Step 6.** Select **Active Directory** as shown below, if you're proceeding with AD based Kerberos integration and check the box for **I have completed all the above steps.**
+
+We have already installed the required RedHat FreeIPA/ Kerberos dependency packages `openldap-clients`, `krb5-workstation` and `krb5-libs` in previous steps. *(Skip this step, in our case.)*
+
+![Getting Started page of the Setup KDC wizard with KDC Type set to Active Directory instead of Red Hat IPA, showing the same OpenLdap client package snippets and the ticked I have completed all the above steps checkbox](/images/cdp-7-3-2/cdppvc/cm/kerberos/kdc-type-active-directory.png)
+
+**Step 7.** As recommended, install the following in all Cloudera Manager hosts by running the following command. Once completed, click the checkbox "I have completed all the above steps" and click **Continue**.
+
+*(Skip the below command execution step, as we already installed the dependencies in prior steps.)*
+
+```bash
+[root@jump ~]# ansible all -m command -a "dnf install -y openldap-clients krb5-workstation krb5-libs"
+```
+
+## 3. Enter the KDC information
+
+**Step 8.** For enabling Kerberos, under the **Enter KDC Information** page, provide below inputs for **Enter KDC information** for this Cloudera Manager. Use the table below as an example to fill-in the KDC setup information, provide below inputs and click **Next**.
+
+**Table 4. KDC Setup components and their corresponding value**
+
+| Component | Value |
+|:--|:--|
+| Kerberos Encryption Types | aes256-cts-hmac-sha1-96 |
+| Kerberos Security Realm | CLDRSETUP.LOCAL |
+| KDC Server Host | ipaserver.cldrsetup.local |
+| KDC Admin Server Host | ipaserver.cldrsetup.local |
+| Domain Name(s) | cldrsetup.local |
+| Base DN | dc=cldrsetup,dc=local |
+| Active Directory Suffix (Only for AD based Kerberos) | DC=cldrsetup,DC=local — Credentials: (Administrator / |
+| Active Directory Delete Accounts on Credential Regeneration (Only for AD based Kerberos) | Select (Check) |
+
+Check the picture below on where to populate the above mentioned fields:
+
+![Enter KDC Information page of the wizard, annotated to show which field takes the Kerberos Realm and which two take the ipaserver FQDN, with Kerberos Encryption Types already set to aes256-cts-hmac-sha1-96](/images/cdp-7-3-2/cdppvc/cm/kerberos/enter-kdc-information-fields.png)
+
+> **Note:** In this setup, we used Kerberos authentication with **RedHat FreeIPA**.
+
+![Enter KDC Information page filled in, with Kerberos Encryption Types aes256-cts-hmac-sha1-96, a Kerberos Security Realm, KDC Server Host and KDC Admin Server Host pointing at the ipaserver FQDN, and the Domain Name(s) field populated](/images/cdp-7-3-2/cdppvc/cm/kerberos/enter-kdc-information-filled.png)
+
+## 4. Let Cloudera Manager manage krb5.conf
+
+**Step 9.** On the Next Page, check the box for **Manage "krb5.conf"** to enable it through Cloudera Manager. This will install the `krb5.conf` file in all the hosts selected for the data lake.
+
+![Manage krb5.conf page of the wizard with the krb5.conf file path set to /etc/krb5.conf and the Manage krb5.conf through Cloudera Manager checkbox ticked, both flagged as Requires Server Restart](/images/cdp-7-3-2/cdppvc/cm/kerberos/manage-krb5-conf.png)
+
+**Step 10.** Next, enter the details as per the configuration of FreeIPA you did before. i.e., provide the domain and password of the admin user configured earlier in the FreeIPA setup. Enter account credentials for the admin which you have created. This credential will be used to generate the keytabs. In our lab setup, "admin" user is created during the IPA server installation. Click **Continue**. In case of **AD based Kerberos**, we used *Administrator* as the username.
+
+Enter the REALM portion of the principal in upper-case only to conform to Kerberos convention.
+
+![Enter Account Credentials page of the wizard with the Username field set to admin, an @ separator followed by the uppercase realm, and a masked Password field](/images/cdp-7-3-2/cdppvc/cm/kerberos/enter-account-credentials.png)
+
+**Step 11.** Click **Finish** to complete the KDC setup.
+
+**Step 12.** KDC Account manager credentials should get imported successfully as shown below.
+
+![Command Details step of the Setup KDC for this Cloudera Manager wizard showing the Import KDC Account Manager Credentials command with status Finished in 5.01s and the message Successfully imported KDC Account Manager credentials](/images/cdp-7-3-2/cdppvc/cm/kerberos/import-kdc-credentials-command-details.png)
+
+```bash
+##### For Red Hat IdM, make sure that all cluster hosts are joined to the IPA domain, after freeipa-client
+is installed.
+## Kerberos client OS-specific packages must be installed on all cluster hosts and client hosts that will
+authenticate using Kerberos.
+
+[root@ipaserver ~]# rpm -qa|grep ipa-client
+ipa-client-4.6.8-5.el7.centos.16.x86_64
+ipa-client-common-4.6.8-5.el7.centos.16.noarch
+[root@ipaserver ~]#
+
+##### If keytab error come up during kerberos configuration -- go to ipa server and run -
+[root@ipaserver ~]# ipactl restart && ipactl status
+```
+
+## 5. Verify the Kerberos configuration
+
+**Step 13.** Once the KDC setup is completed, the Cloudera Manager wizard for adding a cluster will reflect the following:
+
+![Add Cluster / Select Cluster Type page now showing two green banners - AutoTLS has already been enabled and The KDC is already set up. You can now create Kerberized clusters](/images/cdp-7-3-2/cdppvc/cm/kerberos/kdc-configured-select-cluster-type.png)
+
+**Step 14.** Verify Kerberos configuration. (You can run this on any server to verify.)
+
+```bash
+[root@ipaserver ~]# kinit admin@CLDRSETUP.LOCAL
+Password for admin@CLDRSETUP.LOCAL: <cloudera123>
+[root@ipaserver ~]# klist -e
+Ticket cache: KCM:0
+Default principal: admin@CLDRSETUP.LOCAL
+
+Valid starting       Expires                                        Service principal
+03/05/2024 20:35:11 03/06/2024 20:35:07                             krbtgt/CLDRSETUP.LOCAL@CLDRSETUP.LOCAL
+        renew until 03/12/2024 21:35:07
+[root@ipaserver ~]#
+```
+
+## Source values that do not match this build
+
+Several strings on this page come from recycled captures and older lab builds. The prose and the [version table on the CDP 7.3.2 landing page](/installations/cdp-7-3-2) win - never read a realm, hostname or version out of a screenshot.
+
+| Where | What the guide shows | What this build actually is |
+|:--|:--|:--|
+| Screenshot in Step 1 | `default_realm = CDPPVCDS.COM` | realm `CLDRSETUP.LOCAL`, domain `cldrsetup.local` |
+| Screenshots in Steps 8 and 10 | realm `CDPPVCDS.COM`, host `ipaserver.cdppvcds.com`, domain `cdppvcds.com` | the values in the Table 4 above |
+| `rpm -qa` output in Step 12 | `ipa-client-4.6.8-5.el7.centos.16` | the nodes in this build run **RHEL 9.5** |
+| Wizard chrome in the Step 5/6 screenshots | Cloudera Manager `7.11.3` | Cloudera Manager **7.13.2.0** |
+| Documentation link at the top of this page | `cdp-private-cloud-base/7.1.9/...` | Cloudera on premises Base **7.3.2.0** |
+
+> **Note:** Step 8 in the source reads *"Use Table 6 as an example"*, but the table immediately below it is labelled **Table 4**. The table reproduced above is that Table 4 - there is no Table 6 in this section.
+
+## What comes next
+
+The KDC is wired in, the account manager credentials are imported, and `kinit` returns a ticket. Before building the cluster, install the Cloudera Management Service so host and service status, charts and reports actually populate in the UI. See [Setup Cloudera Management Services](/installations/cdp-7-3-2/cdppvc/cm/mgmt-services).
