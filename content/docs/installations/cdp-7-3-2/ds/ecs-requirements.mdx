@@ -1,0 +1,227 @@
+---
+title: Embedded Container Service (ECS) Requirements
+topicTitle: CDP Data Services Installation (ECS)
+topicSlug: cdp-7-3-2/ds
+summary: The seventeen software requirements every ECS host must satisfy before the installer runs - storage layout, cgroup v1, nfs-utils, iptables, NVIDIA drivers - plus the RHEL 8/9 NetworkManager step and the upstream checklists.
+prevTitle: CDP Data Services Installation (ECS)
+prevSlug: /installations/cdp-7-3-2/ds
+nextTitle: Checklist
+nextSlug: /installations/cdp-7-3-2/ds/checklist
+---
+
+## Embedded Container Service (ECS) checklist
+
+Use the checklist for Embedded Container Service (ECS) for Cloudera on premises Data Services: [https://docs.cloudera.com/cdp-private-cloud-data-services/1.5.5/installation-ecs/topics/cdppvc-installation-ds-checklist.html](https://docs.cloudera.com/cdp-private-cloud-data-services/1.5.5/installation-ecs/topics/cdppvc-installation-ds-checklist.html)
+
+The guide reproduces that checklist in full on the [next page](/installations/cdp-7-3-2/ds/checklist). Work through the requirements below first - they are the changes you actually make on the hosts; the checklist is what you verify afterwards.
+
+## Cloudera on premises Data Services software requirements
+
+**1.** You must have a minimum of one agent node for ECS.
+
+**2.** Enable TLS on the Cloudera Manager cluster for communication with components and services.
+
+**3.** Set up Kerberos on these clusters.
+
+**4.** Ensure that all of the hosts in the ECS cluster have more than **300 GiB** of free space in the each `/var/lib` and `/docker` directories, on each host in a Cloudera on premises Containerized Cluster, at the time of installation. The default docker service uses `/docker` folder. Whether you wish to retain `/docker` or override `/docker` with any other folder, you **must have a minimum of 300 GiB free space**. The hosts in a Cloudera on premises Containerized Cluster that have GPUs are required to have nVidia Drivers and `nvidia-container-runtime` installed.
+
+![Cloudera Manager Check Prerequisites wizard step showing Host Prerequisites failed with two errors - a minimum of 16 cores required for hosts in a Private Cloud Containerized Cluster, and a minimum of 300 GiB of storage required in the /var/lib directory and 300 GiB in the /ecs/docker directory, with /var/lib/longhorn not permitted to be a symbolic link](/images/cdp-7-3-2/ds/ecs-requirements/check-prerequisites-errors.png)
+
+> This is what the installer's own prerequisites checker reports when the hosts are not ready. It is an **enforcing** check - the install will not proceed past it - so every item on this page is worth doing before you reach that wizard step.
+
+**5.** `Python 3.8<` is required for Cloudera Manager version 7.11.3.0 and higher versions. Cloudera Manager agents will not start unless Python 3.8 is installed on the cluster nodes.
+
+**6.** The cluster generates multiple hosts and host-based routing is used in the cluster in order to route it to the right service. You must decide on a domain for the services which Cloudera Manager by default points to one of the host names on the cluster. However, during the installation, you should check the default domain and override the default domain (only if necessary) with what you plan to use as the domain. The default domain must have a wildcard DNS entry. For example, `*.apps.cldrsetup.local`.
+
+**7.** It is recommended that you leave IPv6 enabled at the OS level on all ECS nodes.
+
+**8.** Take care of enough disk space is available on each host in ECS cluster.
+
+**9.** On each of the ECS hosts, create three partitions of the attached 2T EBS volume (non-root) and mount those partitions as volumes `/lhdata` `/cdwdata` `/docker`. (`/docker` is used for docker cache, `/lhdata` for LongHorn NFS Volume storage, and `/cdwdata` for local storage and CDW)
+
+**10.** ECS requires JDK, krb5-workstation, krb5-libs, NTP, iptables packages to be installed on all hosts.
+
+**11.** Enable cgroup v1 in Red Hat Enterprise Linux 9. *(optional, skip this step)*
+
+```bash
+# In RHEL 9 cgroup-v2 is enabled by default, follow steps below to enable cgroup v1:
+
+# Check if the cgroup-v2 is mounted currently as default.
+[root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "mount | grep cgroup"
+
+# Add the kernel command line parameter systemd.unified_cgroup_hierarchy=0 &
+systemd.legacy_systemd_cgroup_controller.
+
+[root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a 'grubby --update-kernel=/boot/vmlinuz-$(uname -r)
+--args="systemd.unified_cgroup_hierarchy=0 systemd.legacy_systemd_cgroup_controller"'
+
+# Reboot jump system for changes to take effect.
+[root@ipaserver ~]# ansible ecsmasternodes,ecsnodes -m shell -a "systemctl reboot"
+
+# Verify the changes after reboot:
+[root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "cat /proc/cmdline"
+BOOT_IMAGE=(hd0,gpt2)/vmlinuz-5.14.0-162.23.1.el9_1.x86_64 root=/dev/mapper/rhel-root ro
+crashkernel=1G-4G:192M,4G-64G:256M,64G-:512M resume=/dev/mapper/rhel-swap rd.lvm.lv=rhel/root
+rd.lvm.lv=rhel/swap rhgb quiet systemd.unified_cgroup_hierarchy=0 systemd.legacy_systemd_cgroup_controller
+
+# Mount shows legacy cgroup-v1 mounted now.
+[root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "mount | grep cgroup"
+[root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "ll /sys/fs/cgroup"
+```
+
+**12.** For CAI, you must install `nfs-utils` in order to mount longhorn-nfs provisioned mounts. The `nfs-utils` package is required on every node of the ECS cluster. Run this command `"dnf install nfs-utils"` to install `nfs-utils`.
+
+```bash
+[root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "dnf install -y nfs-utils iscsi-initiator-utils"
+```
+
+**13.** Check `iptables` is installed and working fine.
+
+```bash
+[root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "iptables -L"
+```
+
+**14.** If `iptables` is not working as expected or giving command not found error then remove the package on all ecs nodes and re-install.
+
+```bash
+[root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "dnf remove -y iptables && dnf install -y iptables &&
+iptables -L"
+```
+
+**15.** If `iptables` is not present on ecs cluster nodes, then Install `iptables`, and verify if it is working as expected.
+
+```bash
+[root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "dnf install -y iptables && iptables -L"
+```
+
+**16.** For nodes with NVIDIA GPU *(if applicable)*, ensure that the GPU hosts have nVidia Drivers and `nvidia-container-runtime` installed. You must confirm that drivers are properly loaded on the host by executing the command `nvidia-smi`. You must also install the `nvidia-container-toolkit` package. *(skip this step)*
+
+**17.** You must install `nvidia-container-toolkit` *(if applicable)*. (`nvidia-container-runtime` is migrated to `nvidia-container-toolkit`, see Migration Notice.) The steps for this are shown in the [NVIDIA Installation Guide](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html#installing-with-yum-or-dnf). If using Red Hat Enterprise Linux (RHEL), use dnf to install the package. See Installing the [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/edge/latest/nvidia-gpu-with-device-edge.html#installing-the-nvidia-container-toolkit). *(skip this step)*
+
+```bash
+##### Verify linux version:
+[root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "uname -m && cat /etc/*release"
+[root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "uname -a"
+
+##### Verify GCC installation and version
+[root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "gcc --version"
+
+##### Verify nodes with NVIDIA GPU installed:
+[root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "lspci -nnv | grep -i nvidia"
+
+##### Set subscription to RHEL9.x
+[root@jump ~]# ansible all -m shell -a "subscription-manager release --set=9.4"
+[root@jump ~]# ansible all -m shell -a "subscription-manager release --show"
+[root@jump ~]# ansible all -m shell -a "sudo dnf clean all"
+[root@jump ~]# ansible all -m shell -a "sudo rm -rvf /var/cache/dnf"
+
+##### (Optional if not completed prior) Enable optional repos - On RHEL 9 Linux only
+[root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "subscription-manager repos
+--enable=rhel-9-for-x86_64-appstream-rpms"
+[root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "subscription-manager repos
+--enable=rhel-9-for-x86_64-baseos-rpms"
+[root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "subscription-manager repos
+--enable=codeready-builder-for-rhel-9-x86_64-rpms"
+
+##### Install kernel headers and development packages for the currently running kernel
+[root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "sudo dnf install kernel-devel-$(uname -r)
+kernel-headers-$(uname -r)"
+
+##### Remove outdated Signing Key:
+[root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "sudo rpm --erase gpg-pubkey-7fa2af80*"
+
+##### Download and Install NVIDIA CUDA Toolkit [This exercise documented with CUDA 12.3.2 for RHEL 9
+rpm(local) installation]
+[root@ipaserver ~]# wget
+https://developer.download.nvidia.com/compute/cuda/12.2.2/local_installers/cuda-repo-rhel9-12-2-local-12.2.2_535.104.05-1.x86_64.rpm
+[root@jump ~]# ansible ecsmasternodes,ecsnodes -m copy -a
+"src=/root/cuda-repo-rhel9-12-2-local-12.2.2_535.104.05-1.x86_64.rpm
+dest=/root/cuda-repo-rhel9-12-2-local-12.2.2_535.104.05-1.x86_64.rpm"
+[root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "sudo rpm --install
+cuda-repo-rhel9-12-2-local-12.2.2_535.104.05-1.x86_64.rpm"
+
+##### From the NVIDIA Driver Downloads page, download NVIDIA Driver
+https://www.nvidia.com/download/index.aspx as per the GPU, OS and NVIDIA CUDA version.
+[root@jump ~]# wget https://nvidia.github.io/libnvidia-container/stable/rpm/nvidia-container-toolkit.repo
+
+[root@jump ~]# ansible ecsmasternodes,ecsnodes -m copy -a
+"src=/root/nvidia-driver-local-repo-rhel9-535.161.07-1.0-1.x86_64.rpm
+dest=/root/nvidia-driver-local-repo-rhel9-535.161.07-1.0-1.x86_64.rpm"
+[root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "sudo rpm --install
+nvidia-driver-local-repo-rhel9-535.161.07-1.0-1.x86_64.rpm”
+
+[root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "sudo dnf clean all"
+[root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "sudo dnf -y module install
+nvidia-driver:latest-dkms"
+[root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "sudo dnf -y install cuda"
+
+##### Enable nvidia-persistenced services:
+[root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "sudo systemctl enable
+nvidia-persistenced.service"
+
+##### Reboot the machine:
+[root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "sudo reboot"
+
+##### After the machine boots, verify that the NVIDIA drivers are installed properly:
+[root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "sudo nvidia-smi"
+
+##### Installing with dnf
+##### Configure the production repository:
+[root@jump ~]# ansible ecsmasternodes,ecsnodes -m copy -a "src=/root/nvidia-container-toolkit.repo
+dest=/etc/yum.repos.d/nvidia-container-toolkit.repo"
+[root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "sudo dnf config-manager --enable
+nvidia-container-toolkit-experimental"
+[root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "sudo dnf install -y nvidia-container-toolkit"
+```
+
+## If you are installing ECS on RHEL 8 or RHEL 9
+
+*(Not Required for Cloud Based Servers, perform only on Datacenter/Bare-metal environments for RKE Based ECS clusters)*
+
+```bash
+##### Run the following command to check to see if the nm-cloud-setup.service and nm-cloud-setup.timer
+services are enabled:
+[root@jump ~]# ansible ecsmasternodes,ecsnodes -m copy -a "systemctl status nm-cloud-setup.service
+nm-cloud-setup.timer"
+##### If the nm-cloud-setup.service and nm-cloud-setup.timer services are enabled, disable them by
+running the following command on each host you added:
+[root@jump ~]# ansible ecsmasternodes,ecsnodes -m copy -a "systemctl disable nm-cloud-setup.service
+nm-cloud-setup.timer && systemctl stop nm-cloud-setup.service nm-cloud-setup.timer"
+##### For more information, see Known issues and limitations.
+If you disabled the nm-cloud-setup.service and nm-cloud-setup.timer services, reboot the added hosts.
+```
+
+> Both `nm-cloud-setup` commands are transcribed verbatim, including the source's use of the Ansible **`copy`** module where `shell` is what would actually run `systemctl`. Correct the module before running them.
+
+## Notes
+
+**Note:** For more information, see: [Known issues and limitations](https://docs.rke2.io/known_issues/#networkmanager).
+
+**Note:** Prepare Cloudera on premises Base for the Cloudera on premises Data Services installation: [https://docs.cloudera.com/cdp-private-cloud-data-services/1.5.5/installation-ecs/topics/cdppvc-installation-ecs-prepare-cdp-private-cloud-base.html](https://docs.cloudera.com/cdp-private-cloud-data-services/1.5.5/installation-ecs/topics/cdppvc-installation-ecs-prepare-cdp-private-cloud-base.html)
+
+**Note:** Use this checklist to ensure that your Cloudera on premises Base is configured and ready for installing Cloudera on premises Data Services: [https://docs.cloudera.com/cdp-private-cloud-data-services/1.5.5/installation-ecs/topics/cdppvc-installation-pvcbase-checklist.html](https://docs.cloudera.com/cdp-private-cloud-data-services/1.5.5/installation-ecs/topics/cdppvc-installation-pvcbase-checklist.html)
+
+**Note:** Use this checklist to ensure that your Embedded Container Service (ECS) is configured and ready for installing Cloudera on premises Data Services: `https://docs.cloudera.com/cdp-private-cloud-data-services/1.5.5/installation-ecs/topics/cdppvc-installation-ds-checklist.html`
+
+## Version strings in this section
+
+The source contradicts itself in three places on this page. All are transcribed as they appear rather than reconciled.
+
+| Where | The guide says | Beside it |
+|:--|:--|:--|
+| Item 5 | `Python 3.8<` is required for Cloudera Manager **7.11.3.0** and higher | This build runs Cloudera Manager **7.13.2.0** |
+| Item 17, CUDA comment | *"documented with CUDA **12.3.2** for RHEL 9"* | The URL and every RPM name on the lines below are CUDA **12.2.2** |
+| Item 17, subscription block | `subscription-manager release --set=9.4` | The guide pins **RHEL 9.5** throughout |
+
+The last one is the same quirk [Post OS Installation](/installations/cdp-7-3-2/post-os-work) recorded: prose says 9.5, sample commands and outputs say 9.4.
+
+## Link targets in this section
+
+Two link annotations disagree with the words they sit behind, so those two are left as plain text rather than wired up to a stale target.
+
+| Displayed | Annotation actually points at | Handling |
+|:--|:--|:--|
+| Item 6, *"wildcard DNS entry"* | The Management Console **1.5.4** *No wildcard TLS* page - the opposite topic | Plain text |
+| Fourth Note, URL displaying `.../1.5.5/...cdppvc-installation-ds-checklist.html` | The same page under **1.5.4** | Plain text (code span) |
+
+The first Note's *Known issues and limitations* resolves to the **RKE2** NetworkManager known issue, which is the right target for the `nm-cloud-setup` step above it, so it is linked.

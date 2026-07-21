@@ -1,0 +1,110 @@
+---
+title: Checklist
+topicTitle: CDP Data Services Installation (ECS)
+topicSlug: cdp-7-3-2/ds
+summary: The guide's full pre-installation checklist for Embedded Container Service - every item to verify on the Base cluster and the ECS hosts before the installer runs, grouped by the release that introduced it.
+prevTitle: Embedded Container Service (ECS) Requirements
+prevSlug: /installations/cdp-7-3-2/ds/ecs-requirements
+nextTitle: Install CDP Data Services using ECS
+nextSlug: /installations/cdp-7-3-2/ds/ecs
+---
+
+This page is the guide's checklist table, reproduced in full. Work through it before starting the [ECS install](/installations/cdp-7-3-2/ds/ecs) - the installer's prerequisites checker is enforcing, and a miss here stops the wizard rather than degrading it.
+
+The rows in **bold with an empty Details cell** are the source's own section dividers, marking which Data Services release introduced the items beneath them. They are kept because they carry the version history the surrounding rows are read against.
+
+## Checklist
+
+| Checklist Item | Details |
+|:--|:--|
+| Docs Links | Docs - ECS Checklist<br />Docs - [ECS System Requirements](https://docs.cloudera.com/cdp-private-cloud-data-services/1.5.4/installation-ecs/topics/cdppvc-requirements-ecs.html)<br />[Support Matrix](https://supportmatrix.cloudera.com/) |
+| ClouderaManager version | 7.11.3 - CHF6 (minimum) |
+| LDAP Configuration | CM is configured for LDAP, and you have a copy of the CA trust chain that signed your LDAP server's cert (i.e. root cert & intermediates if any). |
+| LDAP Bind User Account | You have the account and password for LDAP Bind user account. |
+| Base Cluster & CM Agents TLS | TLS: AutoTLS? Yes/No<br />TLS: AutoTLS, signed with customer CA? Yes/No<br />TLS: Manual, signed with customer CA? Yes/No<br />TLS: Manual self signed (not recommended) xxx |
+| Kerberos Admin Account | CM is setup with Kerberos admin account (cloudera-scm account & password). |
+| ECS Installer Prerequisites Checker | IMPORTANT! CM ECS installer now has an Enforcing prerequisites checker, install will fail if your infra does not meet requirements outlined in docs. [See item 14, in doc](https://docs.cloudera.com/cdp-private-cloud-data-services/1.5.4/installation-ecs/topics/cdppvc-installation-ecs-steps.html). |
+| Runtime Version | 7.3.2 (CHF6+) is installed & configured. See [support matrix](https://supportmatrix.cloudera.com/) |
+| **New Changes with 1.5.5** | |
+| Minimum Required Components | Zookeeper, HDFS, Ozone, HBase, Hive Metastore, Kafka, Solr-Infra, Ranger, Atlas, YARN (optional for CDW, but required for Spark pushdown in CDE, CAI). |
+| Base Components TLS | All Base components configured with TLS. |
+| Base Components Kerberos | All Base components configured with Kerberos. |
+| CDW Base Cluster HMS | CDW - Base HMS, mTLS can be used instead of user/password.<br />If using CDW, the Base Cluster HMS is configured to allow TLS connections (set to allow TLS, but not forced to require it). |
+| Wildcard DNS Record | **CRITICAL**: A wildcard subdomain (called `app_domain` in cm) has been created in DNS. For AD this usually means a subdomain folder + an "A record" with name = "" pointing to the ECS host and a CNAME record. The "A record" does not need a reverse PTR.<br />**AD Example**: If corp domain is "company.com", then create a new subdomain folder called "ecs-dev", then within that create AD another called "apps", then create a "A record" inside that folder, its name is "", its IP will be the IP of the host you will install ECS Server onto.<br />Verify with `dig` utility e.g., `$ dig foobar.apps.cdppvc.com`.<br />Look for "ANSWER" section in the result. |
+| DNS Resolver | DNS needs to be the primary resolver, do not use entries in `/etc/hosts` (except for localhost). |
+| ECS Nodes File System | RHEL 8 & RHEL 9 - disk partition that backs "/var" should be xfs file system (using the default ftype = 1), this is usually the root partition `/`. |
+| RHEL/Centos 7.x Support | **New in 1.5.5:** RH/Centos 7.x no longer supported. If running RHEL 7.x, you must upgrade to a higher version before installing Cloudera on premises Data Services. |
+| Hostname Configuration | Hostname must = FQDN, use `hostnamectl set-hostname <fqdn>`. |
+| /etc/resolv.conf Entries | `/etc/resolv.conf` must NOT have more than 3 "nameserver" entries. |
+| MTU Size | Ensure that net interfaces are configured to a maximum transmission unit size (MTU) not smaller than 1450, (typical MTU is 1500), required by the Calico CNI plugin. |
+| Storage Devices | Validate that Storage devices meet Sys Requirements (see docs) and are mounted using a consistent naming convention. Devices are expected to be SCSI block devices (NFS mounts do not work). Devices for CDW Cache and Block should be separate mounts. Use a Logical Volume Manager if you have multiple devices per type. |
+| Disk Mounts | All disk mounts should be xfs(type1), including root partition. The partition backing `/var/lib` **must have at least 300GB free** after install of CM agent. If 300GB free is not available, then must symlink `/var/lib/docker` & `/var/lib/rancher` from another partition (must be xfs). |
+| Required Mounts | 3 mounts required per host, name them any you like, DO NOT USE symbolic links.<br />**See**: `https://longhorn.io/docs/1.5.5/volumes-and-nodes/multidisk/#use-an-alternative-path-for-a-disk-on-the-node`<br />1) A xfs mount for Docker storage (used for install staging, CAI model building, and embedded repo storage) at least 300GB<br />2) A xfs mount for CDW Cache, this is a physical NVMe device, sizing dependent on use case, consumed in 600GB chunks per executor & coordinator<br />3) A xfs mount for Longhorn Block storage which provides k8s Persistent Volumes (PVs), min 1 TB per node, vendor recommends this mount should be a Logical Volume (from LVM2) (for future expansion needs) |
+| Passwordless Sudo User | You have credentials for a passwordless sudo user for each host. If you don't have these credentials, then you will have to install CMAgents manually (not using wizard) and configure them for TLS manually. |
+| CM Agents Configuration | Nodes are configured with requirements to run CM Agents. |
+| iptables Configuration | Do NOT disable iptables, but ensure iptables is set to defaults. Any customer-set chains/rules must be un-set. (firewalld not supported, nftables not yet certified). Check if `/etc/sysconfig/iptables` exists and inform the customer to remove it. Ensure no system management software like puppet, ansible, etc., will recreate it on reboot. ECS will attempt to install iptables-services if it's not present. |
+| RHEL8 - iptables | Install iptables like: `# yum --setopt=tsflags=noscripts install -y iptables`. See docs: [ECS Installation Steps](https://docs.cloudera.com/cdp-private-cloud-data-services/1.5.0/installation-ecs/topics/cdppvc-installation-ecs-steps.html). |
+| RHEL8 - Net Manager | Services `nm-cloud-setup.service` and `nm-cloud-setup.timer` must be stopped (if they exist) and disabled. This is seen on AWS RHEL images, unlikely to see this on-prem. *(Risky, as we found instances can get corrupt, due to network connectivity may lost from AWS side)* |
+| RHEL8 - VMware | Certain versions of VMware virtual network interface (vmxnet3) can cause what seems like intra-pod packet drops. This is due to the Calico [Issue](https://github.com/projectcalico/calico/issues/4727). Workaround: See case Cloudera Support. |
+| RHEL9 - iptables | Check iptables configuration as described for RHEL8. |
+| Time Service | Host has chronyd or NTP running. |
+| DNS Resolving | Each ECS host is forward and reverse DNS resolvable. |
+| DNS Forward and Reverse | Each ECS host can forward and reverse DNS resolve each base host. |
+| SELinux and System Settings | SELinux off or set to Permissive, `vm.swappiness = 1`, Transparent Huge Pages Off (1.3.4+ support SELinux, see docs). |
+| NFS Requirements | Linux package "nfs-utils" must be installed for CAI & CDE. |
+| GPU Requirements & Config | See docs for GPU requirements & config for CAI. |
+| 3rd Party Software | Certain 3rd party network monitors/firewalls may seriously interfere with ECS cluster traffic.<br />Illumio... Illumio runs an agent on each host, uses iptables and can block traffic if it is running in Primary Firewall Mode. That mode must be set to = off. See [Illumio Docs](https://docs.illumio.com/core/21.1/Content/Guides/kubernetes-and-openshift/configuration/firewall-coexistence-on-pods.htm).<br />VMware NSX-T can create blocking firewall rules. See NSX-T Jira. |
+| Air Gapped Customers | If a customer is Air Gapped, they must download all the ECS bits and stage them behind an HTTP server. Make sure they do this right away as this is 150GB of content (circa 1.5.0). |
+| License Key | In every case, Customer (or Cloudera employee) MUST have a valid license key that includes an entitlement for PrivateCloud! |
+| Ingress Certificates | It is usually better to have a customer CA signed ECS Ingress domain cert, but not required as ECS will sign using an RKE CA cert (the RKE CA will have to be pre-trusted on a user's machine, or the browser will show "insecure" TLS connection). This ECS generated CA is not managed by CM's auto-TLS, so for JDBC/impala-shell/beeline/other connections, you must add this to a client truststore manually. The ECS generated CA will have a `CN=rke2-server-ca@xxxxxxxxxx` and is located at `/var/lib/rancher/rke2/server/tls/server-ca.crt`. |
+| Customer CA Signed Certs | For customer CA signed certs: This cert must include 2 SubjectAltNames. If wildcard format is not allowed, let the installer use the RKE CA. Example:<br />`DNS.1 = *.apps.cdppvc.com`<br />`DNS.2 = apps.cdppvc.com` |
+| **New in 1.5:** | |
+| No Wildcard TLS | There is an option to deploy when wildcard SAN entries are not allowed. See doc for method & limits: [No wildcard TLS](https://docs.cloudera.com/management-console/1.5.4/private-cloud-security-overview/topics/mc-private-cloud-security-no-wildcard-tls.html). |
+| CAI Workbench Certificates | If installing in a network domain that requires strict host checking, HSTS, you will need to use TLS for CAI Workbenchs. Fun fact: "cloudera.com" requires HSTS, which is usually not seen with customers but is emerging.<br />This cert must include SubjectAltNames.<br />`DNS.1 = *.xxxx-xxxx.apps.cdppvc.com` (xxxx-xxxx = the CAI workspace ID) |
+| CDE Virtual Cluster Certificates | Same as CAI for HSTS. CDE includes a utility to generate RKE signed certs for each virtual cluster. If you make your own cert for a CDE virtual cluster, this cert must include SubjectAltNames.<br />`DNS.1 = *.xxxx-xxxx.apps.cdppvc.com` (xxxx-xxxx = the CDE virtual cluster ID) |
+| CDW HMS Configuration | CDW can be configured to allow non-TLS connections for HMS db. See [CDW Documentation](https://docs.cloudera.com/data-warehouse/1.5.1/securing/topics/dw-private-disable-ssl-requirement-hms-database.html). |
+| FreeIPA Support | FreeIPA is now supported. "LDAP Group Search Filter" in Mgmt Console must include `(!(cn=admins))`, or group sync will break<br />e.g. `(&(member={0})(objectclass=posixgroup)(!(cn=admins)))`.<br />Must alter the `/etc/krb5.conf` - comment out includedir directives.<br />In CM7.10.1, CM generated "local to auth" krb5 rules include embedded `\Q` and `\E` chars, this is legal for base but causes a parsing problem for CDW. Contact for workaround (Should be patched in 1.5.1 - CHF1). |
+| **Fixed in 1.5.0:** | |
+| /etc/resolv.conf Entries | `/etc/resolv.conf` must NOT have more than 2 "search" entries, causes a side-effect in Impala Statestore pod. Per Jira. |
+| External DS Metadata DB | **New**: External DS metadata db is deprecated. This will be a problem for "legacy" customers as we have no migrate from external to embedded db. |
+| Container Repos | Able to use customer-owned container repos is now supported e.g., Artifactory, Nexus, Harbor, Docker dist. |
+| Iceberg Tables | Support for Iceberg Tables. |
+| CDSW to CAI Migration | Tech Preview: CDSW to CAI migration. See release notes. |
+| **New in 1.4.1:** | |
+| /var/lib Storage Requirements | `/var/lib` must have 100GB. |
+| Docker Storage Requirements | Docker storage must have 200GB. |
+| vCores Requirements | Min 16 vcores required (on Masters too? Yes). |
+| iptables-save | `iptables-save` to `/var/lib/ecs/iptables.save` (we don't need to flush IPtables upon reinstall anymore). |
+| Oracle HMS | Oracle HMS is now GA. This can get complicated as many Oracle customers use TLS + Client cert auth, which we don't support. We support TLS + user password auth only. Contact for workaround. |
+| Data Viz | Data Viz is GA. |
+| Ozone for CDW | Ozone for CDW is Tech Preview. |
+| Impala Custom Pod Sizes | Impala Custom pod sizes now GA. See [Impala Pod Configs](https://docs.cloudera.com/data-warehouse/1.4.1/administration/topics/dw-private-cloud-create-custom-pod-configs-impala-vw.html). |
+| CDE Resource Limits | CDE Resource Limits - Tech Preview. |
+| /etc/resolv.conf Entries (2) | `/etc/resolv.conf` must NOT have more than 2 "search" entries, causes a side-effect in Impala Statestore pod. Per Jira. |
+| **New In 1.3.4:** | |
+| Cloudera Manager | Cloudera Manager now prevents ECS Server hosts from running workloads. ECS Servers are masters only. See [Cloudera Manager Release Notes](https://docs.cloudera.com/management-console/1.3.4/private-cloud-release-notes/topics/mc-private-cloud-whats-new-07.html). |
+| ECS Hosts Workloads | ECS hosts can now be configured to reserve hosts for workloads that require GPU drivers. See [GPU Node Setup](https://docs.cloudera.com/machine-learning/1.3.4/private-cloud-requirements/topics/ml-gpu-node-setup.html). |
+| SELinux Support | SELinux is now supported for ECS clusters. See [SELinux Documentation](https://docs.cloudera.com/cdp-private-cloud-data-services/1.3.4/managing-ecs/topics/mc-ecs-selinux.html). |
+
+## Reading this checklist against this build
+
+The checklist is lifted wholesale from Cloudera's own 1.5.x collateral, so several rows describe a different build from the one this guide constructs. They are kept verbatim; read them against the table below.
+
+| Row | The checklist says | This guide builds |
+|:--|:--|:--|
+| ClouderaManager version | `7.11.3 - CHF6 (minimum)` | Cloudera Manager **7.13.2.0** - the checklist states a floor, not a target |
+| Runtime Version | `7.3.2 (CHF6+)` | Base Runtime **7.3.2.0** |
+| `/etc/resolv.conf Entries` | Appears **three times** - once for "no more than 3 nameserver entries", twice for "no more than 2 search entries" | Both limits apply; the duplicate row is the source's own, not a transcription slip |
+| Required Mounts | Three mounts, unnamed | [ECS Requirements](/installations/cdp-7-3-2/ds/ecs-requirements) item 9 names them `/lhdata`, `/cdwdata` and `/docker` |
+| Disk Mounts / `/var/lib` Storage Requirements | 300GB free after CM agent install, vs `/var/lib` must have 100GB | The two rows disagree; the 300GB figure is the one the enforcing prerequisites checker applies |
+
+## Link targets in this section
+
+Most of this table's links resolve to older Data Services documentation - **1.5.4**, **1.5.1**, **1.5.0**, **1.4.1** and **1.3.4** - than the 1.5.5 SP2 release this guide installs. Where the link text shows no version there is nothing to contradict, so those are linked as annotated. Four are handled differently.
+
+| Displayed | Annotation actually points at | Handling |
+|:--|:--|:--|
+| Docs Links → *ECS Checklist* | `cdppvc-installation-pvcbase-checklist.html` - the **Base** checklist, not the ECS one, and at 1.5.4 | Plain text |
+| Required Mounts → the Longhorn URL displaying `longhorn.io/docs/1.5.5/...` | The same page under **1.5.4** | Plain text (code span) |
+| 3rd Party Software → *NSX-T Jira* | `jira.cloudera.com/browse/CDPVC-686` | Plain text - Cloudera-internal, not reachable by readers |
+| `/etc/resolv.conf Entries` (both rows) → *Jira*; RHEL8 - VMware → *Cloudera Support* | `jira.cloudera.com/browse/BLESC-6074` and a `csh.cloudera.com` support case | Plain text - Cloudera-internal |
