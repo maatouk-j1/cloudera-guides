@@ -1,0 +1,353 @@
+---
+title: Data Lake Creation
+topicTitle: Setup CDP PvC Base Cluster
+topicSlug: cdp-7-3-2/cdppvc/base
+summary: Steps 18-43 - the Add Cluster - Configuration wizard end to end, selecting the custom Data Lake services, assigning roles from the reference table, wiring the custom databases, entering the required secrets, reviewing HDFS directories, enabling Kerberos, running First Run and reaching a fully healthy Base cluster.
+prevTitle: Install CDP PvC Base using the CM Web UI
+prevSlug: /installations/cdp-7-3-2/cdppvc/base/installation
+nextTitle: Additional Requirements and Details
+nextSlug: /installations/cdp-7-3-2/cdppvc/base/additional-requirements
+---
+
+This page continues the procedure begun on [Install CDP PvC Base using the CM Web UI](/installations/cdp-7-3-2/cdppvc/base/installation). The runtime is installed and the cluster inspected; clicking **Continue** at the end of Step 17 hands straight over to the **Add Cluster - Configuration** wizard, which runs in nine stages - Select Services, Assign Roles, Setup Database, Enter Required Parameters, Review Changes, Configure Kerberos, two Command Details stages and Summary. The step numbering picks up at **Step 18**.
+
+## 1. Select the services
+
+**Step 18.** After the Cloudera on premises Base Cluster (runtime) setup is complete, if successful, it will automatically move to add services *(Add Cluster -Configuration)* wizard. It will ask to **Select Services** i.e. (a) Data Engineering, (b) Data Warehouse/ Data Mart, © Operational Database specific or (d) Custom control plane/base cluster services i.e. HDFS, YARN, Hive, Tez, HiveOnTez, Ozone, Zookeeper, Kafka, SOLR, Ranger, Atlas, HBase, Phoenix, Impala, HUE, Spark2, Spark3, YARN Queue Manager etc. Choose from a combination or services defined or select custom services. Services required based on selection will be automatically added.
+
+**Step 19.** Select **Custom Services** option to install.
+
+![Select Services stage of the Add Cluster - Configuration wizard, offering Data Engineering, Data Mart, Operational Database and Custom Services, with Custom Services selected and the nine wizard stages listed down the left](/images/cdp-7-3-2/cdppvc/base/data-lake/select-services.png)
+
+> **Note:** It is important to select host(s) to deploy services based on the role intended for it. For detailed information, go to: [Runtime Cluster Hosts and Role Assignments](https://docs.cloudera.com/cdp-private-cloud-base/7.1.9/installation/topics/cdpdc-runtime-cluster-hosts-role-assignments.html)
+
+**Step 20.** Under the **Custom Services**, select the below custom Cloudera DataLake/Control Plane management services to be installed on the cluster. The Selection would look similar to below, Select services and Click **Continue**.
+
+![Custom Services list, first part, with Atlas, HBase, HDFS, Hive, Hive on Tez, Hue and Iceberg Replication ticked and Cruise Control left unticked](/images/cdp-7-3-2/cdppvc/base/data-lake/custom-services-1.png)
+
+![Custom Services list continuing through Impala, Kafka, Knox ticked, with Key-Value Store Indexer, Kudu, Livy and Livy for Spark 3 left unticked](/images/cdp-7-3-2/cdppvc/base/data-lake/custom-services-2.png)
+
+![Custom Services list continuing with Ozone, Phoenix, Ranger, Solr, Spark and Spark 3 ticked, and Query Processor, SQOOP_CLIENT, Schema Registry, Streams Messaging Manager, Streams Replication Manager and Stub DFS left unticked](/images/cdp-7-3-2/cdppvc/base/data-lake/custom-services-3.png)
+
+![End of the Custom Services list with Tez, YARN and ZooKeeper ticked, YARN Queue Manager and Zeppelin unticked, a 1 - 35 of 35 row count, and a note that the wizard will also install the Cloudera Management Service](/images/cdp-7-3-2/cdppvc/base/data-lake/custom-services-4.png)
+
+## 2. Assign the roles
+
+**Step 21.** Select host assignment for different services in the **Add cluster - configuration** wizard. You need to assign hosts to different roles across all the selected services. Use the below table as a reference to assign the roles.
+
+**Table: Cloudera Data Platform Cloudera on premises Base host and Role assignment example**
+
+| Service Name (Role Instance) | Host |
+|:--|:--|
+| HDFS | **NameNode** : `pvcbase-master`<br />**SecondaryNameNode** : `pvcbase-master`<br />**Balancer** : `pvcbase-master`<br />**DataNode** : `pvcbase-worker[1-3]` |
+| YARN | **ResourceManager** : `pvcbase-master`<br />**NodeManager** : `pvcbase-worker[1-3]` *(Same as DataNode)*<br />**JobHistoryServer** : `pvcbase-master` |
+| Core Configuration | **Gateway** : `pvcbase-master` |
+| Iceberg Replication | **Gateway** : `pvcbase-master` |
+| Knox | **Gateway** : `pvcbase-master` |
+| ~~Cloudera Management Service~~ *(This is already configured in previous steps)* | ~~**Service Monitor** : `cldr-mngr`~~<br />~~**Host Monitor** : `cldr-mngr`~~<br />~~**Reports Manager** : `cldr-mngr`~~<br />~~**Event Server** : `cldr-mngr`~~<br />~~**Alert Publisher** : `cldr-mngr`~~ |
+| Spark2 (i.e. SparkOnYARN)/ Spark3 | **Spark History Server** : `pvcbase-master`<br />**Spark Gateway** : `pvcbase-worker[1-3]` |
+| Hive | **Hive Metastore Server (HMS)** : `pvcbase-master`<br />**Gateway** : `pvcbase-worker[1-3]` |
+| Tez | **Gateway** : `pvcbase-worker[1-3]` |
+| Hive on Tez | **HiveServer2** : `pvcbase-master`<br />**Gateway** : `pvcbase-worker[1-3]` |
+| Impala | **Impala Catalog Server** : `pvcbase-master`<br />**Impala State Store** : `pvcbase-master`<br />**Impala Daemon** : `pvcbase-worker[1-3]` *(Same as DataNode)* |
+| HUE | **HUE Server** : `pvcbase-master`<br />**LoadBalancer** : `pvcbase-master` |
+| HBase | **HBase Master** : `pvcbase-master`<br />**RegionServer** : `pvcbase-worker[1-3]` *(Same as DataNode)* |
+| Phoenix | **Query Server** : `pvcbase-master` |
+| Ozone | **Storage Container Manager** : `pvcbase-master`<br />**Ozone Manager** : `pvcbase-master`<br />**Ozone Recon** : `pvcbase-master`<br />**S3 Gateway** : `pvcbase-master`<br />**Gateway** : `pvcbase-worker[1-3]`<br />**OzoneDataNode** : `pvcbase-worker[1-3]` *(Same as DataNode)* |
+| CDP-INFRA-SOLR | **Solr Server** : `pvcbase-master`<br />*(can be installed on all hosts if needed if there is a search use case)* |
+| Kafka | **Kafka Broker** : `base-master`, `pvcbaseworker[1-5]` *(Same as DataNode)* |
+| ZooKeeper **(must be &gt;3)** | **Zookeeper Server** : `pvcbase-master`, `pvcbase-worker[1-2]` |
+| Ranger | **Ranger Admin** : `pvcbase-master`<br />**UserSync** : `pvcbase-master`<br />**Ranger Tagsync** : `pvcbase-master` |
+| Atlas | **Atlas Server** : `pvcbase-master` |
+| Oozie Server (Optional) | `pvcbase-master` |
+| YARN Queue Manager (Optional) | *(no host given in the source)* |
+
+**Step 22.** Assign roles as updated above and shown as below.
+
+![Assign Roles stage showing the Kafka, Atlas, Core Configuration and HBase role groups, with Atlas Server, Core Configuration Gateway and HBase Master pinned to the master host and Kafka Broker and RegionServer set to Same as DataNode](/images/cdp-7-3-2/cdppvc/base/data-lake/assign-roles-1.png)
+
+![Assign Roles continuing with HDFS, Hive, Hive on Tez, Hue, Iceberg Replication and Impala, showing NameNode, SecondaryNameNode and Balancer on the master, DataNode on the workers and Impala Daemon set to Same as DataNode](/images/cdp-7-3-2/cdppvc/base/data-lake/assign-roles-2.png)
+
+![Assign Roles continuing with Ozone, Phoenix, Ranger, Solr, Spark 3 and Spark, showing Storage Container Manager, Ozone Manager and Ozone Recon on the master and Ozone DataNode set to Same as DataNode](/images/cdp-7-3-2/cdppvc/base/data-lake/assign-roles-3.png)
+
+![End of Assign Roles with Ranger, Solr, Spark 3, Spark, Tez, YARN and ZooKeeper, showing ResourceManager and JobHistory Server on the master, NodeManager set to Same as DataNode, and the Continue button](/images/cdp-7-3-2/cdppvc/base/data-lake/assign-roles-4.png)
+
+## 3. Set up the databases
+
+**Step 23.** Click **Continue**. When you're doing the set-up for the first time on this CM Sever. **Cloudera Management Services** will be installed only once along with other control plane services.
+
+**Step 24.** On the **Setup Databases** page, Select **database type** as **Use Custom Database**. Provide database hostname, username, and password (created in earlier steps) for different services and click on **Test Connection**. After a successful connection test, click **Continue** to install, configure and start services sequentially.
+
+- Reports Manager (For Cloudera Management Service)
+- Oozie Server (If selected to install, as optional)
+- Ranger
+- Hive
+- YARN Queue Manager
+- Hue
+
+The databases and roles themselves were created back on the [Setup Database for Cloudera Manager](/installations/cdp-7-3-2/cdppvc/cm/database) page.
+
+![Setup Database stage with Reports Manager, Ranger, Hive and Hue each set to PostgreSQL against the Cloudera Manager host, every block reporting Successful](/images/cdp-7-3-2/cdppvc/base/data-lake/setup-database.png)
+
+## 4. Enter the required parameters
+
+**Step 25.** Next, the **Enter Required Parameters** page appears.
+
+**Step 26.** Wait at the parameter screen, enter the required parameters. For all the remaining parameters, set a common password so that it becomes easier while using those services. This password must have 1 lowercase, 1 uppercase, and 1 numeric value. Failing to adhere to this, the final step in the cluster setup would fail. Please see the required inputs below:
+
+- *Knox Master Secret:* **`Cloudera@123`**
+- *Knox IDBroker Master Secret:* **`Cloudera@123`**
+- *Enter a suitable name for Ozone Service ID. i.e.:* **`ozone11`**
+- Ranger Admin: **`Cloudera@123`**
+- Ranger Usersync: **`Cloudera@123`**
+- Ranger Tagsync: **`Cloudera@123`**
+- Ranger KMS Keyadmin: **`Cloudera@123`**
+
+![Enter Required Parameters stage listing Knox Master Secret, Ozone Service ID set to ozone11, and the Ranger Admin, Usersync, Tagsync and KMS Keyadmin initial passwords, with a 1 - 6 of 6 row count](/images/cdp-7-3-2/cdppvc/base/data-lake/enter-required-parameters.png)
+
+> **Note on the capture:** the guide lists **seven** inputs but the screenshot shows **six** (`1 - 6 of 6`) - Knox IDBroker Master Secret is absent from the capture. It appears only when the Knox IDBroker role is part of the selection.
+
+**Step 27.** Click **Continue**.
+
+## 5. Review the changes
+
+**Step 28.** The **Review Changes** page appears. Set a **password** for **Atlas**. You can set it to the same value set for Ranger above.
+
+- Atlas Admin password: **`Cloudera@123`**
+
+![Admin Password row on the Review Changes page, showing the atlas.admin.password property for Cluster 1 - Atlas Server Default Group with a masked value entered](/images/cdp-7-3-2/cdppvc/base/data-lake/atlas-admin-password.png)
+
+**Step 29.** Scroll down and verify/update the HDFS disks configuration according to the below.
+
+- DataNode Data Directory: **`/hdfs/dfs/dn`**
+- NameNode Data Directories: **`/hdfs/dfs/nn`**
+- HDFS Checkpoint Directories: **`/hdfs/dfs/snn`**
+
+![Review Changes page filtered to HDFS, showing HDFS Block Size 128 MiB, DataNode Failed Volumes Tolerated 0, and the three HDFS directory properties set to /hdfs/dfs/dn, /hdfs/dfs/nn and /hdfs/dfs/snn, with the TLS keystore location resolving to the CM_AUTO_TLS macro](/images/cdp-7-3-2/cdppvc/base/data-lake/review-changes-hdfs-directories.png)
+
+**Step 30.** Review the changes for all the services on the **Review Changes** page and verify/edit the configuration parameters as per your requirements. Click **Continue**.
+
+**Step 31.** A few sets of commands are running in the background. Wait for them to get executed successfully. Once done, Click **Continue**.
+
+## 6. Configure Kerberos
+
+**Step 32.** Configure Kerberos and Keep Review and customize the configuration changes based on your requirements. Check the box for **Enable Kerberos for this cluster**. Required libraries i.e. `krb5-workstation`, `krb5-libs` and `freeipa-client` are already installed on all servers in prior steps.
+
+![Configure Kerberos stage with Enable Kerberos for this cluster ticked, the per-OS client library install commands listed, and Configure DataNode Ports showing DataNode Transceiver Port 1004 and DataNode HTTP Web UI Port 1006](/images/cdp-7-3-2/cdppvc/base/data-lake/configure-kerberos.png)
+
+The client libraries were installed during [Post OS Installation - Preliminary Work](/installations/cdp-7-3-2/post-os-work), and the KDC itself was wired into Cloudera Manager on [Enable Kerberos](/installations/cdp-7-3-2/cdppvc/cm/kerberos).
+
+**Step 33.** Click **Continue** after Cloudera Manager successfully runs the **Enable Kerberos** command.
+
+![Command Details for the Enable Kerberos Command, Finished against PvCBaseCluster1, reporting Successfully enabled Kerberos and 7 of 7 steps completed - stop cluster, stop Cloudera Management Services, deploy krb5.conf, configure all services to use Kerberos, wait for credentials, deploy client configuration and start Cloudera Management Services](/images/cdp-7-3-2/cdppvc/base/data-lake/enable-kerberos-command.png)
+
+## 7. First Run
+
+**Step 34.** Installation wizard will run the first command to start cluster roles and services. Click **Continue**.
+
+![Command Details for the First Run Command, Finished in 6.9m, reporting successful first run of Core Configuration, ZooKeeper, HDFS, Ranger, Kafka, Knox, CDP-INFRA-SOLR, YARN, Atlas, Ozone, Tez, HBase, Hive, Phoenix, Spark 3, Spark, Hive on Tez, Iceberg Replication, Impala, Hue and Cloudera Management Service](/images/cdp-7-3-2/cdppvc/base/data-lake/first-run-command.png)
+
+**Step 35.** If you still face any issue while making the services up or during the installation or start of any Control Plane services please refer to troubleshooting PvC Base Cluster part at the end of this document. Though, some of the major issues during installation, their cause and their resolution is listed as below:
+
+### Zookeeper SASL error
+
+```text
+Solution:resolved by regenerate key tab
+```
+
+### Kafka error
+
+```text
+Solution:
+Update clusterid and broker id from Role logs in meta.properties
+rm -vf /var/local/kafka/data/meta.properties
+rm -vf /tmp/kafka-logs/*
+```
+
+See [this write-up on the KafkaServer startup failure](https://gautambangalore.medium.com/resolved-error-fatal-error-during-kafkaserver-startup-37f638c2c00c).
+
+```bash
+ansible datanodes -m shell -a "sed -i 's#aHRUaTqoQzOpGf8qA5bXlQ#rxsV4DwNRvWtIcl5ejG-IA#g'
+```
+
+### Service NodeManager failed in state INITED
+
+```text
+org.apache.hadoop.yarn.exceptions.YarnRuntimeException: Failed NodeManager login
+      at org.apache.hadoop.yarn.server.nodemanager.NodeManager.serviceInit(NodeManager.java:511)
+      at org.apache.hadoop.service.AbstractService.init(AbstractService.java:164)
+      at
+org.apache.hadoop.yarn.server.nodemanager.NodeManager.initAndStartNodeManager(NodeManager.java:974)
+      at org.apache.hadoop.yarn.server.nodemanager.NodeManager.main(NodeManager.java:1054)
+Caused by: org.apache.hadoop.security.KerberosAuthException: failure to login: for principal:
+yarn/pvcbase-worker3.cldrsetup.local@CLDRSETUP.LOCAL from keytab yarn.keytab
+javax.security.auth.login.LoginException: Client not found in Kerberos database (6) - CLIENT_NOT_FOUND
+Solution:
+Regenerate kerberos creds from administration>security for yarn
+```
+
+### YARN issue
+
+Solution: see [Error CM Server guid updated CDH 5.9.0](https://community.cloudera.com/t5/Support-Questions/Error-CM-Server-guid-updated-CDH-5-9-0/m-p/47221) and [CDH 6.1 Installation Issues - Unable to obtain CM release](https://community.cloudera.com/t5/Support-Questions/CDH-6-1-Installation-Issues-Unable-to-obtain-CM-release/td-p/88238).
+
+```text
+Fixed it by deleting /var/lib/cloudera-scm-agent/cm_guid on each node.
+```
+
+### Chrony issue on during ipaserver/ipaclient installation
+
+```text
+Solution:
+Stop chrnoyd and remove chrony from all hosts, then install ipa-server and then ipa-client. It will work.
+```
+
+### Rman db error
+
+```text
+Exception while executing ddl scripts.
+org.postgresql.util.PSQLException: ERROR: relation "rman_usergrouphistory_seq" already exists
+      at org.postgresql.core.v3.QueryExecutorImpl.receiveErrorResponse(QueryExecutorImpl.java:2725)
+      at org.postgresql.core.v3.QueryExecutorImpl.processResults(QueryExecutorImpl.java:2412)
+Solution:
+drop and recreate db solved issues.
+```
+
+### Ozone Error
+
+```text
+Found SOLR_SERVICE: ''
+solution:
+ozone install error
+include solr in service dependency and restart services
+```
+
+### Issue: IPASERVER failed to resolve DNS ipaservices not working
+
+```text
+Solution:
+Port 53 was not open on AWS SecGrp: ipaserver was not working on aws due to it,
+updated secgrp added 53 rule for dns fixed issue.
+```
+
+### Ranger Error
+
+```text
+Repo cm_kafka already exists ->
+Solution:
+delete cm_kafka from ranger
+```
+
+### CM Not able to login
+
+```text
+2024-05-14 04:41:02,375 INFO CommandPusher-1:com.cloudera.server.cmf.CommandPusherThread: Acquired lease
+lock on DbCommand:1546336335
+2024-05-14 04:41:02,378 INFO CommandPusher-1:com.cloudera.cmf.service.AbstractOneOffHostCommand:
+Unsuccessful 'RepMgrTestDatabaseConnection'
+2024-05-14 04:41:02,379 INFO CommandPusher-1:com.cloudera.cmf.service.AbstractDbConnectionTestCommand:
+Command exited with code: 1
+2024-05-14 04:41:02,379 INFO CommandPusher-1:com.cloudera.cmf.service.AbstractDbConnectionTestCommand: +
+MGMT_JAVA_OPTS='-Djava.net.preferIPv4Stack=true '
++ exec /usr/lib/jvm/java-17-openjdk-17.0.11.0.9-2.el9.x86_64/bin/java -Djava.net.preferIPv4Stack=true
+-Djava.security.egd=file:///dev/urandom -cp
+'/run/cloudera-scm-agent/process/1546336334-MGMT.REPORTSMANAGER-test-db-connection:/usr/share/java/mysql-c
+onnector-java.jar:/usr/share/java/postgresql-connector-java.jar:/usr/share/java/oracle-connector-java.jar:
+/opt/cloudera/cm/lib/*' com.cloudera.enterprise.dbutil.DbCommandExecutor db.properties
+Exception in thread "main" java.lang.NoClassDefFoundError:
+com/ongres/scram/common/stringprep/StringPreparation
+        at org.postgresql.core.v3.ConnectionFactoryImpl.doAuthentication(ConnectionFactoryImpl.java:759)
+        at org.postgresql.core.v3.ConnectionFactoryImpl.tryConnect(ConnectionFactoryImpl.java:161)
+        at org.postgresql.core.v3.ConnectionFactoryImpl.openConnectionImpl(ConnectionFactoryImpl.java:213)
+        at org.postgresql.core.ConnectionFactory.openConnection(ConnectionFactory.java:51)
+        at org.postgresql.jdbc.PgConnection.<init>(PgConnection.java:225)
+        at org.postgresql.Driver.makeConnection(Driver.java:465)
+        at org.postgresql.Driver.connect(Driver.java:264)
+        at java.sql/java.sql.DriverManager.getConnection(DriverManager.java:681)
+        at java.sql/java.sql.DriverManager.getConnection(DriverManager.java:229)
+        at com.cloudera.enterprise.dbutil.DbCommandExecutor.testDbConnection(DbCommandExecutor.java:265)
+        at com.cloudera.enterprise.dbutil.DbCommandExecutor.main(DbCommandExecutor.java:140)
+Caused by: java.lang.ClassNotFoundException: com.ongres.scram.common.stringprep.StringPreparation
+        at java.base/jdk.internal.loader.BuiltinClassLoader.loadClass(BuiltinClassLoader.java:641)
+        at java.base/jdk.internal.loader.ClassLoaders$AppClassLoader.loadClass(ClassLoaders.java:188)
+        at java.base/java.lang.ClassLoader.loadClass(ClassLoader.java:525)
+        ... 11 more
+2024-05-14 04:41:02,379 ERROR CommandPusher-1:com.cloudera.cmf.model.DbCommand: Command
+1546336335(RepMgrTestDatabaseConnection) has completed. finalstate:FINISHED, success:false, msg:Unexpected
+error. Unable to verify database connection.
+Caused by: java.lang.ClassNotFoundException: com.ongres.scram.common.stringprep.StringPreparation
+        at java.base/jdk.internal.loader.BuiltinClassLoader.loadClass(BuiltinClassLoader.java:641)
+        at java.base/jdk.internal.loader.ClassLoaders$AppClassLoader.loadClass(ClassLoaders.java:188)
+        at java.base/java.lang.ClassLoader.loadClass(ClassLoader.java:525)
+        ... 11 more
+2024-05-14 04:50:38,519 ERROR CommandPusher-1:com.cloudera.cmf.model.DbCommand: Command
+1546336734(OozieTestDatabaseConnection) has completed. finalstate:FINISHED, success:false, msg:Unexpected
+error. Unable to verify database connection.
+2024-05-14 04:50:38,519 INFO CommandPusher-1:com.cloudera.cmf.command.components.CommandStorage: Invoked
+delete temp files for command:DbCommand{id=1546336734, name=OozieTestDatabaseConnection,
+host=pvcbase-master.cldrsetup.local} at dir:/var/lib/cloudera-scm-server/temp/commands/1546336734
+Solution:
+Caused after change in hostssl parameter for Postgres (suspected)
+Delete scm db and recreated db and restart scm server fixed the issue. This lead to reinstall entire base
+and ecs clusters as metadata deleted from scm db
+```
+
+### Other
+
+```text
+Configure Ozone with other data services before env creation, else it will lead to CDE installation error
+Configure thrift server role in hbase for hue
+Knox and Atlas works with local Linux Users and Password credentials i.e. PAM
+For accessing the WebUI and fixing issues for web based authentication is not working for some of the
+services including Knox, Atlas, HDFS (Namenode UI), Yarn (History server UI) etc.Disable Kerberos
+Authentication for WebUI under each service configuration section which are showing 403 or 401 error.
+In case of Cleanup and re-installation (end-to-end), make sure cleanup steps are performed properly and no
+control plane services left user and groups created in /etc/passwd and /etc/group on all nodes of the cluster
+include cldr-mngr.
+```
+
+## 8. Finish and verify
+
+**Step 36.** Next, all the Cloudera services would get started and their prerequisite operations would also be run. These processes will run in a combination of serial and parallel processes. Wait for them to complete. Once completed, you will see a Green tick next to all the steps, as shown in the screenshot above.
+
+**Step 37.** Once completed above step, click **Continue**. You will see a summary page like below.
+
+![Summary stage of the Add Cluster - Configuration wizard, every preceding stage ticked, with a green banner reading The services are installed, configured, and running on your cluster](/images/cdp-7-3-2/cdppvc/base/data-lake/summary.png)
+
+**Step 38.** Click **Finish** on the Summary page.
+
+**Step 39.** This will navigate to the main page where you can see all the services installed.
+
+![Cloudera Manager Home page showing PvCBaseCluster1 healthy with Atlas, CDP-INFRA-SOLR, Core Configuration, HBase, HDFS, Hive, Hive on Tez, Hue, Iceberg Replication, Impala, Kafka, Knox, Ozone, Phoenix, Ranger, Spark and Spark 3 listed, beside the Cluster CPU, Cluster Disk IO, Cluster Network IO, HDFS IO and Completed Impala Queries charts](/images/cdp-7-3-2/cdppvc/base/data-lake/cm-home-services.png)
+
+**Step 40.** All the services should be in Healthy state. If there are any instances in Bad Health, troubleshoot the same and fix it.
+
+**Step 41.** This completes the **Cloudera on premises Base cluster** setup.
+
+> **Note:** You might need to adjust configuration parameters of the cluster after successful first run command execution. Apply the changes and restart the cluster.
+
+**Step 42.** We will perform the adjustment of the configuration parameters of the cluster to fix some of the issues with the services on the base cluster, in the next steps below.
+
+**Step 43.** Optionally, we can also perform the prerequisites and compatibility tests for Hardware using the script provided below by Cloudera.
+
+[https://github.com/cloudera-labs/toolkits/tree/main/data_services-toolkit/DS_Pre-Install_Check](https://github.com/cloudera-labs/toolkits/tree/main/data_services-toolkit/DS_Pre-Install_Check)
+
+## Source values that do not match this build
+
+Every capture in this procedure comes from the same older lab session as the ones on the [installation page](/installations/cdp-7-3-2/cdppvc/base/installation), so the values inside them disagree with the prose beside them. The prose and the [version table](/installations/cdp-7-3-2/summary) win.
+
+| Where | What the screenshot shows | What this build actually is |
+|:--|:--|:--|
+| Wizard chrome, every capture | Cloudera Manager `7.11.3` | Cloudera Manager **7.13.2.0** |
+| Every host field in Assign Roles and Setup Database | `pvcbase-*.cdppvcds.com`, `cldr-mngr.cdppvcds.com` | `pvcbase-master`, `pvcbase-worker[1-3]` and `cldr-mngr` on `cldrsetup.local`, as the role table above states |
+| Host counts in Assign Roles | `× 5 New` workers, `pvcbase-worker[1-5]` | three workers, `pvcbase-worker[1-3]` |
+| CM Home after Step 39 | `Cloudera Runtime 7.1.9 (Parcels)`, `6 Hosts` | Runtime **7.3.2.0** on the four-node Base cluster |
+| Ozone S3 Gateway in Assign Roles | `pvcbase-worker4` | `pvcbase-master`, as the role table states |
+| Browser address bar | an AWS ELB hostname, `...us-west-2.elb.amazonaws.com:7183` | `https://cldr-mngr.cldrsetup.local:7183/cmf/` |
+
+The role table itself is not internally consistent either, and is transcribed as printed rather than reconciled: the Kafka row names `base-master` and `pvcbaseworker[1-5]` where every other row uses `pvcbase-master` and `pvcbase-worker[1-3]`; the ZooKeeper row is headed *"must be &gt;3"* but lists three hosts while the screenshot assigns a single `Server × 1 New`; and the `YARN Queue Manager (Optional)` row has an empty Host cell.
+
+The **Runtime Cluster Hosts and Role Assignments** link in Step 19 carries no version in its displayed text, and its underlying annotation targets the **7.1.9** documentation - it is linked as the source has it. The links in the Step 35 troubleshooting block match their displayed text and are wired up as such.
+
+## What comes next
+
+The Base cluster is up and healthy, but a set of service-level adjustments still has to be made before it is usable - Web UI access, port whitelisting and host-file entries. See [Additional Requirements and Details](/installations/cdp-7-3-2/cdppvc/base/additional-requirements).
