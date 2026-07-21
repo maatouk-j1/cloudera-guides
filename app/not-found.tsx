@@ -1,42 +1,44 @@
 import Link from 'next/link'
 import Footer from '@/components/ui/footer'
 
-export default function Home() {
+export default function NotFound() {
   return (
     <div className="xl:flex">
       <div className="w-full">
         <article>
           <div className="mb-10">
             <h1 className="text-3xl font-[650] text-slate-800 dark:text-slate-100 mb-3">
-              Cloudera CDP Guide
+              Page not found
             </h1>
             <p className="text-lg text-slate-600 dark:text-slate-400">
-              A practical guide to deploying, operating, and scaling Cloudera Data Platform (CDP).
+              This page has moved or no longer exists. The guides are now grouped by
+              installation version, so the page you want is likely under a version heading
+              in the sidebar.
             </p>
           </div>
 
           <div className="grid sm:grid-cols-2 gap-4 mb-10">
             <Link
-              href="/installations"
+              href="/"
               className="group block rounded-lg border border-slate-200 dark:border-slate-700 p-5 hover:border-[#f26622] dark:hover:border-[#f26622] transition-colors"
             >
               <h2 className="text-base font-[650] text-slate-800 dark:text-slate-100 group-hover:text-[#f26622] transition-colors mb-2">
-                CDP Private Cloud
+                Home
               </h2>
               <p className="text-sm text-slate-600 dark:text-slate-400">
-                Cloudera Data Platform on private cloud infrastructure.
+                Start from the top of the Cloudera CDP Guide.
               </p>
             </Link>
 
             <Link
-              href="/cdp-public-cloud"
+              href="/installations"
               className="group block rounded-lg border border-slate-200 dark:border-slate-700 p-5 hover:border-[#f26622] dark:hover:border-[#f26622] transition-colors"
             >
               <h2 className="text-base font-[650] text-slate-800 dark:text-slate-100 group-hover:text-[#f26622] transition-colors mb-2">
-                CDP Public Cloud
+                Installations
               </h2>
               <p className="text-sm text-slate-600 dark:text-slate-400">
-                Cloudera Data Platform on public cloud infrastructure.
+                Browse the installation guides by CDP version.
               </p>
             </Link>
           </div>
