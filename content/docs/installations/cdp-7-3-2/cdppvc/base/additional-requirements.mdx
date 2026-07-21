@@ -1,0 +1,225 @@
+---
+title: Additional Requirements and Details
+topicTitle: Setup CDP PvC Base Cluster
+topicSlug: cdp-7-3-2/cdppvc/base
+summary: The Data Lake service URLs, the port whitelisting references, disabling Kerberos authentication on the service Web UIs so they stop returning 401, the HDFS TLS and Ranger plugin adjustments, and the /etc/hosts entries needed on the workstation for both the Base and ECS clusters.
+prevTitle: Data Lake Creation
+prevSlug: /installations/cdp-7-3-2/cdppvc/base/data-lake
+nextTitle: Configure services with SSL/TLS-enabled Metadata Database
+nextSlug: /installations/cdp-7-3-2/cdppvc/base/services-metadata-db-tls
+---
+
+The Base cluster is installed and healthy at the end of [Data Lake Creation](/installations/cdp-7-3-2/cdppvc/base/data-lake). This page collects the adjustments Step 42 promised: the service endpoints, the ports to open, the Web UI authentication changes, and the workstation host-file entries.
+
+## 1. Common Data Lake service URLs
+
+> **Note:** Common Data Lake Services' URLs:
+
+```text
+CM-UI:
+HTTP: http://cldr-mngr.cldrsetup.local:7180/cmf/
+HTTPS: https://cldr-mngr.cldrsetup.local:7183/cmf/
+
+HDFS:
+HDFS-NAMENODE UI: https://pvcbase-master.cldrsetup.local:9871/dfshealth.html
+
+YARN:
+HDFS-YARN JobHistory UI: https://pvcbase-master.cldrsetup.local:19890/jobhistory
+YARN RM UI: https://pvcbase-master.cldrsetup.local:8090/ui2/#/cluster-overview
+
+Ranger: https://pvcbase-master.cldrsetup.local:6182/index.html#/policymanager/resource
+
+Atlas: https://pvcbase-master.cldrsetup.local:31443/login.jsp
+(Login works with PAM-Linux Server Local User Credentials)
+
+Knox:
+https://pvcbase-master.cldrsetup.local:8443/gateway/knoxsso/knoxauth/login.html?originalUrl=https://pvcbas
+e-master.cldrsetup.local:8443/gateway/homepage/home/?profile=token
+(Login works with PAM-Linux Server Local User Credentials)
+
+HiveServer2 UI: https://pvcbase-master.cldrsetup.local:10002/
+
+HUE: https://pvcbase-master.cldrsetup.local:8889/hue/editor/?type=hive
+
+HBASE: https://pvcbase-master.cldrsetup.local:16010/master-status
+
+Ozone:
+Ozone Recon: https://pvcbase-master.cldrsetup.local:9889/#/Overview
+Ozone SCM: https://pvcbase-master.cldrsetup.local:9877/#!/
+Ozone Manager: https://pvcbase-master.cldrsetup.local:
+S3 Gateway: https://pvcbase-master.cldrsetup.local:
+Gateway: https://pvcbase-workter1.cldrsetup.local:
+OzoneDataNode: https://pvcbase-worker1.cldrsetup.local:
+
+Spark JobHistory Server:
+Spark2: https://pvcbase-master.cldrsetup.local:18488/
+Spark3: https://pvcbase-master.cldrsetup.local:18489/
+
+Impala:
+Impala Catalog: https://pvcbase-master.cldrsetup.local:25020/
+Impala Statestore: https://pvcbase-master.cldrsetup.local:25010/
+
+##### Job History Server: https://pvcbase-master.cldrsetup.local:9991/
+```
+
+Four of the Ozone entries are printed without a port, and `Gateway` reads `pvcbase-workter1` where every other line uses `pvcbase-worker1` - both transcribed as the source has them.
+
+## 2. Whitelist the ports
+
+**Step 1.** Port requirements for different services on PvC Base Cluster/Data Services (ECS) Cluster:
+
+Please whitelist the below ports or make sure , firewall is disabled in the internal network. (Not required in on-premise Private datacenter based network)
+
+```text
+https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/installation/topics/cdpdc-ports-used-by-runtime.html
+https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/installation/topics/cdpdc-ports-third-party-components.html
+https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/installation/topics/cdpdc-ports-used-by-cm.html
+https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/installation/topics/cdpdc-service-dependencies.html
+https://docs.cloudera.com/cdp-private-cloud-data-services/latest/installation-ecs/topics/cdppvc-installation-ecs-steps.html
+```
+
+These are transcribed as displayed text rather than wired up as links: the annotations behind the first four point at the **7.1.9** guide, not the 7.3.2 paths the text shows.
+
+## 3. Disable the Kerberized Web UIs
+
+**Step 2.** Disable Kerberized Web-UI for YARN, Spark, HBase, HDFS, etc. from configuration:
+
+While accessing Web UIs from web browsers, for HDFS-Namenode, YARN services, HiveServer2, Impala Services, etc. If gets 401 unauthorized error: We need to enable non-kerberized webUI for those services, for this we need to:
+
+- Login to CM-UI, go to individual services, go to the **Configuration** section for individual services, search for **Kerberos**.
+- Disable the option, by unchecking the checkbox, for Kerberos authentication for WebUI. Save changes. Restart the Stale Services to update the backend configuration files.
+
+**Example Screenshots for HDFS. You can follow the same for other services, which requires WebUI access.**
+
+![Cloudera Manager Home page with the HDFS service outlined in red in the PvCBaseCluster1 service list, beside the cluster charts](/images/cdp-7-3-2/cdppvc/base/additional-requirements/cm-home-hdfs.png)
+
+![HDFS Configuration tab filtered on the search term kerberos, with the Enable Kerberos Authentication for HTTP Web-Consoles checkbox outlined in red and marked Uncheck this, and Save Changes highlighted at the bottom right](/images/cdp-7-3-2/cdppvc/base/additional-requirements/hdfs-kerberos-webui-config.png)
+
+Then work through the following:
+
+**1.** For Impala, Hive, Hive on Tez edit value for `Ranger Plugin URL Auth Filesystem Schemes` - `file:,wasb:,adl:`
+
+**2.** Disable ~~Enable~~ **Kerberos Authentication for HTTP Web-Consoles** - HBase (Service-Wide), YARN, Spark2, Spark3, HiveServer2, Impala, HDFS, etc. ~~Click on Generate missing credentials for Kerberos.~~
+
+**3.** For TLS/SSL enabled HDFS configuration you might see a warning as *"DataNode configuration is valid, but not recommended. There are two recommended configurations: (1) DataNode Transceiver Port and Secure DataNode Web UI Port (TLS/SSL) both `>=` 1024, DataNode Data Transfer Protection set, Hadoop TLS/SSL enabled; (2) DataNode Transceiver Port and DataNode HTTP Web UI Port both `<` 1024, DataNode Data Transfer Protection not set, Hadoop TLS/SSL disabled."*
+
+```text
+DataNode Transceiver Port (dfs_datanode_port)- 9866
+DataNode HTTP Web UI Port (dfs.datanode.http.address) - 9864
+DataNode Data Transfer Protection (dfs.data.transfer.protection) – Authentication
+```
+
+**4.** Install Ranger Plugin for services, add service dependency i.e. Hive etc. and restart the cluster. Ensure that the Ranger Solr and Ranger HDFS plugins are enabled. See [Additional Steps for Apache Ranger](https://docs.cloudera.com/cdp-private-cloud-base/7.1.9/installation/topics/cdpdc-additional-steps-ranger.html) for more details on Configuration Steps.
+
+**5.** Make Sure HDFS, Ozone services are Installed and Running Successfully (critical services – if not working properly, then no other service will work properly): 1. HDFS 2. Zookeeper 3. …….
+
+**6.** Atlas and Knox work with PAM authentication i.e. Local (Non-LDAP) users created on the base-master node where your Atlas server is running, unless Atlas is explicitly configured (integrated) to use LDAP. So you may need to create a local user on the base-master node, if it does not already exist.
+
+**7.** Atlas is having dependencies on some additional services i.e. HBase, SOLR and Kafka
+
+> **Note on Step 32 of the previous page:** the DataNode ports the Configure Kerberos stage set were **1004** and **1006** - both below 1024, which is configuration (2) in the warning above. Item 3 here moves them to **9866** and **9864** and sets Data Transfer Protection to `Authentication`, which is configuration (1). Apply one or the other, not a mix.
+
+## 4. Host-file entries for the Base cluster
+
+**Step 3.** Optionally, Update the `/etc/hosts` file on your working machine/JumpHost where you are trying to access your CM-UI to work with the URLs smoothly:
+
+Open `C:\Windows\System32\drivers\etc` (on Windows) or `/etc/hosts` (on MAC/Linux), with sudo privileges.
+
+```text
+ksahu@Kuldeeps-MacBook-Air ~ % sudo vi /etc/hosts
+##
+# Host Database
+#
+# localhost is used to configure the loopback interface
+# when the system is booting.  Do not change this entry.
+##
+127.0.0.1        localhost
+255.255.255.255 broadcasthost
+::1              localhost
+
+52.221.202.246 pvcecs-master.cldrsetup.local
+52.221.202.246 hue-kd-hive-vw1.apps.cldrsetup.local
+52.221.202.246 cml-task-bo6klv.kuldeep-cml.apps.cldrsetup.local
+52.221.202.246 kuldeep-cml.apps.cldrsetup.local
+18.139.222.78 pvcbase-master.cldrsetup.local
+13.251.65.11 cldr-mngr.cldrsetup.local
+
+# ECS Links
+52.221.202.246 console-cdp.apps.cldrsetup.local prometheus-cp.apps.cldrsetup.local
+infra-prometheus.apps.cldrsetup.local validation-cdp.apps.cldrsetup.local
+kube-dashboard.apps.cldrsetup.local longhorn.apps.cldrsetup.local fluent-console-cdp.apps.cldrsetup.local
+vault.localhost.localdomain
+
+# PvC Base Cluster Nodes
+18.139.222.78 pvcbase-master.cldrsetup.local pvcbase-master
+13.215.202.164 pvcbase-worker1.cldrsetup.local pvcbase-worker1
+172.31.23.0   pvcbase-worker2.cldrsetup.local pvcbase-worker2
+18.141.13.157 pvcbase-worker3.cldrsetup.local pvcbase-worker3
+
+# PvC Data Services Cluster Nodes
+172.31.30.239 pvcecs-master.cldrsetup.local pvcecs-master
+172.31.22.43 pvcecs-worker1.cldrsetup.local pvcecs-worker1
+172.31.30.249 pvcecs-worker2.cldrsetup.local pvcecs-worker2
+172.31.26.24 pvcecs-worker3.cldrsetup.local pvcecs-worker3
+172.31.24.198 pvcecs-worker4.cldrsetup.local pvcecs-worker4
+172.31.24.53 pvcecs-worker5.cldrsetup.local pvcecs-worker5
+```
+
+The addresses are this lab's own - a mix of public AWS addresses and `172.31.x` private ones, with `pvcbase-master` listed twice under different sections. Substitute your own.
+
+## 5. Host-file entries for ECS Data Services
+
+**Step 4.** Optionally, Update the `/etc/hosts` file on your working machine/JumpHost (The `/etc/hosts` entries required for ECS Data Services)
+
+```text
+https://docs.cloudera.com/management-console/1.5.5/private-cloud-security-overview/mc-private-cloud-security-overview.pdf
+```
+
+Embedded Container Service (ECS):
+
+```text
+• console-cdp.apps.APPDOMAIN
+• prometheus-cp.apps.APPDOMAIN
+• infra-prometheus.apps.APPDOMAIN
+• validation-cdp.apps.APPDOMAIN
+• kube-dashboard.apps.APPDOMAIN
+• longhorn.apps.APPDOMAIN
+• fluent-console-cdp.apps.APPDOMAIN
+```
+
+**Entries required by CDW**
+
+Let **APPDOMAIN** be the base app domain for the ECS cluster. For example, if your console URL is `console-cdp.apps.cldrsetup.local`, then the APPDOMAIN is `cldrsetup.local`. Let **VWHNAME** be the name of the CDW Virtual Warehouse. This must match the name the user provides when creating a new Virtual Warehouse (VW).
+
+```text
+Endpoints of Hive VW:
+• hue-VWHNAME.apps.APPDOMAIN
+• hs2-VWHNAME.apps.APPDOMAIN
+
+Endpoints of Impala VW:
+• hue-VWHNAME.apps.APPDOMAIN
+• coordinator-VWHNAME.apps.APPDOMAIN
+• admissiond-web-VWHNAME.apps.APPDOMAIN
+• catalogd-web-VWHNAME.apps.APPDOMAIN
+• coordinator-web-VWHNAME.apps.APPDOMAIN
+• statestored-web-VWHNAME.apps.APPDOMAIN
+• impala-proxy-VWHNAME.apps.APPDOMAIN
+• impala-autoscaler-web-VWHNAME.apps.APPDOMAIN
+
+Endpoints of Viz:
+• viz-VWHNAME.apps.APPDOMAIN
+```
+
+## Source values that do not match this build
+
+| Where | What the source shows | What this build actually is |
+|:--|:--|:--|
+| Both screenshots | Cloudera Manager `7.11.3`, `Cloudera Runtime 7.1.9 (Parcels)`, `6 Hosts` | Cloudera Manager **7.13.2.0** and Runtime **7.3.2.0** on four nodes |
+| Ports documentation links | text reads `.../7.3.2/installation/...`, annotations target `.../7.1.9/installation/...` | the 7.3.2 paths as displayed - transcribed as text, not linked |
+| Security overview PDF link | text reads `management-console/1.5.5/...`, annotation targets `management-console/1.5.4/...` | Data Services is **1.5.5 SP2**; the 1.5.5 path as displayed |
+| Service URL list | text reads `cldrsetup.local`, every annotation targets `cdppvcds.com` | `cldrsetup.local`, as displayed |
+| Additional Steps for Apache Ranger link | annotation targets the **7.1.9** guide; the link text carries no version | linked as the source has it |
+
+## What comes next
+
+Several services still point at a metadata database whose TLS is not yet configured on the service side. See [Configure services with SSL/TLS-enabled Metadata Database](/installations/cdp-7-3-2/cdppvc/base/services-metadata-db-tls).
