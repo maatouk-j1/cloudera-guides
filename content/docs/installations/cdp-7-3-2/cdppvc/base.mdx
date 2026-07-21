@@ -1,0 +1,35 @@
+---
+title: Setup CDP PvC Base Cluster
+topicTitle: Install CDP Private Cloud
+topicSlug: cdp-7-3-2/cdppvc
+summary: Overview of the Cloudera on premises Base cluster build - the Data Lake that provides the SDX capabilities the Data Services depend on, from the Add Cluster wizard through service configuration, hardening and the optional extras.
+prevTitle: Configure CM for external authentication using LDAP
+prevSlug: /installations/cdp-7-3-2/cdppvc/cm/ldap-auth
+nextTitle: Install CDP PvC Base using the CM Web UI
+nextSlug: /installations/cdp-7-3-2/cdppvc/base/installation
+---
+
+In this step, we will setup the Base cluster which will serve as the DataLake for the CDP Data Services that need the SDK capabilities for the cluster wide features like lineage, governance, security etc..,
+
+Cloudera Manager is now installed, secured with Auto-TLS and Kerberos, monitoring itself through the Cloudera Management Service and authenticating against the directory. Everything from here is driven from its web UI: the Base cluster is built by adding hosts, distributing parcels, then selecting and configuring the services that make up the Data Lake.
+
+---
+
+## Order of work
+
+| Step | Page |
+|:--|:--|
+| Run the **Add Cluster** wizard end to end - host discovery, repositories, parcels, JDK, agent installation and cluster inspection | [Install CDP PvC Base using the CM Web UI](/installations/cdp-7-3-2/cdppvc/base/installation) |
+| Select the custom services and work through the Add Cluster configuration wizard to bring the Data Lake up | [Data Lake Creation](/installations/cdp-7-3-2/cdppvc/base/data-lake) |
+| Post-installation requirements and details for the running cluster | [Additional Requirements and Details](/installations/cdp-7-3-2/cdppvc/base/additional-requirements) |
+| Repoint the services at the SSL/TLS-enabled metadata database | [Configure services with SSL/TLS-enabled Metadata Database](/installations/cdp-7-3-2/cdppvc/base/services-metadata-db-tls) |
+| Add worker nodes to the cluster *(optional)* | [Scale the Cluster (Optional)](/installations/cdp-7-3-2/cdppvc/base/scale-cluster) |
+| Enable HA for the cluster roles *(optional)* | [Enable High Availability (Optional)](/installations/cdp-7-3-2/cdppvc/base/high-availability) |
+| Configure the individual services for LDAP authentication *(optional)* | [Configure Services authentication for LDAP (Optional)](/installations/cdp-7-3-2/cdppvc/base/ldap-auth) |
+| Trim what the cluster writes to disk | [Optimize Log Collection](/installations/cdp-7-3-2/cdppvc/base/optimize-log-collection) |
+
+## Before you start
+
+The Base cluster hosts are the ones prepared during the [preliminary work](/installations/cdp-7-3-2/post-os-work) - `pvcbase-master` and `pvcbase-worker[1-3]`, all joined to the FreeIPA domain and all reachable from the Ansible control node. The wizard installs the Cloudera Manager Agent onto each of them over SSH, so password-less login or the root password must be available.
+
+The local `httpd` repository server on `cldr-mngr` must already be serving both the Cloudera Manager agent packages and the Runtime and Spark parcels - that is what the [Setup Repositories and Parcels](/installations/cdp-7-3-2/cdppvc/repos-and-parcels) page built. The wizard asks for those URLs by hand; nothing here reaches the public internet.

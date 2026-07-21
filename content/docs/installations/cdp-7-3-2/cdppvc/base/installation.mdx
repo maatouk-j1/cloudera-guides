@@ -1,0 +1,253 @@
+---
+title: Install CDP PvC Base using the CM Web UI
+topicTitle: Setup CDP PvC Base Cluster
+topicSlug: cdp-7-3-2/cdppvc/base
+summary: Procedure 8 - run the Add Cluster wizard in Cloudera Manager from Select Cluster Type through host discovery, the local repository and parcel URLs, JDK selection, agent installation, parcel activation and cluster inspection, including the two manual stops that work around the p1000 Ozone JAR bug.
+prevTitle: Setup CDP PvC Base Cluster
+prevSlug: /installations/cdp-7-3-2/cdppvc/base
+nextTitle: Data Lake Creation
+nextSlug: /installations/cdp-7-3-2/cdppvc/base/data-lake
+---
+
+**Procedure 8. Install Cloudera on premises Base using the Cloudera Manager WebUI**
+
+The wizard runs in eight stages - Cluster Basics, Specify Hosts, Select Repository, Select JDK, Enter Login Credentials, Install Agents, Install Parcels and Inspect Cluster. Two of the steps below (13 and 15) deliberately **stop** the wizard to work around a known parcel bug; do not click through them.
+
+---
+
+## 1. Start the Add Cluster wizard
+
+**Step 1.** In Cloudera Manager, on the top right corner, click **(+) Add > Add Cluster**. The Select Cluster Type page appears.
+
+![Cloudera Manager top right corner with the Add menu expanded, offering Add Cluster and Add Hosts, beside a Switch to Table View button](/images/cdp-7-3-2/cdppvc/base/installation/add-cluster-menu.png)
+
+**Step 2.** On the **Select Cluster Type** page, select the cluster type as **Cloudera on premises Base Cluster** (first option) and enter a cluster name. Click **Continue**.
+
+![Add Cluster page showing the Select Cluster Type choice between Private Cloud Base Cluster, selected, and Private Cloud Containerized Cluster](/images/cdp-7-3-2/cdppvc/base/installation/select-cluster-type.png)
+
+![Cluster Basics step of the Add Private Cloud Base Cluster wizard with the Cluster Name field set to PvCBaseCluster1 and the five wizard stages listed down the left](/images/cdp-7-3-2/cdppvc/base/installation/cluster-basics.png)
+
+## 2. Specify the hosts
+
+**Step 3.** Enter the cluster host names or IP addresses in the Hostnames field. You can Provide the host pattern `pvcbase-master`, `pvcbase-worker[1-3]` or `pvcbase-worker[1-3].cldrsetup.local` etc separated with a new line and Click on **Search**.
+
+> **Note:** Host names must be in lowercase. If you use uppercase letters in any host name, the cluster services will not start after enabling Kerberos.
+
+**Step 4.** Specify the hosts that are part of the cluster using their IP addresses or hostname. The figure below shows a pattern that specifies the IP addresses range. Cloudera Manager will "discover" the hosts based on matching the pattern provided by you to add in the cluster. Verify that all desired nodes have been found and **selected for installation**. Verify host entries, **deselect** any that you do not want to install services on, and click **Continue**.
+
+```text
+pvcbase-master.cldrsetup.local
+pvcbase-worker[1-3].cldrsetup.local
+```
+
+![Specify Hosts step listing six scanned hosts - pvcbase-master and pvcbase-worker1 through worker5 - each with an IP address, Currently Managed set to No and the result Host was successfully scanned](/images/cdp-7-3-2/cdppvc/base/installation/specify-hosts.png)
+
+## 3. Point the wizard at the local repositories
+
+**Step 5.** The **Select Repository** section appears. Select Cloudera Repository option as mentioned. Enter **Custom Repository** or Cloudera Repository to install Cloudera Manager Agent on all nodes in the cluster. We have earlier configured the private yum repository on **cldr-mngr** node. Please provide the path here:
+
+```text
+http://13.251.65.11/cloudera-repos/cloudera-manager/
+```
+
+and click on **Continue**.
+
+![Select Repository step with Repository Location set to Custom Repository and a local cloudera-manager repository URL entered, above a link to How to set up a custom repository](/images/cdp-7-3-2/cdppvc/base/installation/select-repository.png)
+
+**Step 6.** In the other software section, select **Use Parcels (Recommended)** and click **Parcel Repository & Network Settings** to provide a custom Parcels location to be installed *(in a new tab in the same browser window)*.
+
+![Other Software section with Install Method set to Use Parcels (Recommended) and a Parcel Repositories and Network Settings link below it](/images/cdp-7-3-2/cdppvc/base/installation/other-software-install-method.png)
+
+**Step 7.** Enter custom repository URL for CDH7 and CDS 3.3 parcels. Click on **Save and Verify Configuration**. Close the Parcel Repository & Network Settings wizard.
+
+```text
+http://13.251.65.11/cloudera-repos/spark3/3.3.7191000.4/
+http://13.251.65.11/cloudera-repos/cdh7.3.2/
+```
+
+![Parcel Repository and Network Settings dialog listing the remote parcel repository URLs, including the two local ones, with Enable Automatic Authentication for Cloudera Repositories ticked and a green banner reporting 9 of 9 URLs validated](/images/cdp-7-3-2/cdppvc/base/installation/parcel-repository-network-settings.png)
+
+**Step 8.** Select the parcels for installation.
+
+![Other Software step showing the CDH Version radio selection and the Additional Parcels list, with a SPARK3 parcel selected and None chosen for ACCUMULO and mkl](/images/cdp-7-3-2/cdppvc/base/installation/select-parcels.png)
+
+**Step 9.** Click **Continue**.
+
+## 4. Select the JDK
+
+**Step 10.** Select the appropriate option for JDK. (manual installation for JDK11 with CDH 7.1.x and JDK17 with 7.3.2 and above): (Select **Manually manage JDK** here, as we have already installed a System-provided version of OpenJDK11 manually on all servers. Click on **Continue**.
+
+> **Contradiction in the source:** the parenthetical says JDK **17** is the one that goes with 7.3.2 and above, then the instruction in the same sentence says OpenJDK **11** was the version installed manually. The java path the guide itself supplies for the inspection fix in step 16 is a **JDK 17** path (`/usr/lib/jvm/java-17-openjdk-17.0.13.0.11-4.el9.x86_64/`), and the [prerequisites](/installations/cdp-7-3-2/cdppvc/prerequisites) page states that JDK 11 is unsupported for this runtime. Install **JDK 17** on a 7.3.2 build.
+
+![Select JDK step listing supported JDK versions per CDH version, with Manually manage JDK selected and a notice that a supported JDK must already be installed on all hosts](/images/cdp-7-3-2/cdppvc/base/installation/select-jdk.png)
+
+## 5. Enter the login credentials
+
+**Step 11.** The **Enter Login Credentials section** appears. On this page, provide the required **details** as mentioned **in the below table**, for the hosts to install Cloudera packages. Click **Continue**.
+
+| Component | Value |
+|:--|:--|
+| SSH Username | `root` |
+| Authentication Method | All hosts accept same password / All hosts accept same private key |
+| Password (If selected password based auth) | `<password_for_vm_root_user>` *(e.g. cloudera123)* |
+| Confirm Password (If selected password based auth) | `<password_for_vm_root_user>` *(e.g. cloudera123)* (again) |
+| Private Key (If selected private key based auth) | Upload the private key e.g. `id_rsa` generated in earlier steps |
+| Passphrase (If selected private key based auth) | If Applicable |
+| Repeat Passphrase (If selected private key based auth) | If Applicable |
+
+a. If Selected the **Authentication method** as **All hosts accept same password**
+
+![Enter Login Credentials step with SSH Username root, Authentication Method set to All hosts accept same password, masked Password and Confirm Password fields, SSH Port 22 and Simultaneous Installations 10](/images/cdp-7-3-2/cdppvc/base/installation/login-credentials-password.png)
+
+b. If Selected the **Authentication method** as **All hosts accept the same private key**.
+
+![Enter Login Credentials step with Authentication Method set to All hosts accept same private key, the file id_rsa chosen for Private Key, empty passphrase fields, SSH Port 22 and Simultaneous Installations 10](/images/cdp-7-3-2/cdppvc/base/installation/login-credentials-private-key.png)
+
+## 6. Install the agents
+
+**Step 12.** The **Install Agents** section appears showing the progress of the installation. It will check for and install the **JDK** (If not already there) and **cloudera-scm-agent** software on all the Base Cluster nodes. Click **Continue** after the Cloudera Agent **Installation completed successfully** on all hosts.
+
+![Install Agents step with a full green progress bar, Installation completed successfully, and every host reporting Installation completed successfully with a Details link](/images/cdp-7-3-2/cdppvc/base/installation/install-agents.png)
+
+## 7. Stop: create the hadoop-hdfs directory
+
+**Step 13.** Stop at this stage. Create a directory on base cluster nodes (for handling of a bug associated with p1000)
+
+```bash
+[root@jump ~]# ansible namenodes,datanodes -m shell -a "mkdir /var/lib/hadoop-hdfs"
+[root@jump ~]# ansible namenodes,datanodes -m shell -a "ls -lart /var/lib/hadoop-hdfs"
+```
+
+## 8. Install the parcels
+
+**Step 14.** After the agents are installed, the **Install Parcels** section appears showing the progress of the parcels distribution, activation and installation on all hosts part of the cluster creation. Once the parcels are installed successfully for all hosts, click on **Continue**.
+
+![Install Parcels step showing the Cloudera Runtime parcel fully downloaded, distributed, unpacked and activated on all six hosts, with the SPARK3 parcel still distributing](/images/cdp-7-3-2/cdppvc/base/installation/install-parcels.png)
+
+## 9. Stop: fix the Ozone filesystem JAR link
+
+**Step 15.** Stop at this stage. On base cluster nodes (for handling of a bug associated with p1000). Once Parcels are activated, follow below steps: **(Failed to execute command Install YARN MapReduce Framework JARs on service YARN)**
+
+```bash
+[root@jump ~]# ansible namenodes,datanodes -m shell -a "chown hdfs:hadoop /var/lib/hadoop-hdfs"
+[root@jump ~]# ansible namenodes,datanodes -m shell -a "ls -lart /var/lib/hadoop-hdfs"
+
+##### Verify if links are good for the CM version for hadoop-hdfs filesystem JAR.
+
+[root@jump ~]# ansible namenodes,datanodes -m shell -a "namei -om
+/var/lib/hadoop-hdfs/ozone-filesystem-hadoop3.jar"
+```
+
+If jar not found on the host, you can download using the link below:
+
+```bash
+wget
+https://repository.cloudera.com/repository/cloudera-repos/org/apache/hadoop/hadoop-ozone-filesystem-had
+oop3/1.1.0.7.2.15.0-147/hadoop-ozone-filesystem-hadoop3-1.1.0.7.2.15.0-147.jar
+```
+
+If links are not working fine, deactivate and activate the parcel from CM Parcel Manager. Then Perform Below steps:
+
+```bash
+[root@cldr-mngr ~]# ansible namenodes,datanodes -m shell -a "unlink
+/etc/alternatives/ozone-filesystem-hadoop3.jar; unlink
+/var/lib/hadoop-hdfs/ozone-filesystem-hadoop3.jar"
+```
+
+### Notes from the product / engineering team on the issue
+
+```text
+Verify if /var/lib/hadoop-hdfs exists on all nodes.
+Check if hdfs user exists on all nodes. (grep hdfs /etc/passwd; grep hdfs /etc/group)
+
+Create the /var/lib/hadoop-hdfs directory on all nodes.
+
+Deactivate and activate the Cloudera Runtime parcel.
+Alternatively, if there is a separate Ozone parcel installed on the cluster, deactivate and activate
+the Ozone parcel instead.
+
+Ensure that the directory has at least the following permissions:
+/var/lib/hadoop-hdfs/ozone-filesystem-hadoop3.jar
+lrwxrwxrwx [owner: root, group: root]
+/var/lib/hadoop-hdfs
+drwxr-xr-x [owner: hdfs, group: hadoop]
+```
+
+Output for permissions should look similar to:
+
+```text
+$ namei -om /var/lib/hadoop-hdfs/ozone-filesystem-hadoop3.jar
+
+f: /var/lib/hadoop-hdfs/ozone-filesystem-hadoop3.jar
+ drwxr-xr-x root         root         /
+ drwxr-xr-x root         root         var
+ drwxr-xr-x root         root         lib
+ drwxr-xr-x hdfs         hadoop       hadoop-hdfs
+ lrwxrwxrwx root         root         ozone-filesystem-hadoop3.jar ->
+/etc/alternatives/ozone-filesystem-hadoop3.jar
+```
+
+The issue can also be found in the Ozone Known issues documentation.
+
+Create the alternatives link manually for CDP binaries. This step would have failed during the activation of the CDP parcel due to the missing folder.
+
+```bash
+$ alternatives --install /var/lib/hadoop-hdfs/ozone-filesystem-hadoop3.jar ozone-filesystem-hadoop3.jar
+/opt/cloudera/parcels/CDH-<path_to_active_parcel>/lib/hadoop-ozone/ozone-filesystem-hadoop3.jar 5
+```
+
+If an Ozone parcel is installed, create the symbolic links for the Ozone parcel.
+
+```bash
+$ alternatives --install /var/lib/hadoop-hdfs/ozone-filesystem-hadoop3.jar
+ozone-filesystem-hadoop3.jar /opt/cloudera/parcels/OZONE-<path_to_activated
+Ozone_parcel>/lib/hadoop-ozone/ozone-filesystem-hadoop3.jar 10
+```
+
+**Upgrade:** Upgrade to a fixed release of CDP/Cloudera Manager once available.
+
+For the latest update on this issue see the corresponding Knowledge Article: TSB 2024-775: FileNotFoundException for the Ozone FS JAR during or after installation or upgrade
+
+## 10. Inspect the cluster
+
+**Step 16.** After the parcels are installed the Inspect Cluster section appears.
+
+Inspect Cluster by running **Inspect Network Performance**. After the network inspector completes, click **Show Inspector Results** to view the results in a new tab. Address any reported issues (If there), and click **Run Again**.
+
+**Click Inspect Hosts**. After the host inspector completes, click **Show Inspector Results** to view the results in a new tab. Address any reported issues (If there), and click **Run Again**.
+
+Both the inspection tests should run successfully. Review inspector summary. Click **Finish**.
+
+![Inspect Cluster step with Inspect Network Performance and Host Inspector both Finished, each offering Show Inspector Results and Run Again, and a checkbox to continue without running the inspections](/images/cdp-7-3-2/cdppvc/base/installation/inspect-cluster.png)
+
+If java path mismatch error occurs in network/host inspection:
+
+```text
+Take - Java Path from the host ( /usr/lib/jvm/java-17-openjdk-17.0.13.0.11-4.el9.x86_64/ ), goto CM,
+open a new tab of CM-UI on browser and search for JAVA PATH in search bar present at left hand side:
+# Override JAVA PATH in CM-UI> Search JAVA PATH> Override the value> Save Changes>              Restart
+Cloudera-SCM-Server
+Re-run the inspect tools, this time all checks should be green.
+```
+
+**Step 17.** Click **Continue**.
+
+## Source values that do not match this build
+
+Every screenshot in this procedure is recycled from an older lab build, so the wizard chrome and the values inside the captures disagree with the prose beside them. The prose and the [version table](/installations/cdp-7-3-2/summary) win.
+
+| Where | What the screenshot shows | What this build actually is |
+|:--|:--|:--|
+| Wizard chrome, every capture | Cloudera Manager `7.11.3` | Cloudera Manager **7.13.2.0** |
+| Host lists in Specify Hosts, Install Agents, Install Parcels | `pvcbase-*.cdppvcds.com`, six hosts on `192.168.1.x` | `pvcbase-master` and `pvcbase-worker[1-3]` on `cldrsetup.local`, as the prose in steps 3 and 4 states |
+| Select Repository field | `http://192.168.1.38/cloudera-repos/cloudera-manager/` | `http://13.251.65.11/cloudera-repos/cloudera-manager/`, as step 5 states |
+| CDH Version radio in Select Parcels | `CDH 7.1.9-1.cdh7.1.9.p1000.55406660` | Runtime **7.3.2** - the parcel served from the local repo |
+| Additional Parcels radio in Select Parcels | `SPARK3 3.3.2.3.3.7190.7-2-1.p0.55847114` | the CDS parcel served from `spark3/3.3.7191000.4/`, as step 7 states |
+| Install Parcels progress | `Cloudera Runtime 7.1.9` and `SPARK3 3.3.2.3.3.7190.7` | as above |
+| `wget` URL in step 15 | `hadoop-ozone-filesystem-hadoop3-1.1.0.7.2.15.0-147.jar` | a **7.2.15** artifact, kept verbatim from the source |
+
+The hyperlinks the source embeds behind the URLs in steps 5 and 7 also point somewhere other than the text they carry - the link text reads `.../cloudera-manager/`, `.../spark3/3.3.7191000.4/` and `.../cdh7.3.2/`, but the underlying annotations target `.../cloudera-manager/cm7.11.3/`, `.../spark3/3.3.7190.4/` and `.../cdh7.1.9/`. The URLs are transcribed as displayed text here, not as links, because the targets are stale lab paths.
+
+## What comes next
+
+The runtime is installed and the cluster is inspected but empty - no services yet. Clicking **Continue** hands straight over to the **Add Cluster - Configuration** wizard, where the services that make up the Data Lake are selected. See [Data Lake Creation](/installations/cdp-7-3-2/cdppvc/base/data-lake), which picks up at **Step 18**.
