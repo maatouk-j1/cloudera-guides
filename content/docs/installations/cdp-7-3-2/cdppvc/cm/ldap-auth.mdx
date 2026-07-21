@@ -1,0 +1,172 @@
+---
+title: Configure CM for external authentication using LDAP
+topicTitle: Setup Cloudera Manager Server
+topicSlug: cdp-7-3-2/cdppvc/cm
+summary: Point Cloudera Manager at the FreeIPA directory for authentication and authorization - set the external authentication properties under Administration > Settings, map the LDAP group to a Cloudera Manager role, and test connectivity before restarting the server.
+prevTitle: Setup Cloudera Management Services
+prevSlug: /installations/cdp-7-3-2/cdppvc/cm/mgmt-services
+nextTitle: Setup CDP PvC Base Cluster
+nextSlug: /installations/cdp-7-3-2/cdppvc/base
+---
+
+An LDAP-compliant identity/directory service, such as OpenLDAP/FreeIPA/AD, provides different options for enabling Cloudera Manager to look-up user accounts and groups in the directory:
+
+- Use a single Distinguished Name (DN) as a base for matching usernames in the directory, or
+- Search filter options let you search for a particular user based on somewhat broader search criteria – for example Cloudera Manager users could be members of different groups or organizational units (OUs), so a single pattern does not find all those users. Search filter options also let you find all the groups to which a user belongs, to help determine if that user should have login or admin access.
+
+> **Note:** The **LDAP Distinguished Name Pattern** property is deprecated. Leave this field empty while configuring authentication using LDAP in Cloudera Manager.
+
+---
+
+## 1. Active Directory only: trust the AD CA certificate
+
+**Step 1.** Obtain CA certificate from active directory and copy it as for example. *(Only applied, in case you are going with an AD based setup.)*
+
+```bash
+# cp ad.cert.cer /etc/pki/ca-trust/source/anchors/ad.cert.pem
+# update-ca-trust force-enable
+# update-ca-trust extract
+# update-ca-trust check
+```
+
+**Step 2.** Update AutoTLS configuration by rotating Auto-TLS certificate with new CA certificate obtained. *(Only applied, in case you are going with an AD based setup.)*
+
+![Rotate Auto-TLS Certificates wizard on the Generate CA step, with Trusted CA Certificates Location set to /etc/pki/ca-trust/source/anchors/ad.cert.pem, Enable TLS for All existing and future clusters, SSH Username root, password-based authentication and SSH Port 22](/images/cdp-7-3-2/cdppvc/cm/ldap-auth/rotate-auto-tls-certificates.png)
+
+**Step 3.** Restart clouder server configuration and restart cluster role/services and deploy client configuration. *(Only applied, in case you are going with AD based setup.)*
+
+```bash
+# systemctl restart cloudera-scm-server
+# systemctl status cloudera-scm-server.service -l
+# tail -f /var/log/cloudera-scm-server/cloudera-scm-server.log
+```
+
+## 2. Open the External Authentication settings
+
+**Step 4.** From Cloudera Manager, navigate to **Administration → Settings**.
+
+![Cloudera Manager left navigation with the Administration menu expanded, showing Settings, Alerts, Users & Roles, Security, License, Language and External Accounts, with a red arrow pointing at Settings](/images/cdp-7-3-2/cdppvc/cm/ldap-auth/administration-settings-menu.png)
+
+**Step 5.** In the filters section, click on **External Authentication** as shown in the screenshot below:
+
+![Settings page Filters panel listing categories - Other, Advanced, Altus, Custom Service Descriptors, External Authentication with 39 properties, Kerberos, Monitoring and Network - with a red arrow pointing at External Authentication](/images/cdp-7-3-2/cdppvc/cm/ldap-auth/settings-filter-external-authentication.png)
+
+## 3. Enter the LDAP values
+
+**Step 6.** Search for "ldap" and enter values for ldap authentication, please refer to the sample values as mentioned in the below table and update according to your actual setup.
+
+**Table 7. LDAP Integration**
+
+| Component | Value |
+|:--|:--|
+| Authentication Backend Order: | Database then EXTERNAL |
+| Authorization Backend Order: | Database and EXTERNAL |
+| External Authentication Type: | LDAP |
+| LDAP URL: | `ldap://ipaserver.cldrsetup.local:389` |
+| LDAP Bind User Distinguished Name: | `uid=admin,cn=users,cn=accounts,dc=cldrsetup,dc=local` |
+| LDAP Bind Password: | `<cloudera123>` (password for KDC admin, configured earlier) |
+| Active Directory Domain: (For AD Based LDAP) | `<AD DOMAIN>` (e.g CLDRSETUP.LOCAL) |
+| LDAP User Search filter: (For Open LDAP Based) | `(&(uid={0})(objectClass=person))` |
+| LDAP User Search filter: (For AD Based) | `sAMAccountName={0}` |
+| LDAP User Search Base: | `cn=users,cn=accounts,dc=cldrsetup,dc=local` |
+| LDAP Group Search filter: (For Open LDAP Based) | `(&(member={1})(objectClass=posixgroup))` |
+| LDAP Group Search filter: (For AD Based) | `member={0}` |
+| LDAP Group Search Base: | `cn=groups,cn=accounts,dc=cldrsetup,dc=local` |
+| LDAP DistName Pattern: | `uid=admin,cn=users,cn=accounts,dc=cldrsetup,dc=local` |
+
+> **Note:** The last row contradicts the note at the top of this page, which says the deprecated **LDAP Distinguished Name Pattern** must be left empty. The source guide carries both. Leave the field empty.
+
+**Step 7.** Below page will get open, select the appropriate options as mentioned below in the screenshot:
+
+![External Authentication settings page with Authentication Backend Order set to Database then External, Authorization Backend Order set to Database and External, External Authentication Type set to LDAP, and the LDAP URL, LDAP Bind User Distinguished Name and LDAP Bind Password fields filled in](/images/cdp-7-3-2/cdppvc/cm/ldap-auth/ldap-settings-backend-order.png)
+
+![Continuation of the same settings page showing an empty Active Directory Domain, LDAP User Search Filter, LDAP User Search Base, LDAP Group Search Filter and LDAP Group Search Base filled in, with the Save Changes bar reporting 9 edited values](/images/cdp-7-3-2/cdppvc/cm/ldap-auth/ldap-settings-search-filters.png)
+
+**Additional Parameters for AD Based Setup:**
+
+![AD-specific external authentication properties - Active Directory Domain, LDAP User Search Filter sAMAccountName={0}, an OU-scoped LDAP User Search Base, LDAP Group Search Filter member={0}, an LDAP Group Search Base, an empty LDAP Distinguished Name Pattern, Allowed Groups for Knox Proxy, and Active Directory LDAP Port 389 and LDAPS Port 636](/images/cdp-7-3-2/cdppvc/cm/ldap-auth/ad-additional-parameters.png)
+
+## 4. Save and restart
+
+**Step 8.** Click **Save**. Once you click on the Save button, it will tell you to restart the CM Server, in order to bring the changes in effect. When you restart the CM Server from Backend. You will see the below entries in the logs.
+
+```bash
+[root@cldr-mngr ~]# systemctl restart cloudera-scm-server
+[root@cldr-mngr ~]# systemctl status cloudera-scm-server -l
+
+##### Run the below command to check the logs of cloudera-scm-server starting up. Wait until you see the
+Started Jetty server message on the screen.
+[root@cldr-mngr ~]# sudo tail -f /var/log/cloudera-scm-server/cloudera-scm-server.log
+
+2024-08-21 03:14:10,007 INFO WebServerImpl:com.cloudera.server.cmf.ExternalAuthenticationHelper: Using
+LDAP authentication with properties: DN pattern=(uid=admin,cn=users,cn=accounts,dc=cldrsetup,dc=local)
+user search base=(cn=users,cn=accounts,dc=cldrsetup,dc=local) user search
+filter=((&(uid={0})(objectClass=person))) group search base=(cn=groups,cn=accounts,dc=cldrsetup,dc=local)
+group search filter=((&(member={1})(objectClass=posixgroup)))
+
+2024-08-21 03:14:10,009 INFO WebServerImpl:com.cloudera.server.cmf.WebServerImpl: Authenticating against
+database, then LDAP
+```
+
+## 5. Map the LDAP group to a role
+
+**Step 9.** Login again to CM-UI and in **Administration > Users & Roles > LDAP/PAM Groups**, add LDAP/PAM Group mapping.
+
+![Users & Roles page on the LDAP/PAM Groups tab, with an empty mapping table reading No results found and the Test LDAP Connectivity and Add LDAP/PAM Group Mapping buttons](/images/cdp-7-3-2/cdppvc/cm/ldap-auth/users-roles-ldap-pam-groups-empty.png)
+
+**Step 10.** **Add LDAP/PAM Group mapping** value and Roles to assign. (LDAP/PAM Group: admin, Roles: Full Administrator.)
+
+![Add LDAP/PAM Group Mapping dialog with LDAP/PAM Group set to admin and Roles set to Full Administrator, shown as a removable chip below the dropdown](/images/cdp-7-3-2/cdppvc/cm/ldap-auth/add-ldap-pam-group-mapping.png)
+
+## 6. Test the LDAP configuration
+
+**Step 11.** Click on **Test LDAP Connectivity.** Provide a username and password for an LDAP user to test whether that user can be authenticated. *(username: admin, password: `<cloudera123>`)*
+
+![Test LDAP Connectivity dialog with Username admin and a masked Password field, above Cancel and Test buttons](/images/cdp-7-3-2/cdppvc/cm/ldap-auth/test-ldap-connectivity.png)
+
+**Step 12.** Click on **Test** to verify LDAP configuration is set up and working fine, as expected.
+
+![Test Cloudera Manager External Authentication dialog with status Finished in 98ms and the message The user was authenticated successfully. You may still have to restart the Cloudera Manager server for the current configuration to take effect](/images/cdp-7-3-2/cdppvc/cm/ldap-auth/test-external-authentication-result.png)
+
+**Step 13.** Login to the `cldr-mngr` server at backend and restart the Cloudera Manager Server.
+
+```bash
+[root@cldr-mngr ~]# systemctl restart cloudera-scm-server
+[root@cldr-mngr ~]# systemctl status cloudera-scm-server -l
+[root@cldr-mngr ~]# sudo tail -f /var/log/cloudera-scm-server/cloudera-scm-server.log
+2024-03-19 00:56:15,620 INFO
+pool-7-thread-1:com.cloudera.server.cmf.components.CmServerStateSynchronizer: (30 skipped) Synced
+up
+2024-03-19 00:46:49,935 INFO LDAP login monitor thread.:
+org.springframework.security.ldap.DefaultSpringSecurityContextSource: URL
+'ldap://ipaserver.cldrsetup.local:389/cn=users,cn=accounts,dc=cldrsetup,dc=local', root DN is
+'cn=users,cn=accounts,dc=cldrsetup,dc=local'
+2024-03-19 00:56:13,528 INFO LDAP login monitor thread.:
+org.springframework.ldap.core.support.AbstractContextSource: Property 'password' not set - blank
+password will be used
+2024-03-19 00:56:14,269 INFO CommandPusher-1:com.cloudera.server.cmf.CommandPusherThread: Acquired
+lease lock on DbCommand:1546344098
+2024-03-19 00:56:14,620 INFO
+pool-7-thread-1:com.cloudera.server.cmf.components.CmServerStateSynchronizer: (30 skipped) Cleaned
+up
+[root@cldr-mngr ~]#
+```
+
+**Step 14.** Login to Cloudera Manager WebUI and assign Roles for new users. *(Only, If used a different user than admin, else skip this step.)*
+
+![Users & Roles page on the LDAP/PAM Groups tab showing the admin group mapped to Full Administrator, with a green toast reading admin has been created](/images/cdp-7-3-2/cdppvc/cm/ldap-auth/users-roles-ldap-pam-group-mapped.png)
+
+## Source values that do not match this build
+
+Every screenshot on this page is recycled from an older lab build - it is a browser capture of Cloudera Manager `7.11.3` running on an AWS load-balancer host, against the `cdppvcds.com` domain rather than `cldrsetup.local`. The table above and the log output are the authoritative values.
+
+| Where | What the guide shows | What this build actually is |
+|:--|:--|:--|
+| LDAP settings screenshots in Step 7 | `ldap://ipaserver.cdppvcds.com:389`, `...dc=cdppvcds,dc=com` | the `cldrsetup.local` values in Table 7 |
+| Second Step 7 screenshot, LDAP URL field | `ipaserver.cdppvcds.com` - no `ldap://` scheme, no port | `ldap://ipaserver.cldrsetup.local:389` |
+| AD parameters screenshot | `cdip.cisco.local`, `OU=cloudera,DC=cdip,DC=cisco,DC=local` | placeholders from an unrelated lab; substitute your own AD domain |
+| Browser chrome in every screenshot | Cloudera Manager `7.11.3` on an `elb.amazonaws.com` host | Cloudera Manager **7.13.2.0** on `cldr-mngr.cldrsetup.local` |
+
+## What comes next
+
+Cloudera Manager is installed, secured with Auto-TLS, integrated with the FreeIPA KDC, monitoring itself, and authenticating against the directory. Everything the wizard needs is in place - the next step builds the cluster itself. See [Setup CDP PvC Base Cluster](/installations/cdp-7-3-2/cdppvc/base).

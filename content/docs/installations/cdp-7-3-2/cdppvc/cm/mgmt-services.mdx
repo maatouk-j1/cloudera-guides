@@ -1,0 +1,63 @@
+---
+title: Setup Cloudera Management Services
+topicTitle: Setup Cloudera Manager Server
+topicSlug: cdp-7-3-2/cdppvc/cm
+summary: Add the Cloudera Management Service from the Cloudera Manager home page, assign its roles to the cldr-mngr host and point Reports Manager at the rman database, so host and service status and the charts view populate.
+prevTitle: Enable Kerberos
+prevSlug: /installations/cdp-7-3-2/cdppvc/cm/kerberos
+nextTitle: Configure CM for external authentication using LDAP
+nextSlug: /installations/cdp-7-3-2/cdppvc/cm/ldap-auth
+---
+
+> **Note:** The source guide does not open a new procedure here - it continues the numbering of the Kerberos procedure, so this section begins at **Step 15**. The step number is kept as-is; the sub-steps are lettered a) to e), again as in the source.
+
+**Step 15.** Setup the **Cloudera Management Services**: (Only if the status of hosts/services/charts are not visible / visible as (?) / or showing the errors on console.)
+
+```text
+##### Setup the Cloudera Management Services (need rman DB details), it will start service monitor and
+other services and enable charts view. If Cloudera Management Services are not installed/ enabled or not
+working properly, status of hosts, or installed services will not be updated on CM-UI.
+```
+
+The `rman` role and database were created earlier, in the `CREATE ROLE` / `CREATE DATABASE` block on the [Setup Database for Cloudera Manager](/installations/cdp-7-3-2/cdppvc/cm/database) page.
+
+---
+
+## 1. Add the Cloudera Management Service
+
+a) Go to —> **WebUI** -> **Top Right Corner** -> **(+)Add** -> **Add Cloudera Management Service**
+
+![Cloudera Manager Home page with the Add menu open in the top right corner, showing Add Cluster, Add Hosts and Add Cloudera Management Service, over a red banner reporting that the request to the Host Monitor failed](/images/cdp-7-3-2/cdppvc/cm/mgmt-services/add-cloudera-management-service-menu.png)
+
+## 2. Assign the roles
+
+b) Assign Roles for different Cloudera Management Services to CLDR-MNGR Host (e.g. `cldr-mngr.cldrsetup.local`)
+
+![Assign Roles step of the Add Cloudera Management Service Service wizard, with Service Monitor, Host Monitor, Reports Manager, Event Server and Alert Publisher each assigned one new role on the Cloudera Manager host, and Telemetry Publisher left unassigned](/images/cdp-7-3-2/cdppvc/cm/mgmt-services/assign-roles.png)
+
+## 3. Point Reports Manager at its database
+
+c) Setup Report Manager Database integration by providing the **DBHostname**, **DBNAME**, **DBUser** and **DBPassword**. After entering the details, click on **Test Connection.** After the successful connection test, click **Continue**.
+
+![Setup Database step of the wizard for Reports Manager, with Type PostgreSQL, the Cloudera Manager host as Database Hostname, database name rman, username rman, a masked password, a Test Connection button and a green Successful result](/images/cdp-7-3-2/cdppvc/cm/mgmt-services/setup-database-reports-manager.png)
+
+## 4. Finish and verify
+
+d) **Summary page** will come up. Click on **Finish**.
+
+![Summary step of the Add Cloudera Management Service Service wizard with a green banner reading Your new service is installed and configured on your cluster, and a note that dependency services with outdated configurations may still need restarting](/images/cdp-7-3-2/cdppvc/cm/mgmt-services/summary.png)
+
+e) Now, Cloudera Management Service is visible as installed and status of different components is also visible.
+
+![Cloudera Manager Home page showing a Cloudera Management Service entry with a green health status, and the earlier Host Monitor error banner gone](/images/cdp-7-3-2/cdppvc/cm/mgmt-services/cms-installed-home.png)
+
+## Source values that do not match this build
+
+| Where | What the guide shows | What this build actually is |
+|:--|:--|:--|
+| Role assignment and database screenshots | hostname `cldr-mngr.cdppvcds.com` | `cldr-mngr.cldrsetup.local`, as the prose in b) states |
+| Wizard chrome in the screenshots | Cloudera Manager `7.11.3` | Cloudera Manager **7.13.2.0** |
+
+## What comes next
+
+Cloudera Manager can now monitor itself, so host and service health and the charts view are populated. The last Cloudera Manager task before the cluster is built is to hand authentication over to the directory service. See [Configure CM for external authentication using LDAP](/installations/cdp-7-3-2/cdppvc/cm/ldap-auth).
