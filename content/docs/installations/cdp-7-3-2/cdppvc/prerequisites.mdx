@@ -1,0 +1,77 @@
+---
+title: Prerequisites Overview
+topicTitle: Install CDP Private Cloud
+topicSlug: cdp-7-3-2/cdppvc
+summary: The Cloudera Data Platform Private Cloud installation requirements - NTP/Chrony, JDK 17, Kerberos, external databases, TLS/SSL and Auto-TLS, JKS key-stores and licensing.
+prevTitle: Install CDP Private Cloud
+prevSlug: /installations/cdp-7-3-2/cdppvc
+nextTitle: Setup Repositories and Parcels
+nextSlug: /installations/cdp-7-3-2/cdppvc/repos-and-parcels
+---
+
+These are the Cloudera Data Platform Private Cloud installation requirements (pre-requisites). Every one of them must be met before Cloudera Manager is installed.
+
+---
+
+## NTP/Chrony
+
+Both Cloudera on premises Base and Cloudera on premises DS cluster should have their time synched with the NTP Clock time from the same NTP source. Also make sure, Active Directory server where Kerberos is setup for data lake and for other services must also be synced with the same NTP source.
+
+## JDK 17
+
+The cluster must be configured with JDK 17, as JDK 11 and JDK8 are not supported. You can use Oracle, OpenJDK 17.0.13, or higher. JAVA 17 is a JKS requirement and must be met. In this setup we used OpenJDK 17.0.13.
+
+## Kerberos
+
+Kerberos must be configured using an Active Directory (AD), RedHat FreeIPA or MIT KDC. Kerberos will be enabled for all services in the cluster.
+
+## Database Requirements
+
+Cloudera Manager and Runtime come packaged with an embedded PostgreSQL database for use in non-production environments. The embedded PostgreSQL database is not supported in production environments. For production environments, you must configure your cluster to use dedicated external databases.
+
+For detailed information about supported database go to: [Cloudera Support Matrix](https://supportmatrix.cloudera.com/)
+
+## Configure Cloudera Manager with TLS/SSL
+
+TLS/SSL provides privacy and data integrity between applications communicating over a network by encrypting the packets transmitted between endpoints (ports on a host, for example). Configuring TLS/SSL for any system typically involves creating a private key and public key for use by server and client processes to negotiate an encrypted connection at runtime. In addition, TLS/SSL can use certificates to verify the trustworthiness of keys presented during the negotiation to prevent spoofing and mitigate other potential security issues.
+
+For detailed information on encrypting data in transit, go to:
+
+[Encrypting Data in Transit - TLS/SSL Certificates Overview](https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/security-encrypting-data-in-transit/topics/cm-security-guide-ssl-certs.html)
+
+The Auto-TLS feature automates all the steps required to enable TLS encryption at a cluster level. Using Auto-TLS, you can let Cloudera manage the Certificate Authority (CA) for all the certificates in the cluster or use the company's existing CA. In most cases, all the necessary steps can be enabled easily via the Cloudera Manager UI. This feature automates the following processes when Cloudera Manager is used as a Certificate Authority:
+
+- Creates the root Certificate Authority or a Certificate Signing Request (CSR) for creating an intermediate Certificate Authority to be signed by company's existing Certificate Authority (CA)
+- Generates the CSRs for hosts and signs them
+
+Configuring TLS Encryption for Cloudera Manager Using Auto-TLS for detailed information:
+
+[Configuring TLS Encryption for Cloudera Manager Using Auto-TLS](https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/security-encrypting-data-in-transit/topics/cm-security-auto-tls.html)
+
+Manually Configuring TLS Encryption for Cloudera Manager for detailed information:
+
+[Manually Configuring TLS Encryption for Cloudera Manager](https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/security-encrypting-data-in-transit/topics/cm-security-how-to-configure-cm-tls.html)
+
+## TLS uses JKS-format (Java KeyStore)
+
+Cloudera Manager Server, Cloudera Management Service, and many other CDP services use JKS formatted key-stores and certificates. Java 11 is required for JKS.
+
+> **Note:** The guide states "Java 11 is required for JKS" here, while the JDK 17 requirement above states that JDK 11 is not supported and that JAVA 17 is the JKS requirement. Follow the JDK 17 requirement - OpenJDK 17.0.13 or higher is what this deployment uses.
+
+## Licensing Requirements
+
+The cluster must be setup with a license with entitlements for installing Cloudera on premises. 60 days evaluation license for Cloudera Data Platform Cloudera on premises Base does not allow you to set up Cloudera on premises Data Services.
+
+Refer to the Cloudera on premises Base Requirements and Supported Versions for information about hardware, operating system, and database requirements, as well as product compatibility matrices.
+
+Refer Cloudera Manager release note for new feature and support:
+
+[Cloudera Manager 7.13.2 Release Notes - What's New](https://docs.cloudera.com/cloudera-manager/7.13.2/manager-release-notes/topics/cm-whats-new-7131.html)
+
+Please review before install steps:
+
+[Before You Install](https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/cdp-private-cloud-base-installation/topics/cdpdc-before-you-install.html)
+
+Please review Cloudera on premises Base requirements and supported versions for information about hardware, operating system, and database requirements, as well as product compatibility matrices:
+
+[Cloudera on premises Base Requirements and Supported Versions](https://docs.cloudera.com/cdp-private-cloud-upgrade/latest/upgrade/topics/cdpdc-requirements-supported-versions.html)

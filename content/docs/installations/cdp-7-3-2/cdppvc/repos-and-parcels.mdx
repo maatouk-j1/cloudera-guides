@@ -1,0 +1,387 @@
+---
+title: Setup Repositories and Parcels
+topicTitle: Install CDP Private Cloud
+topicSlug: cdp-7-3-2/cdppvc
+summary: Host the Cloudera Manager repository and the Cloudera Runtime, Key Trustee and Spark 3 parcels locally on the cldr-mngr node, and distribute the repo file to every host in the cluster with Ansible.
+prevTitle: Prerequisites Overview
+prevSlug: /installations/cdp-7-3-2/cdppvc/prerequisites
+nextTitle: Setup Cloudera Manager Server
+nextSlug: /installations/cdp-7-3-2/cdppvc/cm
+---
+
+This section outlines the steps needed to set up a 6 node Cloudera on premises Base cluster. Below are the prerequisites which base cluster should have before installing/configuring Data Services.
+
+- [CDP Private Cloud Base Installation](https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/cdp-private-cloud-base-installation/topics/cdpdc-installation.html)
+- [Production Installation](https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/cdp-private-cloud-base-installation/topics/cdpdc-prod-installation.html)
+
+> **Ensure to verify compatibility matrix of Cloudera-Manager, Cloudera RunTime, DataServices/ECS, JDK, Python, PostgreSQL etc. all together:** [https://supportmatrix.cloudera.com/](https://supportmatrix.cloudera.com/)
+
+All the repositories and parcels below are hosted from the local `httpd` instance installed on the `cldr-mngr` node in the [preliminary work](/installations/cdp-7-3-2/post-os-work).
+
+---
+
+## 1. Setup Cloudera Manager Repository
+
+> **Note:** These steps require a Cloudera username and password to access: [https://archive.cloudera.com/p/cm7/](https://archive.cloudera.com/p/cm7/)
+
+**Step 1.** From a host connected to the Internet, download the Cloudera's repositories as shown below and transfer it to the `cldr-mngr` node. We will directly login to `cldr-mngr` and perform below steps:
+
+```bash
+[root@jump ~]# ssh root@cldr-mngr
+[root@cldr-mngr ~]# mkdir -p /var/www/html/cloudera-repos/cloudera-manager/
+[root@cldr-mngr ~]# cd /var/www/html/cloudera-repos/cloudera-manager/
+```
+
+**Step 2.** Download Cloudera Manager Repository:
+
+```bash
+#!/bin/bash
+
+set -e
+
+# =====================================================
+# Cloudera Manager Repository Download Script
+# =====================================================
+
+# ================================
+# 1. Set Cloudera Archive Credentials
+# ================================
+
+USERNAME="<paywall-username>"
+PASSWORD="<paywall-password>"
+
+# ================================
+# 2. Define Cloudera Manager Version & Build
+# ================================
+
+CM_VERSION="7.13.2.0"
+BUILD_NUMBER="77091850"
+
+# ================================
+# 3. Define Base URL
+# ================================
+
+BASE_REPO_URL="https://${USERNAME}:${PASSWORD}@archive.cloudera.com/p/cm7/${CM_VERSION}"
+BASE_PARCEL_URL="${BASE_REPO_URL}/redhat9/yum"
+
+# ================================
+# 4. Prepare Target Local Repo Path
+# ================================
+
+cd /var/www/html/cloudera-repos/cloudera-manager/
+
+# ================================
+# 5. Download Repo & GPG Key Files
+# ================================
+
+wget ${BASE_PARCEL_URL}/cloudera-manager.repo
+wget ${BASE_PARCEL_URL}/cloudera-manager-trial.repo
+wget ${BASE_PARCEL_URL}/RPM-GPG-KEY-cloudera
+wget ${BASE_REPO_URL}/allkeys.asc
+wget ${BASE_REPO_URL}/allkeyssha256.asc
+
+# ================================
+# 6. Done
+# ================================
+echo "✔ Cloudera Manager repo and keys downloaded successfully."
+
+
+# ================================
+# 7. Verify Downloaded Files
+# ================================
+ls -lah
+```
+
+```bash
+[root@cldr-mngr cloudera-manager]# pwd
+/var/www/html/cloudera-repos/cloudera-manager
+
+[root@cldr-mngr cloudera-manager]# ll
+total 36
+-rw-r--r--. 1 root root 2464 Apr 23 06:51 RPM-GPG-KEY-cloudera
+-rw-r--r--. 1 root root 11019 Apr 23 06:51 allkeys.asc
+-rw-r--r--. 1 root root 4901 Apr 23 06:51 allkeyssha256.asc
+-rw-r--r--. 1 root root   248 Apr 14 11:16 cloudera-manager-trial.repo
+-rw-r--r--. 1 root root   501 Apr 23 06:51 cloudera-manager.repo
+
+[root@cldr-mngr cloudera-manager]#
+```
+
+**Step 3.** Edit `cloudera-manager.repo` file baseurl and GPG key with username and password provided by Cloudera and edit URL to match repository location **(OR)** Verify, if username and password are already present, so no action needed.
+
+```ini
+##### Verify if username and password are already present, so no action needed.
+[root@cldr-mngr cloudera-manager]# vi cloudera-manager.repo
+[cloudera-manager]
+name=Cloudera Manager 7.13.2.400
+baseurl=https://archive.cloudera.com/p/cm7/7.13.2.400/redhat9/yum/
+gpgkey=https://archive.cloudera.com/p/cm7/7.13.2.400/redhat9/yum/RPM-GPG-KEY-cloudera
+username=<username>
+password=<password>
+gpgcheck=1
+enabled=1
+autorefresh=0
+type=rpm-md
+
+[postgresql10]
+name=Postgresql 10
+baseurl=https://archive.cloudera.com/postgresql10/redhat9/
+gpgkey=https://archive.cloudera.com/postgresql10/redhat9/RPM-GPG-KEY-PGDG-10
+enabled=1
+gpgcheck=1
+module_hotfixes=true
+
+##### If not, update the cloudera-manager.repo to look like below.
+[root@cldr-mngr cloudera-manager]# vi cloudera-manager.repo
+[cloudera-manager]
+name=Cloudera Manager 7.13.2.400
+baseurl=https://<username>:<password>@archive.cloudera.com/p/cm7/7.13.2.400/redhat9/yum/
+gpgkey=https://<username>:<password>@archive.cloudera.com/p/cm7/7.13.2.400/redhat9/yum/RPM-GPG-KEY-cloudera
+gpgcheck=1
+enabled=1
+autorefresh=0
+type=rpm-md
+[root@cldr-mngr cloudera-manager]# cd
+```
+
+**Step 4.** Create directory to download cloudera manager agent, daemon, and server files.
+
+```bash
+#!/bin/bash
+
+set -e
+
+# =====================================================
+# Cloudera Manager RPM Download Script
+# =====================================================
+
+# ================================
+# 1. Create & Navigate to RPM Directory
+# ================================
+
+mkdir -p cm${CM_VERSION}/redhat9/yum/RPMS/x86_64/
+cd cm${CM_VERSION}/redhat9/yum/RPMS/x86_64/
+
+# ================================
+# 2. Download Required RPMs
+# ================================
+
+for pkg in agent daemons server server-db-2; do
+  wget ${BASE_PARCEL_URL}/RPMS/x86_64/cloudera-manager-${pkg}-${CM_VERSION}-${BUILD_NUMBER}.el9.x86_64.rpm
+done
+
+# ================================
+# 3. Verify Downloaded Files
+# ================================
+
+ls -alh
+```
+
+```bash
+[root@cldr-mngr x86_64]# pwd
+/var/www/html/cloudera-repos/cloudera-manager/cm7.13.2/redhat9/yum/RPMS/x86_64
+[root@cldr-mngr x86_64]# ll
+total 1862092
+-rw-r--r--. 1 root root 116384320 Apr 23 06:52 cloudera-manager-agent-7.13.2.400-68000784.el9.x86_64.rpm
+-rw-r--r--. 1 root root 1790367515 Apr 23 06:52 cloudera-manager-daemons-7.13.2.400-68000784.el9.x86_64.rpm
+-rw-r--r--. 1 root root      20933 Apr 23 06:52 cloudera-manager-server-7.13.2.400-68000784.el9.x86_64.rpm
+-rw-r--r--. 1 root root      20933 Apr 23 06:52 cloudera-manager-server-db-7.13.2.400-68000784.el9.x86_64.rpm
+[root@cldr-mngr x86_64]#
+```
+
+**Step 5.** Run `createrepo` command to create a local repository.
+
+```bash
+[root@cldr-mngr ~]# createrepo --baseurl http://$(hostname -i)/cloudera-repos/cloudera-manager/
+/var/www/html/cloudera-repos/cloudera-manager/
+```
+
+> **Note:** In a web browser please check and verify cloudera manager repository created by entering baseurl `http://13.251.65.11/cloudera-repos/cloudera-manager/`
+
+**Step 6.** Copy `cloudera-manager.repo` file to `/etc/yum.repos.d/` on all nodes to enable it to find the packages that are locally hosted on the admin node.
+
+```bash
+[root@cldr-mngr ~]# cp /var/www/html/cloudera-repos/cloudera-manager/cloudera-manager.repo
+/etc/yum.repos.d/cloudera-manager.repo
+```
+
+**Step 7.** Edit `cloudera-manager.repo` file as per the customer repository location configuration in the step above. Copy the updated repo file to the `ipaserver` node so it can be copied to the rest of servers using ansible.
+
+```ini
+[root@cldr-mngr ~]# vi /etc/yum.repos.d/cloudera-manager.repo
+[cloudera-manager]
+name=Cloudera Manager 7.13.2.0
+baseurl=http://<ip_of_cldr_mngr>/cloudera-repos/cloudera-manager/
+#Update IP of Repo/cldr-mngr server
+gpgcheck=0
+enabled=1
+[root@cldr-mngr ~]# scp -r /etc/yum.repos.d/cloudera-manager.repo root@ipaserver:/etc/yum.repos.d/cloudera-manager.repo
+```
+
+**Step 8.** From the ansible control node copy the repo files to `/etc/yum.repos.d/` of all the nodes of the cluster:
+
+```bash
+[root@ipaserver ~]# ansible all -m copy -a "src=/etc/yum.repos.d/cloudera-manager.repo
+dest=/etc/yum.repos.d/cloudera-manager.repo"
+```
+
+## 2. Set Up the Local Parcels for Cloudera on premises Base 7.3.2
+
+From a host connected the internet, download Cloudera on premises Base 7.3.2 parcels for RHEL9 from the URL:
+
+**Step 1.** Create a directory and Download CDH parcels as shown below:
+
+```bash
+#!/bin/bash
+
+set -e
+
+# ================================
+# CDH Parcels Download Script
+# ================================
+
+# Credentials
+USERNAME="<paywall-username>"
+PASSWORD="<paywall-password>"
+
+# CDH Version & Build
+CDH_VERSION="7.3.2"
+PARCEL_VERSION="7.3.2.0"
+BUILD_NUMBER="73534044"                # must match build ID from Cloudera archive
+
+# Base URL
+BASE_URL="https://${USERNAME}:${PASSWORD}@archive.cloudera.com/p/cdh7/${PARCEL_VERSION}/parcels"
+
+# Local repo directory
+TARGET_DIR="/var/www/html/cloudera-repos/cdh${CDH_VERSION}"
+mkdir -p "${TARGET_DIR}"
+cd "${TARGET_DIR}"
+
+# ================================
+# Download parcels
+# ================================
+echo "Downloading CDH parcels for version ${CDH_VERSION}..."
+
+# CDH parcel + checksums
+wget -q ${BASE_URL}/CDH-${CDH_VERSION}-1.cdh${CDH_VERSION}.p${PARCEL_VERSION##*.}.${BUILD_NUMBER}-el9.parcel
+wget -q ${BASE_URL}/CDH-${CDH_VERSION}-1.cdh${CDH_VERSION}.p${PARCEL_VERSION##*.}.${BUILD_NUMBER}-el9.parcel.sha1
+wget -q ${BASE_URL}/CDH-${CDH_VERSION}-1.cdh${CDH_VERSION}.p${PARCEL_VERSION##*.}.${BUILD_NUMBER}-el9.parcel.sha256
+
+# Key Trustee parcel + checksums
+wget -q ${BASE_URL}/KEYTRUSTEE_SERVER-${PARCEL_VERSION}-1.keytrustee${PARCEL_VERSION}.p0.${BUILD_NUMBER}-el9.parcel
+wget -q ${BASE_URL}/KEYTRUSTEE_SERVER-${PARCEL_VERSION}-1.keytrustee${PARCEL_VERSION}.p0.${BUILD_NUMBER}-el9.parcel.sha
+wget -q ${BASE_URL}/KEYTRUSTEE_SERVER-${PARCEL_VERSION}-1.keytrustee${PARCEL_VERSION}.p0.${BUILD_NUMBER}-el9.parcel.sha1
+wget -q ${BASE_URL}/KEYTRUSTEE_SERVER-${PARCEL_VERSION}-1.keytrustee${PARCEL_VERSION}.p0.${BUILD_NUMBER}-el9.parcel.sha256
+
+# Manifest
+wget -q ${BASE_URL}/manifest.json
+
+# ================================
+# Set permissions
+# ================================
+chmod -R ugo+rX "${TARGET_DIR}"
+
+# ================================
+# Verify downloaded files
+# ================================
+echo "Downloaded parcels:"
+ls -lah "${TARGET_DIR}"
+```
+
+```bash
+[root@cldr-mngr ~]# ll /var/www/html/cloudera-repos/cdh7/7.3.2.0/
+total 8453728
+-rw-r--r--. 1 root root 8656532124 Aug 21 15:12 CDH-7.3.2-1.cdh7.3.2.p0.67986116-el9.parcel
+-rw-r--r--. 1 root root         40 Aug 21 15:12 CDH-7.3.2-1.cdh7.3.2.p0.67986116-el9.parcel.sha1
+-rw-r--r--. 1 root root         64 Aug 21 15:12 CDH-7.3.2-1.cdh7.3.2.p0.67986116-el9.parcel.sha256
+-rw-r--r--. 1 root root      70985 Aug 21 15:12 manifest.json
+
+[root@cldr-mngr ~]#
+```
+
+> **Note:** In a web browser please check and verify cloudera manager repository created by entering baseurl: `http://13.251.65.11/cloudera-repos/cdh7.3.2/` (IP is of Cloudera-Manager)
+
+## 3. Set Up the Local Parcels for CDS 3.3 powered by Apache Spark
+
+> **Note:** This section could be skipped, as Spark3 is now bundled with the Cloudera RunTime parcel itself. (applicable for Spark 3.5 `<`)
+
+**Step 1.** From a host connected the internet, download CDS 3.3 Powered by Apache Spark parcels for RHEL9 from the URL: [https://archive.cloudera.com/p/spark3/3.3.7191000.4/parcels/](https://archive.cloudera.com/p/spark3/3.3.7191000.4/parcels/)
+
+> **Note:** Although Spark 2 and Spark 3 can coexist in the same Cloudera on premises Base cluster, you cannot use multiple Spark 3 versions simultaneously. All clusters managed by the same Cloudera Manager Server must use exactly the same version of CDS 3.3 Powered by Apache Spark.
+
+**Step 2.** Create a directory and download CDS parcels as shown below:
+
+```bash
+#!/bin/bash
+
+set -e
+
+# ================================
+# CDS Parcels Download Script
+# ================================
+
+# ============================
+# Set Variables
+# ============================
+USERNAME="<paywall-username>"
+PASSWORD="<paywall-password>"
+SPARK_VERSION="3.5.7191000.0"
+SPARK_UPSTREAM="3.5.4"
+BUILD_NUMBER="68499982"
+BASE_URL="https://${USERNAME}:${PASSWORD}@archive.cloudera.com/p/spark3/${SPARK_VERSION}/parcels"
+
+# ============================
+# Create Local Repo Directory
+# ============================
+mkdir -p /var/www/html/cloudera-repos/spark3/${SPARK_VERSION}
+cd /var/www/html/cloudera-repos/spark3/${SPARK_VERSION}
+
+# ============================
+# Download Spark3 Parcels and Manifest
+# ============================
+wget "${BASE_URL}/SPARK3-${SPARK_UPSTREAM}.${SPARK_VERSION}-30-1.p0.${BUILD_NUMBER}-el9.parcel"
+wget "${BASE_URL}/SPARK3-${SPARK_UPSTREAM}.${SPARK_VERSION}-30-1.p0.${BUILD_NUMBER}-el9.parcel.sha1"
+wget "${BASE_URL}/manifest.json"
+
+# ============================
+# Set Permissions
+# ============================
+chmod -R ugo+rX /var/www/html/cloudera-repos/spark3/
+
+# ============================
+# Verify
+# ============================
+ls -lh /var/www/html/cloudera-repos/spark3/${SPARK_VERSION}
+```
+
+```bash
+[root@cldr-mngr ~]# ll /var/www/html/cloudera-repos/spark3/3.5.7191000.0/
+total 1999000
+-rw-r--r--. 1 root root 2046842555 Aug 21 15:20 SPARK3-3.5.4.3.5.7191000.0-30-1.p0.68499982-el9.parcel
+-rw-r--r--. 1 root root         41 Aug 21 15:20 SPARK3-3.5.4.3.5.7191000.0-30-1.p0.68499982-el9.parcel.sha1
+-rw-r--r--. 1 root root         64 Aug 21 15:20 SPARK3-3.5.4.3.5.7191000.0-30-1.p0.68499982-el9.parcel.sha256
+-rw-r--r--. 1 root root       8962 Aug 21 15:20 manifest.json
+
+[root@cldr-mngr ~]#
+```
+
+**Step 4.** In a web browser please check and verify cloudera manager repository created by entering baseurl: `http://13.251.65.11/cloudera-repos/spark3`
+
+## Version strings in this section
+
+The commands above are transcribed verbatim from the guide, and the guide is not internally consistent about build numbers and paths. Take the version table on the [CDP 7.3.2 landing page](/installations/cdp-7-3-2) as authoritative and adjust the build IDs to whatever your Cloudera archive actually serves:
+
+| Where | What the guide shows |
+|:--|:--|
+| Cloudera Manager script | `CM_VERSION="7.13.2.0"`, `BUILD_NUMBER="77091850"` |
+| Cloudera Manager repo file and downloaded RPMs | `7.13.2.400`, build `68000784` |
+| CDH parcels script | `BUILD_NUMBER="73534044"` |
+| CDH parcels on disk | `CDH-7.3.2-1.cdh7.3.2.p0.67986116-el9.parcel` |
+| CDH target directory in the script vs. on disk | `.../cloudera-repos/cdh7.3.2` vs. `.../cloudera-repos/cdh7/7.3.2.0/` |
+| Procedure heading vs. the parcels it downloads | "CDS 3.3" vs. `SPARK_VERSION="3.5.7191000.0"` (upstream `3.5.4`) |
+
+The build ID comment in the CDH script says it best: **must match build ID from Cloudera archive.**
+
+## What comes next
+
+With the repositories and parcels hosted locally, the next step is to install the database and the Cloudera Manager Server itself - see [Setup Cloudera Manager Server](/installations/cdp-7-3-2/cdppvc/cm).
