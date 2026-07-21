@@ -1,0 +1,41 @@
+---
+title: Install CDP Data Services using ECS
+topicTitle: CDP Data Services Installation (ECS)
+topicSlug: cdp-7-3-2/ds
+summary: Orientation for the ECS install - the internet versus air-gapped choice, the entitlement needed for the Cloudera archive, and the upstream references the wizard procedure follows.
+prevTitle: Checklist
+prevSlug: /installations/cdp-7-3-2/ds/checklist
+nextTitle: Install ECS Cluster
+nextSlug: /installations/cdp-7-3-2/ds/ecs/installation
+---
+
+## Installing Cloudera on premises Data Services using ECS
+
+Follow the steps here to install Cloudera on premises Data Services with the **Embedded Container Service (ECS)**.
+
+Follow the steps outlined below to add hosts to be part of the Cloudera on premises Data Services cluster and the install ECS (embedded container service) through either internet or air gapped method.
+
+- [https://docs.cloudera.com/cdp-private-cloud-data-services/latest/installation-ecs/topics/cdppvc-installation-ecs-steps.html](https://docs.cloudera.com/cdp-private-cloud-data-services/latest/installation-ecs/topics/cdppvc-installation-ecs-steps.html)
+- [https://docs.cloudera.com/cdp-private-cloud-data-services/1.5.5/index.html](https://docs.cloudera.com/cdp-private-cloud-data-services/1.5.5/index.html)
+
+> **Note:** We will be installing Cloudera on premises Data Services via the internet method.
+
+The wizard offers both install methods on its first page, and the [next page](/installations/cdp-7-3-2/ds/ecs/installation) walks the internet path end to end. The air-gapped steps are transcribed too, marked as skipped, so the mirror procedure is on record for a site that needs it.
+
+> **Note:** For more details on dedicating ECS node for specific workload type please visit: [https://docs.cloudera.com/cdp-private-cloud-data-services/1.5.5/managing-ecs/topics/cm-managing-ecs-dedicating-nodes-for-workloads.html](https://docs.cloudera.com/cdp-private-cloud-data-services/1.5.5/managing-ecs/topics/cm-managing-ecs-dedicating-nodes-for-workloads.html)
+
+That is the subject of [Dedicating ECS Nodes for Specific Workloads (Optional)](/installations/cdp-7-3-2/ds/ecs/specific-workloads) later in this section.
+
+> **Note:** If you do not have entitlements to access [https://archive.cloudera.com/p/cdp-pvc-ds/latest/](https://archive.cloudera.com/p/cdp-pvc-ds/latest/), contact your Cloudera account team to get the necessary entitlements.
+
+The `/p/` path is the paywalled half of the Cloudera archive. Without the entitlement the wizard's default repository returns `401` and no install method works, so settle this before starting.
+
+## Latest ECS supported version of Cloudera Manager
+
+The source closes this page with:
+
+```text
+##### Latest ECS Supported Version Of Cloudera-Manager is 7.11.3 CHF11
+```
+
+> **This contradicts the rest of the guide.** The Cloudera Manager built in [Install Cloudera Manager Server](/installations/cdp-7-3-2/cdppvc/cm/server) is **7.13.2.0**, and the guide's own version table names 7.13.2.0 for this deployment. The `7.11.3 CHF11` line is a leftover from the older lab build that supplied most of the screenshots in the next page - the same build that shows Data Services `1.5.4-h5-b104` where `1.5.5 SP2` is being installed. Take the version table as authoritative and confirm the supported pairing against Cloudera's own support matrix for your Data Services release, rather than downgrading to 7.11.3 on the strength of this line.

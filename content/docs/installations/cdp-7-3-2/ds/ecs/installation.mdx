@@ -1,0 +1,663 @@
+---
+title: Install ECS Cluster
+topicTitle: Install CDP Data Services using ECS
+topicSlug: cdp-7-3-2/ds/ecs
+summary: Steps 1-29 - the Add Private Cloud Containerized Cluster wizard end to end, from the Data Services link in Cloudera Manager through repository selection, host discovery, role assignment, the Docker repository choice, storage and IP ranges, prerequisite checks, the coredns fix during First Run, and the finished Data Services cluster.
+prevTitle: Install CDP Data Services using ECS
+prevSlug: /installations/cdp-7-3-2/ds/ecs
+nextTitle: Additional Steps for ECS Cluster Setup
+nextSlug: /installations/cdp-7-3-2/ds/ecs/additional-steps
+---
+
+Follow the steps in this topic to install Cloudera on premises Data Services with the Embedded Container Service (ECS).
+
+This is the longest single procedure in the guide - one wizard, **29 steps**, running for several hours end to end. Everything on [Embedded Container Service (ECS) Requirements](/installations/cdp-7-3-2/ds/ecs-requirements) and the [Checklist](/installations/cdp-7-3-2/ds/checklist) must already be true of the hosts; the wizard's own **Check Prerequisites** stage enforces the storage, CPU and port items and will not let you past until they pass.
+
+> **Important:** RHEL 7.x support on ECS has been dropped in Cloudera on premises Data Services 1.5.5 and higher versions. If you are running RHEL 7.x, you must upgrade to a higher version before installing Cloudera on premises Data Services.
+
+## Start the wizard
+
+**1.** In the **Cloudera Manager WebUI** console, go to the **Data Services** page by clicking on the **Data Services** link on the Pane located at the Left Hand side of the browser window. Alternatively, you can also click **(+) Add > Add Cluster** at the top right in Cloudera Manager, then select **Private Cloud Containerized Cluster** as the cluster type.
+
+![Cloudera Manager Home page with the left navigation pane expanded and the Data Services link, badged New, outlined in red at the bottom of the pane, beside the PvCBaseCluster1 service list](/images/cdp-7-3-2/ds/ecs/installation/01-cm-home-data-services-link.png)
+
+**2.** The **Add Private Cloud Containerized Cluster** page appears. Click **Continue** on the page.
+
+![Add Private Cloud Containerized Cluster landing page showing the single Private Cloud Containerized Cluster tile marked Selected, with explanatory text about container-native data services and an Other Options link for OpenShift, and Back and Continue buttons](/images/cdp-7-3-2/ds/ecs/installation/02-add-private-cloud-containerized-cluster.png)
+
+> **Note:** Alternatively, you can also click **(+) Add > Add Cluster** at the **top right** in **Cloudera Manager**, then select **Private Cloud Containerized Cluster** as the **cluster type**, then click **Continue**.
+
+![Cloudera Manager Add drop-down menu open, showing the two entries Add Cluster and Add Hosts beside the Switch to Table View button](/images/cdp-7-3-2/ds/ecs/installation/03-add-menu-add-cluster.png)
+
+![Add Cluster - Select Cluster Type page showing two tiles, Private Cloud Base Cluster on the left and Private Cloud Containerized Cluster on the right highlighted and marked Selected](/images/cdp-7-3-2/ds/ecs/installation/04-select-cluster-type.png)
+
+## Step. Getting started
+
+**3.** On the getting started page of the installation wizard, select either **Internet** or **Air Gapped** as the Install Method. *(We are going here with Internet Installation method only)*
+
+**4.** If you select the **Internet Install** Method option on the **Getting Started** page, images are copied over the internet from the Cloudera repository. For this deployment, we will select the **Internet** as the install method. **Select Repository.** (To use a custom repository link provided to you by Cloudera, click **Custom Repository, instructions for this are mentioned in later steps**):
+
+![Getting Started page of the Add Private Cloud Containerized Cluster wizard with the twelve-stage progress rail on the left, Install Method set to Internet, the Select Repository box showing the archive.cloudera.com cdp-pvc-ds latest URL, and the prerequisite and What's new lists below](/images/cdp-7-3-2/ds/ecs/installation/05-getting-started-internet.png)
+
+> **Note:** Verify if the version shown below is the same as the version that we are willing to install i.e. **1.5.5-h5** for current setup.
+
+![Install Method section showing Internet selected and the Select Repository drop-down, with the line You are about to install CDP Private Cloud Data Services version 1.5.4-h5-b104 outlined in red](/images/cdp-7-3-2/ds/ecs/installation/06-install-method-version-check.png)
+
+If not (as shown in below screenshot), then we need to add-up an additional custom URL and configure that to use our specific version.
+
+![Empty repository drop-down beside the Custom Repository button, outlined in red](/images/cdp-7-3-2/ds/ecs/installation/07-custom-repository-button.png)
+
+![Configuration dialog for CDP Private Cloud Repository URLs showing two rows - the archive.cloudera.com cdp-pvc-ds latest URL and a second added URL - with a Reason for change field reading Modified CDP Private Cloud Repository URLs and a Save Changes button](/images/cdp-7-3-2/ds/ecs/installation/08-configuration-repository-urls.png)
+
+Add the additional URL by **(+)** and click on **Save Changes.**
+
+![Install Method set to Internet with the Select Repository box holding an explicit versioned archive URL, and the line You are about to install CDP Private Cloud Data Services version 1.5.4-h4-b27 below it](/images/cdp-7-3-2/ds/ecs/installation/09-select-repository-custom-version.png)
+
+## The air-gapped alternative (skipped here)
+
+**5.** When you select the **Air Gapped** install option, extra steps are displayed. Follow these steps on the *cldr-mngr* node (our bits server), to download and mirror the Cloudera archive URL using a local HTTP server:
+
+**6.** (For installing via a local mirror with an http server. You will need to set up a full mirror of Cloudera's repositories via a temporary HTTP server within the perimeter network of all hosts.): *(Skip this step, as we will choose Internet method in next steps to Install)*
+
+![Getting Started page with Air Gapped selected, showing the four mirror steps - download everything under the archive URL with wget, modify http_url inside manifest.json, mirror the directory to a local http server, and add the local URL to Custom Repository](/images/cdp-7-3-2/ds/ecs/installation/10-getting-started-air-gapped.png)
+
+```bash
+[root@cldr-mngr ~]# mkdir -p /var/www/html/cloudera-repos/cdp-pvc-ds/
+[root@cldr-mngr ~]# cd /var/www/html/cloudera-repos/cdp-pvc-ds/
+
+##### Download everything under https://archive.cloudera.com/p/cdp-pvc-ds/latest/ to your local
+httpserver, e.g. http://your_local_repo/cdp-pvc-ds/latest/ using the below command
+
+[root@cldr-mngr cdp-pvc-ds]# wget -l 0 --recursive --no-parent -e robots=off -nH --cut-dirs=2
+--reject="index.html*" -t 10 https://<username>:<password>@archive.cloudera.com/p/cdp-pvc-ds/latest/
+[root@cldr-mngr cdp-pvc-ds]#
+
+[root@cldr-mngr cdp-pvc-ds]# ls -lt 1.5.5-h2000/
+total 116300
+-rw-r--r-- 1 root root     284820 Mar 15 10:13 manifest.json
+-rw-r--r-- 1 root root 118747085 Mar 15 10:13 cdp-private-1.5.5-h2000-b238.tgz
+drwxr-xr-x 2 root root       4096 Mar 15 10:13 parcels
+drwxr-xr-x 2 root root       4096 Mar 15 10:12 manifests
+drwxr-xr-x 2 root root      32768 Mar 15 10:12 images
+[root@cldr-mngr ~]#
+
+##### Modify the manifest.json file inside the downloaded directory. Change "http_url": "..." to
+"http_url": "http://your_local_repo/cloudera-repos/cdp-pvc-ds/1.5.5-h2000/"
+
+[root@cldr-mngr ~]# vi manifest.json
+"http_url": "http://192.168.1.38/cloudera-repos/cdp-pvc-ds/1.5.5-h2000/"
+[root@cldr-mngr ~]#
+```
+
+**7.** Click **Custom Repository**. Add `http://your_local_repo/cloudera-repos/cdp-pvc-ds/1.5.5-h2000/` as a custom repository. Click on **Save Changes**. *(Skip this step, as we have chosen Internet method steps to Install)*
+
+![Configuration dialog for CDP Private Cloud Repository URLs with a second row holding a local mirror URL on 192.168.1.38, and Cancel and Save Changes buttons](/images/cdp-7-3-2/ds/ecs/installation/11-custom-repository-saved.png)
+
+**8.** Click the **Select Repository** drop-down and select `http://your_local_repo/cloudera-repos/cdp-pvc-ds/1.5.5-h2000/` *(Skip this step, as we will chosen Internet method steps to Install)*
+
+![Getting Started page with Air Gapped selected and the Select Repository drop-down now holding the local mirror URL, with the line You are about to install CDP Private Cloud Data Services version 1.5.4-h2-b25 below it](/images/cdp-7-3-2/ds/ecs/installation/12-getting-started-air-gapped-repo-selected.png)
+
+**9.** Click **Continue**.
+
+## Step. Cluster Basics
+
+**10.** On the **Cluster Basics- Add Private Cloud Containerized Cluster** page, enter the **Cluster Name** for the **Cloudera on premises Data Services (ECS) cluster** that you want to create in the **Cluster Name** field. From the **Base Cluster** drop-down list, select the **Cloudera on premises Base Cluster** (which is created earlier i.e. `PvCBaseCluster1`), that has the storage and SDX services that you want this new Cloudera on premises Data Services instance to connect with. Click **Continue**.
+
+![Cluster Basics page with Cluster Name set to PVCDSECSCluster1, the Private Cloud Containerized Cluster tile below it, Base Cluster set to PvCBaseCluster1 (7.1.9), and an unchecked Use Default Configuration box warning that defaults are not recommended for production](/images/cdp-7-3-2/ds/ecs/installation/13-cluster-basics.png)
+
+> Leave **Use Default Configuration** unchecked. It swaps in the embedded Docker repository, Vault and database with default settings and default role assignments - the source's own caption says it is *not recommended for production*, and it skips most of the pages below.
+
+## Step. Specify Hosts
+
+**11.** On the **Specify Hosts** page, hosts that have already been added to Cloudera Manager are listed on the **Currently Managed Hosts** tab. If the intended ECS nodes are not added previously (in case of a fresh setup) and you can't see them listed under **Currently Managed Hosts** tab, Click on **New Hosts** tab.
+
+> **Note:** To specify the hosts that are part of the cluster, enter Fully Qualified Domain Names (FQDNs)/hostnames or IP addresses in the Hostname field, or provide a list of search patterns/ IP address range of available matching ECS hosts. **Host names must be in lowercase. If you use uppercase letters in any host name, the cluster services will not start after enabling Kerberos.**
+
+> **Note:** You can Provide host pattern `pvcbase-master`, `pvcbase-worker[1-3]` or `pvcbase-worker[1-3].cldrsetup.local` etc separated with a new line and Click on **Search**. Cloudera Manager will "discover" the hosts based on matching the pattern provided by you to add in the cluster. Verify that all desired nodes have been found and **selected for installation**. Verify host entries, **deselect** any that you do not want to install services on. Select and/or deselect one or more of these hosts to add to the ECS cluster and click **Continue**.
+
+```text
+pvcecs-master.cldrsetup.local
+pvcecs-worker[1-10].cldrsetup.local
+```
+
+> **Note:** Click the pattern link under the Hostname box to display more information about allowed **FQDN** patterns.
+
+![Specify Hosts page on the New Hosts tab with 11 hosts selected, the Hostname box holding the master and worker patterns, SSH Port 22, and a results table listing pvcecs-master and pvcecs-worker1 through worker10 with their IP addresses and the result Host was successfully scanned](/images/cdp-7-3-2/ds/ecs/installation/14-specify-hosts.png)
+
+## Step. Select JDK
+
+**12.** On the **Select JDK** page, select any one from the below options:
+
+- **Manually manage JDK** *(Select this option)* (manual installation of JDK11/17 with CDH 7.3.2+).
+- Install a Cloudera-provided version of OpenJDK
+- Install a system-provided version of OpenJDK
+
+![Select JDK page showing the supported JDK table by CDH version - 7.1.9 and above supporting OpenJDK 8, 11, 17 - with the Manually manage JDK radio button outlined in red and a note that a supported JDK must already be installed on all hosts](/images/cdp-7-3-2/ds/ecs/installation/15-select-jdk.png)
+
+## Step. Enter Login Credentials
+
+**13.** On the **Enter Login Credentials** page, 'All hosts accept the same password' is selected by default. Enter the user name in the SSH Username box, and type in and confirm the password. You can also select the **All hosts accept the same private key** option and provide the Private Key generated in previous steps and passphrase (If applicable).
+
+Enter the values for the parameters as shown below. (**We will be using the private key approach**, you can use password option as well, both options should considerably work)
+
+| Component | Value |
+|:--|:--|
+| Enable TLS for | All existing and future clusters |
+| SSH username | *root* |
+| Authentication method | *All hosts accept same private key* / All hosts accept same password |
+| **Private Key (If using Key approach)** | Choose the private key created and downloaded in earlier section |
+| Password (If using Password approach) | Enter VM's root users' password |
+| Confirm Password | Enter VM's root users' password (again) |
+
+![Enter Login Credentials page with SSH Username root, Authentication Method set to All hosts accept same password, filled Password and Confirm Password boxes, SSH Port 22 and Simultaneous Installations 10](/images/cdp-7-3-2/ds/ecs/installation/16-login-credentials-password.png)
+
+**a.** Screenshot for using the Password based authentication method.
+
+![Enter Login Credentials page with SSH Username root, Authentication Method set to All hosts accept same private key, a Choose File control showing id_rsa, empty Passphrase and Confirm Passphrase boxes, SSH Port 22 and Simultaneous Installations 10](/images/cdp-7-3-2/ds/ecs/installation/17-login-credentials-private-key.png)
+
+**b.** Screenshot for using the Private Key based authentication method.
+
+## Step. Install Agents
+
+**14.** The **Install Agents** page appears and displays a progress indicator showing the agent packages getting installed. Click on **Continue** after successful agent installation on hosts to be added in Cloudera Manager.
+
+![Install Agents page with Installation in progress, a blue progress bar and a table of eleven hosts each showing Installing cloudera-manager-agent package or Pending](/images/cdp-7-3-2/ds/ecs/installation/18-install-agents-in-progress.png)
+
+![Install Agents page reading Installation completed successfully with a green progress bar and all 11 of 11 hosts reporting Installation completed successfully](/images/cdp-7-3-2/ds/ecs/installation/19-install-agents-complete.png)
+
+## Step. Assign Roles
+
+**15.** Next on the **Assign Roles** page, ensure that the roles assignment for your new **Cloudera on premises Containerized cluster** is as follows. You can customize the role assignment for your cluster. But, Cloudera does not recommend altering assignments unless you have specific requirements such as having selected a specific host for a specific role.
+
+> **Note:** Single node ECS installation is supported, but is only intended to enable CDSW to CAI migration. If you are installing ECS on a single node, only the Docker and ECS Server roles are assigned. The ECS Agent role is not required for single node installation.
+
+> **Note:** With 1 mgmt node and 12 worker node for CDP Data Services ECS cluster we select host role assignment as:
+
+| Role | ECS Host |
+|:--|:--|
+| Docker Server | All ECS Hosts (i.e., ECS master and worker nodes) `pvcecs-master`, `pvcecs-worker[1-11]` |
+| ECS Server | ECS Master Nodes only (`pvcecs-master`) |
+| ECS Agent | ECS Worker Nodes only (`pvcecs-worker[1-11]`) |
+
+![Assign Roles page showing the DOCKER group with Docker Server x 11 New across pvcecs-master and pvcecs-worker1-10, and the ECS group with Ecs Server x 1 New on pvcecs-master and Ecs Agent x 10 New on pvcecs-worker1-10](/images/cdp-7-3-2/ds/ecs/installation/20-assign-roles.png)
+
+> **The counts do not agree with each other.** The note above the table says *1 mgmt node and 12 worker node*, the table itself says `pvcecs-worker[1-11]` (eleven workers), and the wizard capture shows **11 hosts total** - one master and `pvcecs-worker[1-10]`, which is what [Specify Hosts](#step-specify-hosts) actually searched for. Take the host list you entered at Step 11 as the real one; the note and the table are carried over from a differently-sized lab.
+
+**16.** Click **Continue**.
+
+## Step. Configure Docker Repository
+
+**17.** On the **Configure Docker Repository** page, select **Cloudera default Docker Repository** or ( **Use an Embedded Docker Repository** option. Then select Default in the below section. There are several options for configuring a Docker Repository. For more information about these options, see Docker repository access. )
+
+The following ports must be opened and allowed no matter which Docker repository option you choose.
+
+- Ports required for Cloudera Manager/Cloudera Manager agent (port 5000 is required for CAI):
+
+| Protocol | Port |
+|:--|:--|
+| TCP | 7180-7192 |
+| TCP | 19001 |
+| TCP | 5000 |
+| TCP | 9000 |
+
+- Inbound rules for ECS Server nodes (Kubernetes/RKE2):
+
+| Protocol | Port |
+|:--|:--|
+| TCP | 9345 |
+| TCP | 6443 |
+| UDP | 8472 |
+| TCP | 10250 |
+| TCP | 2379 |
+| TCP | 2380 |
+| TCP | 30000-32767 |
+
+- Inbound Rules for the ECS Agent (Kubernetes/RKE2):
+
+| Protocol | Port |
+|:--|:--|
+| UDP | 4789 |
+
+### Embedded Docker Repository
+
+Proceed with default selection to deploy all of the default Docker images to the repository, or select **Select the Optional Images** to choose which images to deploy. If you will be deploying Cloudera AI (CAI) a.k.a. Cloudera Machine Learning (CAI), toggle the **Cloudera Machine Learning** switch on to copy the images for CAI.
+
+![Configure Docker Repository page with Use an embedded Docker Repository selected, Select the Optional Images chosen, the Cloudera Machine Learning toggle switched on, and a note that the system will deploy 301 container images, approximately 173 GiB, to the embedded Docker repository](/images/cdp-7-3-2/ds/ecs/installation/21-docker-repository-embedded.png)
+
+**a.** Screenshot for Use an embedded Docker Repository Option
+
+### Cloudera default Docker Repository *(We will setup this way)*
+
+This option requires that cluster hosts have access to the internet and you have selected Internet as the install method.
+
+![Configure Docker Repository page with Use Cloudera's default Docker Repository selected and no further options shown](/images/cdp-7-3-2/ds/ecs/installation/22-docker-repository-cloudera-default.png)
+
+**b.** Screenshot for Use Cloudera's Docker Repository Option
+
+### Custom Docker Repository
+
+This option requires that you set up a Docker Repository in your environment and that all cluster hosts have connectivity to the repository.
+
+> **Note:** If you are installing ECS on a single node, you should select the Use a Custom Docker Repository option. Single node ECS installation is supported, but is only intended to enable CDSW to CAI migration.
+
+![Configure Docker Repository page with Use a custom Docker Repository selected, an empty Custom Docker Repository box, instructions for generating and running the copy-docker script, a confirmation checkbox, and Docker Username, Docker Password and Docker Certificate fields](/images/cdp-7-3-2/ds/ecs/installation/23-docker-repository-custom.png)
+
+**c.** Screenshot for Use Cloudera's Docker Repository Option
+
+You must enter the following options:
+
+| Option | Value |
+|:--|:--|
+| Custom Docker Repository: | Enter the URL for your Docker Repository |
+| Docker Username: | Enter the username for the Docker Repository |
+| Docker Password: | Enter the password for the Docker Repository |
+
+> **Important:** Do not use the `$` character for this password.
+
+**Docker Certificate** - Click the **Choose File** button to upload a TLS certificate to secure communications with the Docker Repository.
+
+Click the **Generate the copy-docker script** button to generate and download a script that copies the Docker images from Cloudera, or (for air-gapped installation) from a local http mirror in your network.
+
+Run the script from a machine that is running Docker locally and has access to the Docker images using the following commands:
+
+```bash
+docker login [***URL for Docker Repository***] -u [***username of user with write access***]
+bash copy-docker.txt
+```
+
+The copying operation may take 4 - 5 hours.
+
+> **Note:** Embedded Repository can be a single point of failure. If the node that runs the Docker Repository fails or becomes unavailable, some cluster functionalities might become unavailable. Moving the Docker Repository to another node is a complex process and will require engaging Cloudera Professional Services.
+
+> **Note:** Cloudera Repository option is best suited for proof-of-concept, non-production deployments or deployments that do not have security requirements that disallow internet access. This option requires that cluster hosts have access to the internet, and an installation method selected as Internet.
+
+## Step. Configure Data Services
+
+**18.** On the **Configure Data Services** page, modify configuration as appropriate and modify the storage related parameters. Edit Application domain to match "app.example.com". For example in this solution we configure AD Domain Services with "CLDRSETUP.LOCAL" as domain name. Created a wildcard entry `*.apps.cldrsetup.local`. Click **Continue**.
+
+| Role | ECS Host |
+|:--|:--|
+| Data Storage Directory: | `/docker` |
+| ECS (Service Wide): | `/lhdata` |
+| Application Domain: | `cldrsetup.local` |
+| Local Path Storage Directory: | `/cdwdata` |
+
+These are the three partitions cut on every ECS host back in the [ECS requirements](/installations/cdp-7-3-2/ds/ecs-requirements) - `/docker` for the Docker cache, `/lhdata` for Longhorn volume storage and `/cdwdata` for local path storage and CDW.
+
+On the **Configure Data Services** page, you can modify configuration settings such as the data storage directory, number of replicas, and so on. If you want to specify a custom certificate, place the certificate and the private key in a specific location on the Cloudera Manager server host and specify the paths in the input boxes labeled as Ingress Controller TLS/SSL Server Certificate/Private Key File below. This certificate will be copied to the Control Plane during the installation process.
+
+> **Note:** The "Ingress Controller TLS/SSL Server Certificate File (PEM Format)" must only contain `-----BEGIN CERTIFICATE-----` through `-----END CERTIFICATE-----` (inclusive) for the server and CA certs. It cannot include any preamble text and, and must not include a private key.
+>
+> The "Ingress Controller TLS/SSL Server Private Key File (PEM Format)" must only contain the unencrypted key, and only the header through the footer, with no preamble text.
+>
+> Both of these files must be readable by the "cloudera-scm" account.
+
+For information on the required entries that must be present in DNS and TLS certificates when not using wildcards, refer to 'No Wildcard DNS/TLS Setup'
+
+![Configure Data Services page showing Data Storage Directory with DOCKER Service-Wide set to /docker and ECS Service-Wide set to /lhdata, Application Domain set to cdppvcds.com, Local Path Storage Directory /cdwdata, Number of replicas target_redundancy 2, Use internal alias for registry unchecked and Cluster Signing Duration 365](/images/cdp-7-3-2/ds/ecs/installation/24-configure-data-services.png)
+
+> **Note:** Please review the range of cluster IP and service IP as part of the ECS installation. It might conflict existing network configuration. Please adjust the range of IPs to be configured. Consult with the network team to avoid potential conflict.
+
+![Cluster IP Range set to 10.42.0.0/16 and Service IP Range set to 10.43.0.0/16, described as the IPv4/IPv6 network CIDRs to use for pod IPs and service IPs](/images/cdp-7-3-2/ds/ecs/installation/25-cluster-and-service-ip-range.png)
+
+**19.** Click **Continue**.
+
+## Step. Configure Databases
+
+**20.** On the **Configure Databases** page, edit size for the **Embedded Database Disk Space**. Click **Continue**.
+
+![Configure Databases page explaining that the CDP Private Cloud Control Plane uses an embedded database, with Embedded Database Disk Space (GiB) set to 200](/images/cdp-7-3-2/ds/ecs/installation/26-configure-databases.png)
+
+## Step. Install Parcels
+
+**21.** On the **Install Parcels** page, the selected parcel is downloaded to the Cloudera Manager server host, distributed, unpacked, and activated on the ECS cluster hosts. Click **Continue**.
+
+![Install Parcels page showing the Embedded Container Service parcel Downloaded 100%, Distributed 11/11, Unpacked 11/11 and Activated 11/11, with a per-host table of throughput and no errors](/images/cdp-7-3-2/ds/ecs/installation/27-install-parcels.png)
+
+## Step. Check Prerequisites
+
+**22.** If the hosts do not meet the prerequisites, the **Check Prerequisites** page displays the applicable issues. Correct the issues, then click **Run Again**. After all of the issues have been resolved, click **Continue**. Prerequisites checks are included in the new ECS release version 1.5.5.
+
+![Two red error rows - a minimum of 16 cores is required for the hosts in a Private Cloud Containerized Cluster, and a minimum of 300 GiB of storage is required in the /var/lib directory and 300 GiB in the /ecs/docker directory, with /var/lib/longhorn not permitted to be a symbolic link](/images/cdp-7-3-2/ds/ecs/installation/28-check-prerequisites-errors.png)
+
+The following prerequisites are checked:
+
+| Host Prerequisite Inspection | Validation |
+|:--|:--|
+| StorageInspection: | Checks for a minimum of 300GiB space in the `/var/lib` and docker data directories. Checks if `/var/lib/longhorn` or its parent directories are symlinked. If they are, this inspection will fail. |
+| CPUInspection: | Checks to make sure the hosts have 16 virtual cores. |
+| PortsInspection: | Checks for the availability of ports 443 and 80. |
+| EcsHostDnsInspection: | Checks to make sure there are less than 3 nameserver entries in the `/etc/resolv.conf` file, and checks the connections to the Cloudera Manager cluster and the CDP console. It also checks to see if `vault.localhost.localdomain`'s ping can be resolved. If not, it is likely that the host `/etc/nsswitch.conf` file is misconfigured. If this inspection fails: check the `/etc/resolv.conf` and `/etc/nsswitch.conf` files and ensure that `/etc/resolv.conf` does not contain 3 or more nameservers, and that `/etc/nsswitch.conf` does not contain `myhostname` under the hosts field; check to see if the connections were resolved correctly - if connection to the CDP console fails, check to see if your DNS wildcard is configured properly. |
+| VersionInspection: | Checks that Java is installed and consistent among all ECS hosts. |
+| IPTablesInspection: | Checks that if the `iptables` command exists, rules are cleared. If the `iptables` command does not exist, iptables gets installed during FirstRun so this inspection passes. If iptables are installed and the rules are not cleared, this inspection will fail. |
+| EcsCleanUpHostInspection: | Checks to make sure that the `/var/lib/rancher` and docker data directories do not contain any files. |
+
+![Check Prerequisites page with a red Host Prerequisites banner reading Error(s) were detected, Status Finished, a Run Again button, and one error row about the 16-core minimum, with the Continue button greyed out](/images/cdp-7-3-2/ds/ecs/installation/29-check-prerequisites-failed.png)
+
+> **Note:** If the prerequisite check fails due to any reason or you need to skip this step, try the workaround by right-clicking on the screen, select **Inspect**, go to the **Console** tab, and run the below command:
+
+```javascript
+document.querySelector('.btn.next').removeAttribute('disabled');
+```
+
+This will enable the **Continue** button.
+
+> **This workaround defeats an enforcing check.** The storage, CPU and DNS inspections exist because ECS fails later - and less legibly - when they are not met. Use it only when you know the specific inspection is wrong about your hosts, not to move past a genuine shortfall.
+
+![Check Prerequisites page with a green Host Prerequisites banner reading No issues were detected, Status Finished, and the Continue button enabled](/images/cdp-7-3-2/ds/ecs/installation/30-check-prerequisites-passed.png)
+
+## Step. Inspect Cluster
+
+**23.** On the **Inspect Cluster** page, you can **Inspect your Network Performance and Hosts**. Click on the **Show Inspector Results**. If the inspect tool displays any issues, you can fix those issues and click on **Run Again** to rerun the inspect tool. After all of the issues have been resolved, click on **Continue**.
+
+> **Note:** These inspections are more comprehensive host and network tests that you can **optionally run**. To **skip these tests**, select the **I understand the risks of not running the inspections or the detected issues, let me continue with cluster setup** checkbox.
+
+> **Note:** Safe to ignore unrelated errors in the host inspector result. For example, the hosts in a Cloudera on premises Containerized Cluster that have GPUs are required to have NVidia Drivers and NVidia-container-runtime installed. The following hosts do not satisfy this requirement: `pvcecs-worker[1-12].cldrsetup.local`
+>
+> Since all hosts part of the ECS installation might not have NVIDIA GPU installed and NVidia driver and NVidia container-runtime is not installed on non-GPU node(s). It is safe to ignore the warning and click on the checkbox to continue with ECS installation.
+
+![Inspect Cluster page showing a red Host Inspector section with two warnings - Hue requiring Python 2.7 and the nVidia driver requirement - above a green Network Performance Inspections section reporting a latency test of 0.09ms minimum, 0.13ms average and 0.17ms maximum, with the risks checkbox ticked](/images/cdp-7-3-2/ds/ecs/installation/31-inspect-cluster.png)
+
+## Step. Install Data Services
+
+![First Run command tree with Run a set of services for the first time expanded, showing Start DOCKER completed in 43.92s and Start ECS running, and beneath it fifteen parallel steps including Kubectl command, Setup Storage, Install Control Plane, Setup infrastructure monitoring, Initialize embedded Vault, Setup ECS Web UI and Install Nvidia device plugin for GPU support](/images/cdp-7-3-2/ds/ecs/installation/32-install-data-services-steps.png)
+
+**24.** While the other steps for installing data services cluster (ECS) is running, login to the `pvcecs-master` node and create kubeconfig file by copying the `rke2.yaml` file on ecs master node, in order to be able to run the `kubectl` commands from master node:
+
+```bash
+##### Install K9s for troubleshooting purpose
+[root@pvcecs-master ~]# dnf install wget -y
+[root@pvcecs-master ~]# rm -rvf ~/.kube && mkdir -p ~/.kube && cp /etc/rancher/rke2/rke2.yaml
+~/.kube/config
+[root@pvcecs-master ~]# wget
+https://github.com/derailed/k9s/releases/latest/download/k9s_Linux_amd64.tar.gz
+[root@pvcecs-master ~]# tar -xzf k9s_Linux_amd64.tar.gz
+[root@pvcecs-master ~]# sudo mv k9s /usr/bin/
+[root@pvcecs-master ~]# k9s version
+
+##### The kubectl binary path may vary, do whereis kubectl or use find or locate commands to find the
+exact path of the kubectl binary on the node.
+[root@pvcecs-master ~]# export PATH=/var/lib/rancher/rke2/data/v1.30.12-rke2r1-328c510931ca/bin/:$PATH
+[root@pvcecs-master ~]# kubectl get pods
+No resources found in the default namespace.
+[root@pvcecs-master ~]# kubectl get all
+NAME                  TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+service/kubernetes    ClusterIP   10.43.0.1    <none>        443/TCP   13h
+[root@pvcecs-master ~]#
+
+##### Create alias on node, to run the kubectl command
+[root@pvcecs-master ~]# echo "export
+PATH=/var/lib/rancher/rke2/data/v1.30.12-rke2r1-328c510931ca/bin/:$PATH" >> ~/.bashrc && source ~/.bashrc
+[root@pvcecs-master ~]# echo "alias k=kubectl" >> ~/.bashrc && source ~/.bashrc
+#### You can copy the config file and set the above ~/.bashrc paths on any of ECS nodes to run kubectl
+commands from there.
+[root@pvcecs-master ~]#
+```
+
+> **Note:** Run `# kubectl get pods -A` to review all pods and their status as either running or completed.
+
+**25.** After the **RKE2 installation step is completed**, keep the remaining steps running but immediately log in to *pvcecs-master* node and **update the config for coredns to point to private DNS** (ipaserver or AD server). The coredns config should look like similar to below one:
+
+```bash
+##### Test the nslookup and dig from ubuntu image if it is able to resolve the IP from Private DNS
+[root@pvcecs-master ~]# kubectl run -it ubuntu1 --image=ubuntu bash
+
+##### If not able to resolve the IP from Private DNS, we need to point coredns to PrivateDNS/ FreeIPA server
+[root@pvcecs-master ~]# kubectl get configmap -n kube-system | grep coredns
+
+[root@pvcecs-master ~]# kubectl edit configmap rke2-coredns-rke2-coredns -n kube-system
+```
+
+```yaml
+# Please edit the object below. Lines beginning with a '#' will be ignored,
+# and an empty file will abort the edit. If an error occurs while saving this file will be
+# reopened with the relevant failures.
+#
+apiVersion: v1
+data:
+  Corefile: |
+    .:53 {
+        errors
+        health {
+             lameduck 5s
+        }
+        ready
+        kubernetes cluster.local cluster.local in-addr.arpa ip6.arpa {
+             pods insecure
+             fallthrough in-addr.arpa ip6.arpa
+             ttl 30
+        }
+        prometheus :9153
+        forward . 172.31.24.240 {
+             max_concurrent 1000
+        }
+        cache 30
+        loop
+        reload
+        loadbalance
+    }
+kind: ConfigMap
+metadata:
+  annotations:
+    meta.helm.sh/release-name: rke2-coredns
+    meta.helm.sh/release-namespace: kube-system
+  creationTimestamp: "2024-05-17T07:12:19Z"
+  labels:
+    app.kubernetes.io/instance: rke2-coredns
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: rke2-coredns
+    helm.sh/chart: rke2-coredns-1.24.006
+    k8s-app: kube-dns
+    kubernetes.io/cluster-service: "true"
+    kubernetes.io/name: CoreDNS
+  name: rke2-coredns-rke2-coredns
+  namespace: kube-system
+  resourceVersion: "39715"
+  uid: dcb8f600-e107-4c1b-9db7-701060fe063a
+```
+
+The line that matters is `forward . 172.31.24.240` - the address of your FreeIPA or AD DNS server, replacing the default upstream resolver.
+
+```bash
+[root@pvcecs-master ~]# kubectl rollout restart deployment rke2-coredns-rke2-coredns -n kube-system
+
+##### Verify the status that deployment of coredns is updated with configmap changes
+[root@pvcecs-master ~]# kubectl get pod -A |grep dns
+
+##### Test the nslookup and dig from ubuntu image if it is actually able to resolve the IP from Private DNS
+[root@pvcecs-master ~]# kubectl run -it ubuntu1 --image=ubuntu bash
+root@ubuntu2:/# apt-get update && apt-get install net-tools dnsutils -y
+
+root@ubuntu2:/# nslookup console-cdp.apps.cldrsetup.local
+```
+
+> This is a **timed** step, not an optional one. It has to land after RKE2 comes up and before the Control Plane tries to reach `console-cdp.apps.<domain>`; miss the window and the environment creation fails with the name-resolution error described in Step 27.
+
+**26.** **Install Data Services** step will run a set of first run commands and report status on Data Services installation. The installation progress is displayed on the **Install Data Services** page. This step will take **nearly an hour to complete**. When the installation is complete, click **Continue**.
+
+> **Note:** Installing Data Services can take several hours. The copying operation for Docker repository may take 4 - 5 hours.
+
+![Install Data Services page showing First Run Command Status Finished in 17.8m, with Start DOCKER completing in 47.21s and Start ECS in 17m, and the message Finished First Run of the following services successfully: DOCKER, ECS](/images/cdp-7-3-2/ds/ecs/installation/33-install-data-services-finished.png)
+
+## Troubleshooting during installation
+
+**27.** If you still face any issue while making the services up or during the installation or start of any ECS services please refer to troubleshooting PvC Data Services Cluster part at the end of this document. Though, some of the major issues during installation, their cause and their resolution is listed as below:
+
+### Name resolution not working inside pod
+
+```text
+Name resolution not working inside pod for console-cdp leading cli pod to fail and env not getting created
+Cluster name CM url not able to connect from ECS cluster
+Solution:
+Update coredns pod by edit and redeploy and mention private dns server ip in config
+make sure wildcard dns is set up properly.
+```
+
+After issue is fixed and env get created for ECS: it will show like below:
+
+```text
+Fri May 17 01:23:55 AM PDT 2024
+Running on: pvcecs-master.cldrsetup.local (172.31.30.239)
+Fetching session token...
+Creating environment cldrsetup
+secret "cm.args" deleted
+secret/cm.args created
+job.batch "cli" deleted
+job.batch/cli created
+job.batch/cli condition met
+/opt/app-root/lib64/python3.9/site-packages/urllib3/connectionpool.py:1103: InsecureRequestWarning:
+Unverified HTTPS request is being made to host 'console-cdp.apps.cldrsetup.local'. Adding certificate
+verification is strongly advised. See:
+https://urllib3.readthedocs.io/en/latest/advanced-usage.html#tls-warnings
+  warnings.warn(
+{
+    "environment": {
+        "environmentName": "cldrsetup",
+        "crn":
+"crn:altus:environments:us-west-1:d750ff5a-791d-46c8-a95a-f1efaf6185ef:environment:cldrsetup/ad47b514-a135-47
+dc-a8dd-8d11f33145f7",
+        "cloudPlatform": "standard"
+    }
+}
+Waiting for environment cldrsetup to be available
+The http response code is 200
+...
+Environment was successfully created
+```
+
+### Failed to reconcile with temporary etcd
+
+```text
+Solution:
+bootstrap data already found and encrypted with different token rke error
+rm -vf /var/lib/rancher/k3s/server/node-token
+```
+
+### Update k8s cordons and rollout
+
+Solution: [https://www.reddit.com/r/k3s/comments/p3rdap/lost_bootstrap_data_already_found_and_encrypted/](https://www.reddit.com/r/k3s/comments/p3rdap/lost_bootstrap_data_already_found_and_encrypted/)
+
+```bash
+[root@pvcecs-master bin]# rm -vf /var/lib/rancher/k3s/server/node-token
+rm -rvf /var/lib/rancher/ /etc/rancher
+```
+
+### X509 error
+
+```text
+Solution:
+do cleanup for ECS properly
+```
+
+The full teardown is on [Cluster Cleanup](/installations/cdp-7-3-2/cleanup).
+
+### Unable to connect 6443
+
+```bash
+mkdir -p ~/.kube && cp /etc/rancher/rke2/rke2.yaml ~/.kube/config
+```
+
+### Aws_key_id error in cde cluster creation
+
+```text
+Error Logs:
+Moving from CadenceInstallCompleted to ClusterChartInstallationFailed
+{"StartState":"CadenceInstallCompleted","EndState":"ClusterChartInstallationFailed","Attempt":3}
+Chart installation failed, dex base overrides: unable to retrieve aws_key_id from the env service
+Error fetching fluent log config: unable to retrieve aws_key_id from the env service
+Generating Webhook cert and key
+Setting up TGT generator
+Installing dex-base charts for CDE 1.24.0
+{"StartState":"CadenceInstallCompleted","EndState":"ClusterChartInstallationFailed","Attempt":2}
+Chart installation failed, dex base overrides: unable to retrieve aws_key_id from the env service
+Error fetching fluent log config: unable to retrieve aws_key_id from the env service
+
+Cause:
+Configure ozone with other base cluster services before env creation
+Solution:
+Install ozone on base cluster, restart base cluster services after applying the stale configurations and
+recreate the ECS environment.
+```
+
+Reference: [https://community.cloudera.com/t5/Support-Questions/Unable-to-create-Data-Engineering-Cluster-in-CDP-Private/m-p/377969](https://community.cloudera.com/t5/Support-Questions/Unable-to-create-Data-Engineering-Cluster-in-CDP-Private/m-p/377969)
+
+> **Note:** Ozone is a necessary service if you want to install CDE. This error typically occurs when required services like Ozone are not present in the base cluster at the time of CDE environment creation. In such cases, the `cdp-services` namespace remains empty and lacks critical components like the `s3proxy`, which is essential for Fluent Bit to forward logs to Ozone. The `s3proxy` deployment is triggered automatically during the environment creation process and cannot be manually deployed via Helm or other means. Therefore, if Ozone is added after the environment has already been created, the only solution is to delete and recreate the entire Data Services installation. This ensures that the `s3proxy` is properly deployed, allowing the environment to function correctly and resolving the AWS credential-related error during CDE Virtual Cluster setup.
+
+**This one is not recoverable in place.** If CDE is on the roadmap, Ozone must be on the Base cluster *before* the ECS environment is created - which is a decision that belongs back at [Data Lake Creation](/installations/cdp-7-3-2/cdppvc/base/data-lake), not here.
+
+Other: [https://repost.aws/knowledge-center/create-lv-on-ebs-partition](https://repost.aws/knowledge-center/create-lv-on-ebs-partition)
+
+### UNRESOLVED: CDE Error
+
+The guide records this one as still open, without a fix:
+
+```text
+[root@pvcecs-master ~]# k get po -A|grep dex | grep -v -E 'Run|Comp'
+dex-base-j95kjx9f                         cdp-cde-embedded-db-0
+0/1     Pending                  0                8m54s
+dex-base-j95kjx9f                         dex-base-data-connectors-746fdcddc8-jvbsx
+0/1     CrashLoopBackOff         6 (3m22s ago)    8m54s
+dex-base-j95kjx9f                         dex-base-management-api-6c5d48fd96-dgrnt
+0/1     CrashLoopBackOff         6 (2m21s ago)    8m54s
+
+[root@pvcecs-master ~]# kubectl logs -n dex-base-j95kjx9f dex-base-data-connectors-746fdcddc8-jvbsx
+Defaulted container "data-connectors" out of: data-connectors, k8tz (init)
+{"level":"INFO","timestamp":"2024-05-27T01:37:23.834-0700","caller":"cmd/data-connectors.go:92","message":
+"Configuration file used: /etc/dc/data-connectors.yaml"}
+{"level":"INFO","timestamp":"2024-05-27T01:37:23.834-0700","caller":"cmd/start.go:112","message":"Data
+store init","store type":"sql"}
+
+2024/05/27 01:37:23
+/grid/0/jenkins/workspace/workspace/App_builds/SOURCES/data-connectors/pkg/store/sqlstore/utils.go:79
+[error] failed to initialize database, got error dial tcp 10.43.139.205:3306: connect: connection refused
+{"level":"FATAL","timestamp":"2024-05-27T01:37:23.840-0700","caller":"cmd/start.go:115","message":"store
+initialisation failure","error":"dcObject persistent store init failure: DB session creation error: error
+creating DB session for 'mysql', error: dial tcp 10.43.139.205:3306: connect: connection refused"}
+
+[root@pvcecs-master ~]# kubectl logs -n dex-base-j95kjx9f dex-base-management-api-6c5d48fd96-dgrnt
+Defaulted container "dex-base-management-api" out of: dex-base-management-api, k8tz (init)
+No Envoy proxy, skip waiting for its readiness
+Skip fetching DB certificates
+Running main binary: /dex/bin/runtime-management-server
+2024/05/27 01:38:24 INFO config.go:61 Loaded config from: /etc/dex/conf/dex.yaml
+2024/05/27 01:38:24 INFO db.go:204 Opening database connection, driver: mysql
+2024/05/27 01:38:24 FATAL db.go:226 dbConn.BeginTx failed: dial tcp 10.43.139.205:3306: connect:
+connection refused
+
+[root@pvcecs-master ~]# kubectl logs -n dex-base-j95kjx9f cdp-cde-embedded-db-0
+Defaulted container "cdp-cde-embedded-db" out of: cdp-cde-embedded-db, k8tz (init)
+[root@pvcecs-master ~]#
+```
+
+The stack trace in the source's `data-connectors` log is reproduced above with its Go frames elided; every frame points at the same failure, a refused connection to the CDE embedded database on port `3306`, whose pod (`cdp-cde-embedded-db-0`) is itself `Pending` and logging nothing.
+
+## Step. Summary
+
+**28.** When the installation is complete, the **Summary page** appears. Click **Launch Cloudera on premises**.
+
+![Summary page reading Congratulations, you have successfully installed CDP Private Cloud Management Console, with a Launch CDP Private Cloud button, a note that the default login is admin/admin, and a Finish button](/images/cdp-7-3-2/ds/ecs/installation/34-summary.png)
+
+**29.** Alternatively, you can also click **Finish** and then **access the Private Cloud Data Services** instance from **Cloudera Manager**. Click **Data Services**, then click **Open Private Cloud Data Services** for the applicable Data Services cluster.
+
+![Cloudera Manager Home showing two healthy clusters - the Cloudera Runtime 7.1.9 Base cluster with its full service list and cluster CPU, disk IO and network IO charts, and DataServicesCluster1 running ECS with 11 hosts, DOCKER and ECS all green](/images/cdp-7-3-2/ds/ecs/installation/35-cloudera-manager-home-with-data-services.png)
+
+Both clusters are now managed from the one Cloudera Manager. [Additional Steps for ECS Cluster Setup](/installations/cdp-7-3-2/ds/ecs/additional-steps) picks up from here.
+
+## Version strings in this section
+
+Almost every capture on this page is recycled from an older lab build, so what the screenshots display disagrees with what this deployment installs. Prose and the guide's version table win.
+
+| Item | What the captures show | What this deployment installs |
+|:--|:--|:--|
+| Cloudera Manager | `7.11.3` in the sidebar footer of every wizard capture | `7.13.2.0` |
+| Data Services | `1.5.4-h5-b104`, `1.5.4-h4-b27`, `1.5.4-h2-b25` on the Getting Started captures; parcel `Embedded Container Service 1.5.4` on Install Parcels | `1.5.5 SP2` (`1.5.5-h2000-b238`, as in the air-gapped `ls -lt` output) |
+| Base cluster runtime | `PvCBaseCluster1 (7.1.9)` on Cluster Basics; `Cloudera Runtime 7.1.9 (Parcels)` on the final Home page | `7.3.2.0` |
+| Host domain | `pvcecs-master.cdppvcds.com`, `pvcecs-worker[1-10].cdppvcds.com` on Specify Hosts, Install Agents, Assign Roles and Install Parcels; `tina-rhel89-[1-3].vpc.cloudera.com` on Inspect Cluster; `172.31.x.x` addresses | `pvcecs-master.cldrsetup.local`, `pvcecs-worker[1-10].cldrsetup.local` |
+| Application Domain | `cdppvcds.com` in the Configure Data Services capture | `cldrsetup.local`, with the wildcard `*.apps.cldrsetup.local` |
+| Wizard identity | The private-key credentials capture is from **Add Private Cloud *Base* Cluster** - an eight-stage Base wizard, not this twelve-stage containerized one | The containerized wizard, whose stage rail runs Getting Started through Summary |
+| Cloudera Manager URL | `18.139.21.49:7183` and an `elb.amazonaws.com` host on the browser captures | Your own Cloudera Manager host |
+
+Two documentation links behave the same way, and were transcribed as plain text rather than wired up:
+
+- **Docker repository access** (Step 17) is annotated to the **1.5.4** installation guide, not 1.5.5.
+- The custom repository URL in Steps 7 and 8 **displays** `.../cdp-pvc-ds/1.5.5-h2000/` while its annotation points at `.../cdp-pvc-ds/1.5.4-h2/`. Both are placeholders in any case - substitute your own mirror.
