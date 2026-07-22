@@ -1,0 +1,126 @@
+---
+title: Accessing Cloudera
+topicTitle: CDP 7.3.2
+topicSlug: cdp-7-3-2
+summary: Open the Data Services console from Cloudera Manager, log in as local administrator, reset the admin password, configure LDAP external authentication, and register the PvC Base cluster environment.
+prevTitle: Dedicating ECS Nodes for Specific Workloads (Optional)
+prevSlug: /installations/cdp-7-3-2/ds/ecs/specific-workloads
+nextTitle: Cloudera AI (CAI)
+nextSlug: /installations/cdp-7-3-2/cai
+---
+
+Once the Embedded Container Service (ECS) cluster is installed, you access Cloudera on premises Data Services from the Cloudera Manager console. This page walks through opening the Data Services console, logging in as the local administrator, resetting that password, wiring up LDAP external authentication so LDAP users can sign in, and confirming that the PvC Base cluster environment is registered.
+
+## Open the Data Services console
+
+**1.** From the **Cloudera Manager** screen, click on **Data Services (New)** in the left pane.
+
+![Cloudera Manager left navigation pane with Data Services (New) selected, showing the CDP Private Cloud Data Services page with the ContainerizedCluster1 tile on cldrsetup.local running version 1.5.5-b121](/images/cdp-7-3-2/accessing-cloudera/step1-data-services-cm.png)
+
+**2.** On the **CDP Private Cloud Containerized services** page, click on the **Open CDP Private Cloud Data Services** button. This will open the Cloudera on premises authentication page.
+
+![CDP Private Cloud Data Services page with the ContainerizedCluster1 tile and a red arrow pointing at the Open CDP Private Cloud Data Services button](/images/cdp-7-3-2/accessing-cloudera/step2-open-data-services.png)
+
+**3.** On the **PvC DS Authentication Page**, if you have **LDAP account** credentials, enter its username and password and then click on **Login**. Else, you can click on **Login as Local Administrator**, and enter the default credentials. *(admin/admin)*
+
+![Login page with red callouts labelling the Username and Password fields For LDAP accounts and the Login as Local Administrator link For local admin account](/images/cdp-7-3-2/accessing-cloudera/step3-authentication-login.png)
+
+> **Note:** From DS 1.5.5 SP1 onwards, it is recommended to use an LDAP user to log in to the DS console and run workloads, as admin users have certain restrictions when executing workloads that were introduced in this release.
+
+## Log in and reach the Management Console
+
+**4.** **Login** to Cloudera on premises Data Services as local administrator. *(admin/admin)*
+
+![Login as Local Administrator dialog with admin entered in the username field, a masked password, and a Log in button](/images/cdp-7-3-2/accessing-cloudera/step4-login-local-admin.png)
+
+**5.** After authenticating successfully, you will land at the **CDP console/Data Services** page. From this page, you can navigate to different data services and the management services. Click on the **Management Console**.
+
+![CDP console landing page with a Data Services row of tiles - Data Engineering, Data Warehouse, Machine Learning - above a Data Management row of tiles - Replication Manager, Data Catalog, Management Console](/images/cdp-7-3-2/accessing-cloudera/step5-cdp-console.png)
+
+**6.** On the **Welcome to Cloudera on premises** page, click **Reset Password** to change the **Local Administrator Account** password. *(OR)* On the **Management Console** page, navigate to **Administration > Authentication**, and then click **Reset Password** to change the **Local Administrator Account** password.
+
+![Management Console Administration page with the Authentication tab selected, showing the Local Admin Account section with a Reset Password button and the start of the External Authentication section](/images/cdp-7-3-2/accessing-cloudera/step6-administration-authentication.png)
+
+![Welcome to CDP Private Cloud page in the Management Console showing the Local Admin Account section with a Reset Password button, followed by the External Authentication section with the LDAP URL, CA Certificate and Bind DN fields](/images/cdp-7-3-2/accessing-cloudera/step6-welcome-cdp-private-cloud.png)
+
+## Configure LDAP external authentication
+
+**7.** **Set up external authentication** using the URL of the LDAP server and a CA certificate (if using a prior existing LDAP server and not proceeding with FreeIPA setup) of your secure LDAP (e.g. `ldap://<ipa_or_ldap_server_fqdn>:389/`). Learn more about [LDAP user authentication for Cloudera on premises](https://docs.cloudera.com/management-console/latest/private-cloud-administration/topics/mc-private-cloud-security-ldap.html). Enter values for ldap authentication, as mentioned in the below table.
+
+**Table 13. LDAP Integration**
+
+| Component | Value |
+|:--|:--|
+| Authentication Backend Order: | `Database then EXTERNAL` |
+| Authorization Backend Order: | `Database and EXTERNAL` |
+| External Authentication Type: | `LDAP` |
+| LDAP URL: | `ldap://ipaserver.cldrsetup.local:389/` |
+| LDAP Bind User Distinguished Name: | `uid=admin,cn=users,cn=accounts,dc=cldrsetup,dc=local` |
+| LDAP Bind Password: | `<cloudera123>` (password for KDC admin, configured earlier) |
+| Active Directory Domain: (For AD Based LDAP) | `<AD DOMAIN>` |
+| LDAP User Search filter: | `(&(uid={0})(objectClass=person))` |
+| LDAP User Search filter: (For AD Based LDAP) | `(sAMAccountName=*)` |
+| LDAP User Search Base: | `cn=users,cn=accounts,dc=cldrsetup,dc=local` |
+| LDAP User Search Base: (For AD Based LDAP) | `OU=cloudera,DC=cldrsetup,DC=local` |
+| LDAP Group Search filter: | `(&(member={1})(objectClass=posixgroup))` |
+| LDAP Group Search Base: | `cn=groups,cn=accounts,dc=cldrsetup,dc=local` |
+| LDAP Group Search Base: (For AD Based LDAP) | `OU=cloudera,DC=cldrsetup,DC=local` |
+| LDAP DistName Pattern: | `uid=admin,cn=users,cn=accounts,dc=cldrsetup,dc=local` |
+
+![Management Console Administration LDAP settings form with Sync Groups on Login enabled, the LDAP URL, Bind Type set to Use Bind DN and Password, the Bind DN and Bind Password fields, and the User and Group search base and filter fields, ending in a Test LDAP Connection button](/images/cdp-7-3-2/accessing-cloudera/step7-ldap-settings-form.png)
+
+**8.** Follow the instructions on the **Welcome to CDP Private Cloud page** to complete this step.
+
+**9.** Click **Test Connection** to ensure that you are able to connect to the **configured LDAP server**.
+
+![Test Connection button with a green Connection Successful banner below it, followed by a Save button](/images/cdp-7-3-2/accessing-cloudera/step9-test-connection-success.png)
+
+**10.** The **User Management** tab allows users to add or update roles on existing users. The **Groups** tab allows users to sync user groups from the active directory to access **CDP Data Services**.
+
+![Management Console User Management page on the Users tab, listing users with their names, emails and workload user names, and the Actions menu open showing Create Machine User, Upload Users and Update Account Messages](/images/cdp-7-3-2/accessing-cloudera/step10-user-management-users.png)
+
+![User Management Users tab showing the admin and ldapuser1 accounts with the per-row Actions menu open, listing Update Roles, Generate Access Key and Delete User](/images/cdp-7-3-2/accessing-cloudera/step10-user-management-update-roles.png)
+
+![Update Roles dialog listing the assignable roles - EnvironmentAdmin, EnvironmentUser, IamUser, IamViewer and PowerUser - each with a description and a Policies link, and Cancel and Update buttons](/images/cdp-7-3-2/accessing-cloudera/step10-update-roles-dialog.png)
+
+For more details on Cloudera on premises Management console please visit: [https://docs.cloudera.com/management-console/1.5.5/index.html](https://docs.cloudera.com/management-console/1.5.5/index.html).
+
+## Register the environment
+
+**11.** After successfully configuring and testing the setup for **LDAP integration**, the page will auto-redirect for the Environments Page; if not, navigate to the [Environments](https://docs.cloudera.com/management-console/latest/private-cloud-environments/topics/mc-private-cloud-environments.html) page, by clicking into the menu in the left pane of your screen.
+
+**12.** If everything was correctly setup previously, then you will be able to see the environment registered by default for your cluster as shown below:
+
+![Management Console Environments page listing a single environment named cldrsetup with a Monitoring Dashboard link, and a CDP Control Plane Monitoring Dashboard link under Other Links](/images/cdp-7-3-2/accessing-cloudera/step12-environment-registered.png)
+
+**13.** If the environment is not created somehow due to some issue during the installation, the page will auto-redirect for the **Register Environment** Page; if not, navigate to the [Environments](https://docs.cloudera.com/management-console/latest/private-cloud-environments/topics/mc-private-cloud-environments.html) page, and select **Register Environment** where you will provide the Cloudera Manager details and credentials to register the **PvC Base Cluster DataLake/Control Plane environment** to DS. Click **Choose Cluster**, select the PvC Base cluster from the populated list and click on **Register**.
+
+![Environments page showing an empty environment list with a No data placeholder and a Register Environment button](/images/cdp-7-3-2/accessing-cloudera/step13-environments-empty.png)
+
+![Register Environment form with an Environment Name field, a Data Lake section holding the Cloudera Manager URL, Admin Username and Admin Password fields, a Choose Cluster button reporting the cluster was found, and the base 1 cluster selected showing the Ozone, Ranger, Atlas, Hive Metastore and HDFS services](/images/cdp-7-3-2/accessing-cloudera/step13-register-environment.png)
+
+![Environments page after registration, listing the cdp-env-1 environment with a Monitoring Dashboard link](/images/cdp-7-3-2/accessing-cloudera/step13-environment-created.png)
+
+## Returning to Data Services later
+
+**14.** To come to this section further, from the **Cloudera Manager** screen, click on **Data Services (New)** in the left pane and then click on **Open Private Cloud Data Services** to launch your CDP Private Cloud Data Services instance. Log in using the default username and password **admin**.
+
+- Click **Launch CDP** to launch your CDP Cloudera on premises.
+- Log in using the default username and password admin.
+- In the **Welcome to CDP Private Cloud** page, click **Change Password** to change the Local Administrator Account password.
+- Set up external authentication using the URL of the LDAP server and a CA certificate of your secure LDAP. Follow the instructions on the **Welcome to CDP Private Cloud** page to complete this step.
+- Click **Test Connection** to ensure that you are able to connect to the configured LDAP server.
+- [Register a CDP Cloudera on premises environment](https://docs.cloudera.com/management-console/1.5.5/private-cloud-environments/topics/mc-private-cloud-environment-register-ui.html)
+- [Create your first Virtual Warehouse in the CDW Data Service](https://docs.cloudera.com/data-warehouse/1.5.5/private-cloud-getting-started/topics/dw-private-cloud-create-virtual-warehouse-openshift-overview.html)
+- [Provision an AI Workbench in the CAI Data Service](https://docs.cloudera.com/machine-learning/1.5.5/workspaces-privatecloud/topics/ml-pvc-provision-ml-workspace.html)
+- [https://docs.cloudera.com/data-engineering/1.5.5/enable-data-engineering/topics/cde-private-cloud-add-cde-service.html](https://docs.cloudera.com/data-engineering/1.5.5/enable-data-engineering/topics/cde-private-cloud-add-cde-service.html)
+
+![Management Console Dashboard showing the System Resource CPU and memory charts and the System Status panel with cdp Infrastructure and Data Lake, and the Management Console services, all reporting healthy with No issue detected](/images/cdp-7-3-2/accessing-cloudera/step14-management-console-dashboard.png)
+
+> **Version and hostname strings in this section.** Several captures are recycled from an older lab build and do not match the values the prose and Table 13 call for. Configure LDAP from Table 13 (`ipaserver.cldrsetup.local`, `dc=cldrsetup,dc=local`), not from what a screenshot displays.
+>
+> | Where | Screenshot shows | This install uses |
+> |:--|:--|:--|
+> | Welcome to CDP Private Cloud (Step 6) | `console-cdp.apps.a6448a33-cdpbase.openshiftpartnerlabs.com`, `ldap://ipaserver.cdppvcds.com:389/`, `dc=cdppvcds,dc=com`, `admin@cdp.example` | `ldap://ipaserver.cldrsetup.local:389/`, `dc=cldrsetup,dc=local` (Table 13) |
+> | User Management (Step 10) | `admin@cdp.example`, `ldapuser1@cdplvm.cldr`, `hadipa@cdp.example` | LDAP accounts under `cldrsetup.local` |
+> | Register Environment (Step 13) | Cloudera Manager `https://cm.cdplvm.cldr:7183`, environment `cdp-env-1` | the Base cluster's own Cloudera Manager on `cldrsetup.local` |
