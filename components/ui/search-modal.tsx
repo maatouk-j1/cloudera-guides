@@ -85,12 +85,12 @@ export default function SearchModal({
                           The result set changes on each keystroke, so this fans out fast. */}
                       <Link
                         prefetch={false}
-                        className="flex items-center px-2 py-1.5 leading-6 text-sm text-slate-800 hover:bg-slate-100 rounded-sm dark:text-slate-200 dark:hover:bg-slate-700 outline-hidden"
+                        className="flex items-start px-2 py-1.5 leading-6 text-sm text-slate-800 hover:bg-slate-100 rounded-sm dark:text-slate-200 dark:hover:bg-slate-700 outline-hidden"
                         href={`/${item.slug}`}
                         onClick={() => { setIsOpen(false); setQuery(''); }}
                       >
                         <svg
-                          className="w-3 h-3 fill-[#f26622] shrink-0 mr-3"
+                          className="w-3 h-3 fill-[#f26622] shrink-0 mr-3 mt-1.5"
                           width="12"
                           height="12"
                           viewBox="0 0 12 12"
@@ -99,9 +99,14 @@ export default function SearchModal({
                           <path d="M11.953 4.29a.5.5 0 0 0-.454-.292H6.14L6.984.62A.5.5 0 0 0 6.12.173l-6 7a.5.5 0 0 0 .379.825h5.359l-.844 3.38a.5.5 0 0 0 .864.445l6-7a.5.5 0 0 0 .075-.534Z" />
                         </svg>
                         <div className="min-w-0">
-                          <span className="font-medium">{item.title}</span>
+                          <div className="font-medium truncate">{item.title}</div>
+                          {/* The full nav trail, on its own line: page titles repeat
+                              across guide versions, so the breadcrumb is what tells
+                              two same-named results apart (issue #55). */}
                           {item.section && (
-                            <span className="text-slate-400 ml-2 dark:text-slate-500">{item.section}</span>
+                            <div className="text-xs leading-5 text-slate-400 truncate dark:text-slate-500">
+                              {item.section}
+                            </div>
                           )}
                         </div>
                       </Link>
