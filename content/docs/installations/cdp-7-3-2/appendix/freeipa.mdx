@@ -1,0 +1,251 @@
+---
+title: FreeIPA Reference
+topicTitle: Appendix
+topicSlug: cdp-7-3-2/appendix
+summary: Adding users to FreeIPA, generating user and service keytabs, the ipa and ipactl command reference, and verifying accounts and reverse DNS records against the IPA server.
+prevTitle: Glossary of Acronyms
+prevSlug: /installations/cdp-7-3-2/appendix/glossary-acronyms
+nextTitle: Cluster Validation
+nextSlug: /installations/cdp-7-3-2/validation
+---
+
+FreeIPA underpins DNS, Kerberos and LDAP for the whole deployment — the base cluster's Kerberos realm, the reverse DNS records the ECS ingress depends on, and the LDAP directory that Cloudera Manager, Ranger, Hue, Atlas and the Data Services console all authenticate against. This page collects the commands used against it.
+
+The guide's own reference for this section is [https://www.devopszones.com/2020/03/how-to-add-freeipa-user-in-cli-and-web.html](https://www.devopszones.com/2020/03/how-to-add-freeipa-user-in-cli-and-web.html).
+
+## Add users on FreeIPA
+
+- Log in to the IPA server and run kinit with admin and enter the password: **`kinit admin`**
+- Run the below command to create a user. Enter the password in the password prompt.
+
+```bash
+ipa user-add --password <User Name>
+```
+
+The guide's worked example creates the user `kdsahu`:
+
+```text
+[root@pvcbasemaster ~]# ipa
+ipa: ERROR: Ticket expired
+[root@pvcbasemaster ~]# kinit admin && klist -e
+Password for admin@CLDRSETUP.LOCAL:
+[root@pvcbasemaster ~]# ipa user-add --password kdsahu
+First name: Kuldeep
+  Last name: Sahu
+User login [kdsahu]: kdsahu
+Password:
+Enter Password again to verify:
+-------------------
+Added user "kdsahu"
+-------------------
+  User login: kdsahu
+  First name: Kuldeep
+  Last name: Sahu
+  Full name: Kuldeep Sahu
+  Display name: Kuldeep Sahu
+  Initials: KS
+  Home directory: /home/kdsahu
+  GECOS: Kuldeep Sahu
+  Login shell: /bin/sh
+  Principal name: kdsahu@CLDRSETUP.LOCAL
+  Principal alias: kdsahu@CLDRSETUP.LOCAL
+  User password expiration: 20240321113054Z
+  Email address: kdsahu@cldrsetup.local
+  UID: 971200008
+  GID: 971200008
+  Password: True
+  Member of groups: ipausers
+  Kerberos keys available: True
+[root@pvcbasemaster ~]# su - kdsahu
+Last login: Thu Mar 21 01:00:40 PDT 2024 on pts/0
+```
+
+## Create a user and generate its keytab
+
+The same four steps, written out for a user named `cdptest`:
+
+```bash
+# 1. Add the user 'cdptest'
+ipa user-add cdptest \
+     --first=cdp \
+     --last=test \
+     --password
+# (You'll be prompted to set and confirm a password for cdptest.)
+
+# 2. Authenticate as an IPA admin
+kinit admin
+
+# 3. Generate a keytab for cdptest@CLDRSETUP.LOCAL
+ipa-getkeytab \
+  --principal=cdptest@CLDRSETUP.LOCAL \
+  --keytab=/tmp/cdptest.keytab
+
+# 4. Verify the keytab contents
+klist -k /tmp/cdptest.keytab
+```
+
+## Service principal variant
+
+If instead you need a **service principal** named `cdptest` (for example, to run as an SPN on a host), you would:
+
+```bash
+# Create a service principal
+ipa service-add cdptest/your-host.cldrsetup.local
+
+# Pull its keytab
+ipa-getkeytab \
+  --principal=cdptest/your-host.cldrsetup.local@CLDRSETUP.LOCAL \
+  --keytab=/tmp/cdptest.keytab
+
+# Verify
+klist -k /tmp/cdptest.keytab
+```
+
+## List and slice keytabs
+
+Commands to list the principals in a keytab and extract individual keytab entries:
+
+```bash
+# 1. List all principals in the keytab
+klist -k /tmp/cdptest.keytab
+
+# Example output:
+# Keytab name: FILE:/tmp/cdptest.keytab
+# KVNO Principal
+# ---- ------------------------------------------------------
+#    1 cdptest@CLDRSETUP.LOCAL
+
+# 2. Extract a specific principal's keys into a new keytab
+#    (useful if you want to split out one principal from a multi-principal keytab)
+ktutil <<EOF
+  rkt /tmp/cdptest.keytab
+  l
+  wkt /tmp/cdptest-single.keytab Principal:cdptest@CLDRSETUP.LOCAL
+  quit
+EOF
+
+# 3. Verify the newly created single-principal keytab
+klist -k /tmp/cdptest-single.keytab
+```
+
+`klist -k` shows you all principals stored in a keytab file. `ktutil` can read (`rkt`) an existing keytab, list (`l`) its entries, and write (`wkt`) only the entries matching a given principal into a new keytab. This way you can both inspect and slice your keytab as needed.
+
+## Free-IPA Command Reference
+
+```bash
+kinit admin
+ipa dnsrecord-add 16.172.in-addr.arpa. 231.31 --ptr-rec console-cdp.apps.pvcecsmaster.cldrsetup.local.
+ipa dnsrecord-del 16.172.in-addr.arpa. 231.31 --ptr-rec console-cdp.apps.pvcecsmaster.cldrsetup.local
+ipa dnsrecord-find 16.172.in-addr.arpa.
+ipa dnsrecord-add cldrsetup.local *.apps
+ipa dnszone-list
+ipa user-del cmadmin
+ipa user-show
+ipa status | start | stop
+ipactl status | stop | start | restart
+```
+
+The last two lines are not pipelines — they are the guide's shorthand for the subcommand each takes. Run `ipactl status`, `ipactl restart` and so on individually.
+
+## First login and password expiry
+
+A user created with `--password` gets a pre-expired password, so the first `kinit` forces a change:
+
+```text
+[kuldeep@pvcbasemaster ~]$ kinit kdsahu
+Password for kdsahu@CLDRSETUP.LOCAL:
+Password expired.  You must change it now.
+Enter new password:
+Enter it again:
+[kuldeep@pvcbasemaster ~]$
+```
+
+## Verify a user with ldapsearch
+
+Querying the IPA directory directly confirms the account, its Kerberos principal, its POSIX attributes and its group memberships:
+
+```bash
+ldapsearch  -H ldap://ipaserver.cldrsetup.local:389 -D "uid=admin,cn=users,cn=accounts,dc=cldrsetup,dc=local" -w 'cloudera123' -b "cn=users,cn=accounts,dc=cldrsetup,dc=local" '(&(uid=admin))' | grep -v "#"
+```
+
+```text
+dn: uid=admin,cn=users,cn=accounts,dc=cldrsetup,dc=local
+objectClass: top
+objectClass: person
+objectClass: posixaccount
+objectClass: krbprincipalaux
+objectClass: krbticketpolicyaux
+objectClass: inetuser
+objectClass: ipaobject
+objectClass: ipasshuser
+objectClass: ipaSshGroupOfPubKeys
+uid: admin
+krbPrincipalName: admin@CLDRSETUP.LOCAL
+cn: Administrator
+sn: Administrator
+uidNumber: 971200000
+gidNumber: 971200000
+homeDirectory: /home/admin
+loginShell: /bin/bash
+gecos: Administrator
+ipaUniqueID: e42d6b54-e094-11ee-9c71-0050568db389
+memberOf: cn=admins,cn=groups,cn=accounts,dc=cldrsetup,dc=local
+memberOf: cn=Replication Administrators,cn=privileges,cn=pbac,dc=cldrsetup,dc=c
+ om
+memberOf: cn=Add Replication Agreements,cn=permissions,cn=pbac,dc=cldrsetup,dc=local
+memberOf: cn=Read Replication Agreements,cn=permissions,cn=pbac,dc=cldrsetup,dc=local
+memberOf: cn=Modify DNA Range,cn=permissions,cn=pbac,dc=cldrsetup,dc=local
+memberOf: cn=Read LDBM Database Configuration,cn=permissions,cn=pbac,dc=cldrsetup,dc=local
+memberOf: cn=Host Enrollment,cn=privileges,cn=pbac,dc=cldrsetup,dc=local
+memberOf: cn=System: Add krbPrincipalName to a Host,cn=permissions,cn=pbac,dc=cldrsetup,dc=local
+memberOf: cn=System: Enroll a Host,cn=permissions,cn=pbac,dc=cldrsetup,dc=local
+memberOf: cn=System: Manage Host Enrollment Password,cn=permissions,cn=pbac,dc=cldrsetup,dc=local
+memberOf: cn=System: Manage Host Keytab,cn=permissions,cn=pbac,dc=cldrsetup,dc=local
+memberOf: cn=System: Manage Host Principals,cn=permissions,cn=pbac,dc=cldrsetup,dc=local
+memberOf: cn=trust admins,cn=groups,cn=accounts,dc=cldrsetup,dc=local
+krbLastPwdChange: 20240312172405Z
+krbPasswordExpiration: 20240610172405Z
+krbExtraData:: AAK1j/Blcm9vdC9hZG1pbkBDRFBQVkNEUy5DT00A
+krbLoginFailedCount: 0
+krbLastFailedAuth: 20240325064805Z
+
+search: 2
+result: 0 Success
+[root@ipaserver ~]#
+```
+
+The `dc=c` / ` om` split across two lines is standard LDIF line folding — the value unfolds to a single string.
+
+## Verify reverse DNS records
+
+```text
+[root@pvcecsmaster ~]# ipa dnsrecord-find 16.172.in-addr.arpa.
+  Record name: @
+  NS record: ipaserver.cldrsetup.local.
+  Record name: 226.31
+  PTR record: ipaserver.cldrsetup.local.
+  Record name: 227.31
+  PTR record: pvcbase-master.cldrsetup.local.
+  Record name: 228.31
+  PTR record: pvcbase-worker1.cldrsetup.local.
+  Record name: 231.31
+  PTR record: pvcecs-master.cldrsetup.local.
+  Record name: 232.31
+  PTR record: pvcecs-worker1.cldrsetup.local.
+-----------------------------
+Number of entries returned 12
+-----------------------------
+```
+
+## Source quirks in this section
+
+This section is visibly less finished than the rest of the guide — parts of it are pasted assistant output, complete with stray `bash` fence markers and emoji step numbers, which have been dropped here in favour of plain numbering. Four things are worth knowing before following it literally:
+
+| What the source shows | The discrepancy |
+|:--|:--|
+| *"Log in to the IPA server"*, then a transcript prompted `[root@pvcbasemaster ~]#` | The worked example runs from the **base cluster master**, not from `ipaserver` — the host the instruction names. The `ldapsearch` example further down does run on `[root@ipaserver ~]#`. |
+| `ipa dnsrecord-find` listing **five** PTR records | The summary beneath it reads `Number of entries returned 12`. The listing is abridged; the zone holds twelve records. |
+| `krbExtraData:: AAK1j/Blcm9vdC9hZG1pbkBDRFBQVkNEUy5DT00A` | Base64-decodes to `root/admin@CDPPVCDS.COM` — a principal from the older `cdppvcds.com` lab build, in a directory whose every other attribute reads `cldrsetup.local`. Same recycled-lab quirk seen in the screenshots throughout the guide. |
+| `memberOf: cn=Replication Administrators,…,dc=cldrsetup,dc=c om` | Unfolds to `dc=cldrsetup,dc=com`, where all twelve sibling entries end `dc=cldrsetup,dc=local`. |
+
+The `ldapsearch` bind password `cloudera123` is the guide's lab value and is transcribed verbatim; it is not a credential to reuse.
