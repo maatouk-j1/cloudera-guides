@@ -1,0 +1,266 @@
+---
+title: Cluster Validation
+topicTitle: CDP 7.3.2
+topicSlug: cdp-7-3-2
+summary: Validate the Cloudera on premises Base cluster end to end by loading the MovieLens 20M dataset into Hive over Kerberos, then validate Ozone by creating a volume and a bucket through the S3 gateway principal.
+prevTitle: FreeIPA Reference
+prevSlug: /installations/cdp-7-3-2/appendix/freeipa
+nextTitle: Cluster Cleanup
+nextSlug: /installations/cdp-7-3-2/cleanup
+---
+
+With the Base cluster and the Data Services cluster both standing, validate that the platform actually works end to end. The guide validates two storage paths independently: **Hive on HDFS**, by loading a real public dataset and querying it, and **Ozone**, by creating a volume and a bucket through the S3 gateway principal.
+
+Both validations run on the Base cluster master and both start the same way — with a Kerberos ticket. Every "cannot authenticate via:[TOKEN, KERBEROS]" failure below is deliberate: it is what the commands look like *before* you `kinit`, and it is the single most common reason a validation step fails on a freshly Kerberised cluster.
+
+The guide's references for this section:
+
+- [https://training-team.gitbook.io/setting-up-cloudera-data-platform-cdp/hive-validation](https://training-team.gitbook.io/setting-up-cloudera-data-platform-cdp/hive-validation)
+- [https://www.quora.com/How-do-you-load-data-into-a-Hive-external-table](https://www.quora.com/How-do-you-load-data-into-a-Hive-external-table)
+- [https://stackoverflow.com/questions/17425492/hive-insert-query-like-sql](https://stackoverflow.com/questions/17425492/hive-insert-query-like-sql)
+- [https://github.com/mionisation/BI_BigData_2_HiveDatasetAnalysis/blob/master/createMovieLensTables.hql](https://github.com/mionisation/BI_BigData_2_HiveDatasetAnalysis/blob/master/createMovieLensTables.hql)
+- [https://grouplens.org/datasets/movielens/20m/](https://grouplens.org/datasets/movielens/20m/)
+
+## Base cluster validation with Hive
+
+### 1. Download and prepare the MovieLens dataset
+
+The MovieLens 20M dataset ships as a ZIP of CSV files, each carrying a header row. `sed -i 1d *` strips those headers, because the Hive tables below are plain delimited text tables with no header-skipping property set.
+
+```bash
+[root@pvcbase-master ~]# dnf install -y wget unzip
+[root@pvcbase-master ~]# wget https://files.grouplens.org/datasets/movielens/ml-20m.zip
+[root@pvcbase-master ~]# unzip ml-20m.zip
+[root@pvcbase-master ~]# cd ml-20m
+[root@pvcbase-master ml-20m]# sed -i 1d *
+[root@pvcbase-master ml-20m]#
+```
+
+### 2. Confirm that HDFS refuses you without a ticket
+
+```text
+[root@pvcbase-master ml-20m]# hdfs dfs -ls /
+24/03/21 04:32:28 WARN ipc.Client: Exception encountered while connecting to the server :
+org.apache.hadoop.security.AccessControlException: Client cannot authenticate via:[TOKEN, KERBEROS]
+ls: DestHost:destPort pvcbasemaster.cldrsetup.local:8020 , LocalHost:localPort
+pvcbasemaster.cldrsetup.local/172.16.31.227:0. Failed on local exception: java.io.IOException:
+org.apache.hadoop.security.AccessControlException: Client cannot authenticate via:[TOKEN, KERBEROS]
+[root@pvcbase-master ml-20m]#
+```
+
+### 3. Locate a keytab and obtain a ticket
+
+Cloudera Manager regenerates service keytabs into each role's process directory, so the path carries a process id and changes on every restart. Find it rather than hardcoding it.
+
+```bash
+# Locate the HDFS keytab
+[root@pvcbase-master ml-20m]# find / -name hive.keytab
+/run/cloudera-scm-agent/process/1546340988-hive_on_tez-HIVESERVER2/hive.keytab
+/run/cloudera-scm-agent/process/1546340973-hive-HIVEMETASTORE/hive.keytab
+
+# List its contents
+[root@pvcbase-master ml-20m]# klist -kt /run/cloudera-scm-agent/process/1546340973-hive-HIVEMETASTORE/hive.keytab
+Keytab name: FILE:/run/cloudera-scm-agent/process/1546340973-hive-HIVEMETASTORE/hive.keytab
+KVNO Timestamp          Principal
+---- ----------------- --------------------------------------------------------
+   1 06/10/25 11:29:34 hive/pvcbase-master.redhat.local@REDHAT.LOCAL
+
+# Obtain a Kerberos ticket for the HDFS principal
+[root@pvcbase-master ml-20m]# kinit -kt /run/cloudera-scm-agent/process/1546340973-hive-HIVEMETASTORE/hive.keytab hive/pvcbase-master.redhat.local@REDHAT.LOCAL
+
+# Verify your ticket cache
+[root@pvcbase-master ml-20m]# klist
+Ticket cache: FILE:/tmp/krb5cc_0
+Default principal: hive/pvcbase-master.redhat.local@REDHAT.LOCAL
+
+Valid starting     Expires            Service principal
+07/01/25 06:17:08 07/02/25 05:17:24 krbtgt/REDHAT.LOCAL@REDHAT.LOCAL
+        renew until 07/08/25 06:17:08
+```
+
+The guide's own comments say *HDFS keytab* and *HDFS principal*, but the commands use the **Hive** keytab and the Hive service principal. Follow the commands, not the comments — the Hive principal is what the `LOAD DATA` steps below need.
+
+### 4. Stage the CSV files in HDFS
+
+```bash
+[root@pvcbase-master ml-20m]# hdfs dfs -mkdir /tmp/movielens
+[root@pvcbase-master ml-20m]# hdfs dfs -put * /tmp/movielens/
+[root@pvcbase-master ml-20m]# hdfs dfs -chown -R hdfs:supergroup /tmp/movielens
+[root@pvcbase-master ml-20m]# hdfs dfs -ls /tmp/movielens/
+[root@pvcbase-master ml-20m]# hive
+```
+
+### 5. Create the database and tables
+
+```sql
+CREATE DATABASE movielens;
+use movielens;
+CREATE TABLE IF NOT EXISTS ratings ( userId int, movieId int, rating double, ts bigint)
+COMMENT "Movie Ratings"
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY '\054'
+LINES TERMINATED BY '\n'
+STORED AS TEXTFILE;
+```
+
+`'\054'` is the octal escape for a comma — the CSV field separator.
+
+### 6. Load the data
+
+```sql
+LOAD DATA INPATH '/tmp/movielens/movies.csv' overwrite INTO TABLE movies;
+LOAD DATA INPATH '/tmp/movielens/tags.csv' overwrite INTO TABLE tags;
+LOAD DATA INPATH '/tmp/movielens/ratings.csv' overwrite INTO TABLE ratings;
+LOAD DATA INPATH '/tmp/movielens/genome-tags.csv' overwrite INTO TABLE genome_tags;
+LOAD DATA INPATH '/tmp/movielens/genome-scores.csv' overwrite INTO TABLE genome_scores;
+```
+
+The guide spells out the `CREATE TABLE` for `ratings` only, but loads into five tables. Create `movies`, `tags`, `genome_tags` and `genome_scores` the same way, matching each CSV's columns — the linked `createMovieLensTables.hql` reference above carries the full set of DDL statements.
+
+### 7. Exercise the path through Hue
+
+Finally, drive the same objects through the UI rather than the CLI, which validates HiveServer2, Hue and the Ranger policies together:
+
+- Run the queries from HUE for create db, create table.
+- Upload data from Hive cli.
+- Run select query to fetch operations from HUE.
+
+## Ozone validation
+
+Ozone validation follows the same shape: watch it fail without a ticket, `kinit` with the S3 gateway keytab, then create a volume and a bucket.
+
+### 1. Confirm that Ozone refuses you without a ticket
+
+```text
+[root@pvcbase-master ~]# ozone sh bucket list ozone11
+24/05/26 07:32:42 WARN ipc.Client: Exception encountered while connecting to the server :
+org.apache.hadoop.security.AccessControlException: Client cannot authenticate via:[TOKEN, KERBEROS]
+24/05/26 07:32:42 WARN ipc.Client: Exception encountered while connecting to the server :
+org.apache.hadoop.security.AccessControlException: Client cannot authenticate via:[TOKEN, KERBEROS]
+24/05/26 07:32:42 WARN ipc.Client: Exception encountered while connecting to the server :
+org.apache.hadoop.security.AccessControlException: Client cannot authenticate via:[TOKEN, KERBEROS]
+24/05/26 07:32:42 ERROR client.OzoneClientFactory: Couldn't create RpcClient protocol exception:
+        ... 42 more
+org.apache.hadoop.security.AccessControlException: Client cannot authenticate via:[TOKEN, KERBEROS]
+```
+
+A ticket for `admin` is not enough — Ozone wants the service principal:
+
+```text
+[root@pvcbase-master ~]# klist -e
+Ticket cache: FILE:/tmp/krb5cc_0
+Default principal: admin@CLDRSETUP.LOCAL
+
+Valid starting       Expires              Service principal
+05/15/2024 21:24:12 05/16/2024 20:35:44 krbtgt/CLDRSETUP.LOCAL@CLDRSETUP.LOCAL
+        renew until 05/22/2024 21:24:09, Etype (skey, tkt): aes256-cts-hmac-sha1-96,
+aes256-cts-hmac-sha384-192
+```
+
+### 2. Find the Ozone keytab and kinit as the S3 gateway
+
+Ozone roles are spread across several process directories, so `find` returns one keytab per role instance. The guide uses the **S3 gateway** one.
+
+```text
+[root@pvcbase-master ~]# find / -name ozone.keytab
+/run/cloudera-scm-agent/process/1546347521-ozone-S3_GATEWAY/ozone.keytab
+/run/cloudera-scm-agent/process/1546347511-ozone-OZONE_RECON/ozone.keytab
+/run/cloudera-scm-agent/process/1546347517-ozone-STORAGE_CONTAINER_MANAGER/ozone.keytab
+/run/cloudera-scm-agent/process/1546347273-ozone-STORAGE_CONTAINER_MANAGER/ozone.keytab
+/run/cloudera-scm-agent/process/1546347267-ozone-OZONE_RECON/ozone.keytab
+/run/cloudera-scm-agent/process/1546347277-ozone-S3_GATEWAY/ozone.keytab
+/run/cloudera-scm-agent/process/1546344328-ozone-OZONE_RECON/ozone.keytab
+/run/cloudera-scm-agent/process/1546344334-ozone-STORAGE_CONTAINER_MANAGER/ozone.keytab
+/run/cloudera-scm-agent/process/1546344338-ozone-S3_GATEWAY/ozone.keytab
+/run/cloudera-scm-agent/process/1546344034-ozone-STORAGE_CONTAINER_MANAGER/ozone.keytab
+/run/cloudera-scm-agent/process/1546344028-ozone-OZONE_RECON/ozone.keytab
+/run/cloudera-scm-agent/process/1546344038-ozone-S3_GATEWAY/ozone.keytab
+```
+
+Each S3 gateway keytab holds two principals — the SPNEGO `HTTP/` principal and the `s3g/` service principal:
+
+```text
+[root@pvcbase-master ~]# klist -kt /run/cloudera-scm-agent/process/1546347521-ozone-S3_GATEWAY/ozone.keytab
+Keytab name: FILE:/run/cloudera-scm-agent/process/1546347521-ozone-S3_GATEWAY/ozone.keytab
+KVNO Timestamp            Principal
+---- ------------------- ------------------------------------------------------
+   2 05/19/2024 22:11:49 HTTP/pvcbase-master.cldrsetup.local@CLDRSETUP.LOCAL
+   2 05/19/2024 22:11:49 s3g/pvcbase-master.cldrsetup.local@CLDRSETUP.LOCAL
+
+[root@pvcbase-master ~]# kinit -kt /run/cloudera-scm-agent/process/1546347521-ozone-S3_GATEWAY/ozone.keytab s3g/pvcbase-master.cldrsetup.local@CLDRSETUP.LOCAL
+
+[root@pvcbase-master ~]# klist
+Ticket cache: FILE:/tmp/krb5cc_0
+Default principal: s3g/pvcbase-master.cldrsetup.local@CLDRSETUP.LOCAL
+
+Valid starting       Expires                                        Service principal
+05/26/2024 07:36:13 05/27/2024 07:11:26                             krbtgt/CLDRSETUP.LOCAL@CLDRSETUP.LOCAL
+        renew until 06/02/2024 07:36:13
+```
+
+### 3. Create a volume
+
+An empty `[ ]` from `ozone sh volume list` on a fresh cluster is the expected starting point.
+
+```text
+[root@pvcbase-master ~]# ozone sh volume list
+[ ]
+
+[root@pvcbase-master ~]# ozone sh volume create ozone11
+24/05/26 07:46:20 INFO rpc.RpcClient: Creating Volume: ozone11, with s3g as owner and space quota
+set to -1 bytes, counts quota set to -1
+
+[root@pvcbase-master ~]# ozone sh volume list
+[ {
+  "metadata" : { },
+  "name" : "ozone11",
+  "admin" : "s3g",
+  "owner" : "s3g",
+  "quotaInBytes" : -1,
+  "quotaInNamespace" : -1,
+  "usedNamespace" : 0,
+  "creationTime" : "2024-05-26T14:46:20.912Z",
+  "modificationTime" : "2024-05-26T14:46:20.912Z",
+  "acls" : [ {
+    "type" : "USER",
+    "name" : "s3g",
+    "aclScope" : "ACCESS",
+    "aclList" : [ "ALL" ]
+  } ],
+  "refCount" : 0
+} ]
+```
+
+The volume is owned by whichever principal you authenticated as — here `s3g`, because that is the keytab used above. Quotas of `-1` mean unlimited.
+
+### 4. Create a bucket and list it
+
+```text
+[root@pvcbase-master ~]# ozone sh bucket create ozone11/testkdbkt1
+24/05/26 07:47:19 INFO rpc.RpcClient: Creating Bucket: ozone11/testkdbkt1, with server-side default
+bucket layout, s3g as owner, Versioning false, Storage Type set to DISK and Encryption set to
+false, Replication Type set to server-side default replication type, Namespace Quota set to -1,
+Space Quota set to -1
+
+[root@pvcbase-master ~]# ozone sh bucket list ozone11
+[ {
+  "metadata" : { },
+  "volumeName" : "ozone11",
+  "name" : "testkdbkt1",
+  "storageType" : "DISK",
+  "versioning" : false,
+  "usedBytes" : 0,
+  "usedNamespace" : 0,
+  "creationTime" : "2024-05-26T14:47:19.692Z",
+  "modificationTime" : "2024-05-26T14:47:19.692Z",
+  "sourcePathExist" : true,
+  "quotaInBytes" : -1,
+  "quotaInNamespace" : -1,
+  "bucketLayout" : "FILE_SYSTEM_OPTIMIZED",
+  "owner" : "s3g",
+  "link" : false
+} ]
+[root@pvcbase-master ~]#
+```
+
+A bucket listing that comes back with `bucketLayout : "FILE_SYSTEM_OPTIMIZED"` and the volume you just created is the end of the Ozone validation: authentication, the Ozone Manager, and the Storage Container Manager are all serving.

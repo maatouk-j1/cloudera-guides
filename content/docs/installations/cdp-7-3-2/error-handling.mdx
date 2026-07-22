@@ -1,0 +1,666 @@
+---
+title: Error Handling
+topicTitle: CDP 7.3.2
+topicSlug: cdp-7-3-2
+summary: The errors actually hit while building this deployment and what resolved them — Cloudera Manager agent heartbeats, Ranger, Solr, Kafka, Ozone and PostgreSQL on the Base cluster, then kubeconfig, Vault, dashboard and CDW failures on the ECS cluster.
+prevTitle: Cluster Cleanup
+prevSlug: /installations/cdp-7-3-2/cleanup
+nextTitle: Kubernetes Command Reference
+nextSlug: /installations/cdp-7-3-2/kubernetes-commands
+---
+
+This is the guide's troubleshooting log: the errors that actually surfaced while building this deployment, paired with what resolved them. It is organised by cluster — Base first, then Data Services (ECS) — and within each, roughly in the order the failures tend to appear.
+
+Two themes run through the whole section. On the Base cluster, most failures are **certificate, Kerberos or PostgreSQL** problems wearing a service's name. On the ECS cluster, most failures trace back to an **incomplete cleanup** or **DNS that was not in place before the install** — which is why [Cluster Cleanup](/installations/cdp-7-3-2/cleanup) is worth doing properly rather than quickly.
+
+## Base cluster error handling
+
+### Preliminary commands
+
+Two commands the guide keeps to hand: pointing `python` at Python 2 for older tooling, and pulling the Cloudera Manager server certificate out of the TLS handshake so it can be trusted elsewhere.
+
+```bash
+alternatives --set python /usr/bin/python2
+
+openssl s_client -connect cldr-mngr.cldrsetup.local:8443 < /dev/null | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > knoxssoAmbari.crt
+```
+
+### Reports Manager
+
+If you are using PostgreSQL, turn off Readline support by using the `-n` option. (history-passwd) Start the Cloudera Management Service when the Reports Manager role is ready. See *Starting the Cloudera Management Service*.
+
+Ensure that the Ranger Solr and Ranger HDFS plugins are enabled.
+
+<Banner type="important">
+Ensure you complete the following tasks before you start performing the steps to configure TLS 1.2 on the Reports Manager for communicating with the database.
+</Banner>
+
+On the Cloudera Manager UI, navigate to **Clusters > Cloudera Management Service**. Select the **Configuration** tab and search for `reportsmanager_db_safety_valve`. Based on your database type you must override the `headlamp.db.properties` file with JDBC URL properties. Enter the appropriate values in the following format to override the connection to use TLS 1.2.
+
+```ini
+PostgreSQL
+com.cloudera.headlamp.orm.hibernate.connection.url=jdbc:postgresql://<DB-HOST>:<DB-PORT>/<DB_NAME>?useSSL=true&trustCertificateKeyStoreUrl=<PATH_TO_TRUSTSTORE_FILE>&trustCertificateKeyStoreType=<TRUSTSTORE_TYPE>&trustCertificateKeyStorePassword=<TRUSTSTORE_PASSWORD>
+com.cloudera.headlamp.db.type=postgresql
+com.cloudera.headlamp.db.host=<DB-HOST>:<DB-PORT>
+com.cloudera.headlamp.db.name=<DB_NAME>
+```
+
+### Agent heartbeat fails: certificate does not match `localhost`
+
+The agent is configured to reach the server at `localhost`, but Auto-TLS issued the server certificate for its DNS name — so the hostname check fails and heartbeats never land.
+
+```text
+[15/Mar/2024 04:59:00 -0700] 10184 MainThread agent  ERROR Heartbeating to localhost:7182 failed.
+Traceback (most recent call last):
+  File "/opt/cloudera/cm-agent/lib/python3.8/site-packages/cmf/agent.py", line 1588, in
+_send_heartbeat
+    transceiver = cmf.https.HTTPSTransceiver(
+  File "/opt/cloudera/cm-agent/lib/python3.8/site-packages/cmf/https.py", line 245, in __init__
+    self.conn.connect()
+  File "/opt/cloudera/cm-agent/lib/python3.8/site-packages/M2Crypto/httpslib.py", line 74, in
+connect
+    sock.connect((self.host, self.port))
+  File "/opt/cloudera/cm-agent/lib/python3.8/site-packages/M2Crypto/SSL/Connection.py", line 337,
+in connect
+    if not check(self.get_peer_cert(),
+  File "/opt/cloudera/cm-agent/lib/python3.8/site-packages/M2Crypto/SSL/Checker.py", line 122, in
+__call__
+    raise WrongHost(expectedHost=self.host,
+M2Crypto.SSL.Checker.WrongHost: Peer certificate subjectAltName does not match host, expected
+localhost, got DNS:pvcbasemaster.cldrsetup.local
+```
+
+The same root cause surfaces from the server side as a host inspection failure:
+
+```text
+pvcecs[1-5].cldrsetup.local; pvcecsmaster.cldrsetup.local: IOException thrown while collecting data
+from host: Received fatal alert: internal_error
+```
+
+**Solution.** Change the `server_host` in the agent config from `localhost` to the DNS name and restart all agents.
+
+```bash
+openssl s_client -connect pvcbasemaster.cldrsetup.local:7183
+
+[root@pvcbasemaster cloudera-scm-agent]# cat /etc/cloudera-scm-agent/config.ini|grep server
+change hostname to dnsname in place of localhost and restart all agents (heartbeat issue resolved)
+
+/opt/cloudera/cm-agent/bin/supervisorctl -c /var/run/cloudera-scm-agent/supervisor/supervisord.conf restart status_server
+
+grep -v -e '^[[:space:]]*$' -e '^#' /etc/cloudera-scm-agent/config.ini
+```
+
+### `Failed during cleanup : null` in the state synchronizer
+
+```text
+2024-03-16 03:04:54,710 ERROR pool-7-thread-1:com.cloudera.server.cmf.components.CmServerStateSynchronizer: Failed during cleanup : null
+```
+
+**Solution.** Set `java_home` by searching for *java* in the configuration on the Cloudera Manager console. Install PostgreSQL and CDP Base on the same day, all together — otherwise this may cause an SSL issue (observation).
+
+### Stale service status
+
+Stale service status requires a restart of the cluster.
+
+### Ozone client config issue while deploying Kerberos
+
+A known issue. It appears that you might have a proxy set up for the Administration Console. Specify the proxy URL as the Frontend URL, or disable the **HTTP Referer Check** option.
+
+### Ranger and Atlas not running
+
+Due to a Kafka issue and a Solr issue — fix those first, below.
+
+### Solr error
+
+Initialize Solr and create the HDFS home dir from **Actions**, then start the service. That will fix the issue.
+
+### Kafka error (dependency order)
+
+Kafka and Solr depend on Ozone (and Solr depends on Kafka as well) — install Ozone first.
+
+### Tez error
+
+In Cloudera Manager: **Tez > Actions > Upload Tez file to HDFS**, then **Hive > Actions > Create Hive dir**.
+
+### YARN Queue Manager error
+
+The Queue Manager store directory is missing or owned by the wrong account:
+
+```bash
+[root@pvcbase-master ~]# sudo mkdir /var/lib/hadoop-yarn/
+[root@pvcbase-master ~]# sudo chmod +077 /var/lib/hadoop-yarn/
+[root@pvcbase-master ~]# sudo chown yarn:hadoop /var/lib/hadoop-yarn/
+```
+
+### Kafka error (stale cluster id)
+
+**Solution.** Delete `/var/local/kafka/data/meta.properties`. This file pins the broker to a cluster id from the previous install; removing it lets the broker rejoin the new cluster.
+
+### Enable the Thrift server for HBase and Hue
+
+```text
+set wal property codec-hbase
+```
+
+### HBase master bad health
+
+The problem lies in the Cloudera Management Monitor service, not in HBase itself. Restart the Cloudera Management Monitor service, then restart HBase. After that everything should be fine.
+
+### Ozone error: "Could not find or is not a file"
+
+Make sure that `hdfs_service` is enabled in the Ozone configuration. With this enabled, the Cloudera Manager agent will put `core-site.xml` into the process directory and the error will be gone. Clean up the Ozone directories before redeployment.
+
+### HDDS error in Ozone
+
+```bash
+[root@pvcbase-master ~]# systemctl restart cloudera-scm-supervisord
+```
+
+### Ozone datanodes fail to start
+
+**Solution.** Perform a proper cleanup on the NameNode and the DataNodes.
+
+```bash
+[root@pvcbase-master ~]# rm -rvf /hdfs/*had*oz* /var/lib/had*oz* /etc/had*oz*
+```
+
+### Resetting the Ranger admin password in PostgreSQL
+
+Ranger stores the admin password as an MD5 hash in `x_portal_user`. Generate the hash for the password you want, then update the row directly. Verify first that you can reach PostgreSQL over TLS at all:
+
+```text
+[root@pvcbase-master ~]# sudo -u postgres psql -U postgres -p 5432 -h $(hostname)
+Password for user postgres:
+psql (17.11)
+SSL connection (protocol: TLSv1.2, cipher: ECDHE-RSA-AES256-GCM-SHA384, bits: 256, compression: off)
+Type "help" for help.
+
+postgres=# \q
+
+[root@pvcbasemaster data]# echo -n 'Sahu@123{admin}' | md5sum
+c94251c29cd07ed2daf0b6edcf843362  -
+```
+
+Then update the row and read it back:
+
+```text
+[root@pvcbasemaster data]# sudo -u postgres psql -U postgres -p 5432 -h $(hostname)
+Password for user postgres:
+psql (17.11)
+SSL connection (protocol: TLSv1.2, cipher: ECDHE-RSA-AES256-GCM-SHA384, bits: 256, compression: off)
+Type "help" for help.
+
+postgres=# \c ranger
+SSL connection (protocol: TLSv1.2, cipher: ECDHE-RSA-AES256-GCM-SHA384, bits: 256, compression: off)
+You are now connected to database "ranger" as user "postgres".
+ranger=# update x_portal_user set password = '9746e519adb14ec3ffbf4aff051f104d' where login_id = 'admin';
+UPDATE 1
+ranger=# select * from x_portal_user where login_id = 'admin';
+  id |        create_time         |       update_time       | added_by_id | upd_by_id | first_name | last_name | pub_scr_name | login_id | password | email | status | user_src | notes | other_attributes | sync_source | old_passwords | password_updated_time
+   1 | 2024-03-17 12:15:27.272988 | 2024-03-17 19:15:43.854 |             |           | Admin      |           | Admin        | admin    | c94251c29cd07ed2daf0b6edcf843362 |       |      1 |        0 |       |                  |             |               |
+(1 row)
+ranger=# \q
+```
+
+Finally, confirm the Ranger service account itself can connect:
+
+```text
+[root@pvcbasemaster data]# sudo -u postgres psql -U rangeradmin -p 5432 -d ranger -h $(hostname)
+Password for user rangeradmin:
+psql (17.11)
+SSL connection (protocol: TLSv1.2, cipher: ECDHE-RSA-AES256-GCM-SHA384, bits: 256, compression: off)
+Type "help" for help.
+ranger=> \q
+```
+
+The hash written by the `update` (`9746e5…`) is not the hash printed by `md5sum` above (`c94251…`), and the `select` afterwards shows the row still holding `c94251…`. The two snippets come from different runs; generate your own hash with `md5sum` and use that value in the `update`.
+
+The password `Sahu@123{admin}` is the guide's lab value, transcribed verbatim. It is not a credential to reuse.
+
+### Ranger log and PostgreSQL TLS errors
+
+Follow the Ranger admin access log while reproducing:
+
+```bash
+[root@pvcbase-master ~]# tail -f /var/log/ranger/admin/access_log-pvcbasemaster.cldrsetup.local-2024-03-21.log
+```
+
+Handshakes dropped at the PostgreSQL end look like this:
+
+```text
+2024-03-19 23:59:28.861 PDT [7434] LOG:  could not accept SSL connection: EOF detected
+2024-03-19 23:59:28.861 PDT [7427] LOG:  could not accept SSL connection: EOF detected
+2024-03-19 23:59:28.861 PDT [7539] LOG:  could not accept SSL connection: EOF detected
+```
+
+And a missing root certificate looks like this:
+
+```text
+Caused by: java.io.FileNotFoundException: /var/lib/cloudera-scm-server/.postgresql/root.crt (Permission denied)
+```
+
+**Solution.** The Ranger UI SSL issue was a permissions problem on the `cloudera-scm-server` directory where `root.crt` was stored.
+
+### PostgreSQL connection limit exceeded
+
+Ranger surfaces this as an authentication filter failure, but the cause is the database refusing new connections:
+
+```text
+Operation error. response=VXResponse={org.apache.ranger.view.VXResponse@2ca9483cstatusCode={1}
+msgDesc={RangerKRBAuthenticationFilter Failed : Exception [EclipseLink-4002] (Eclipse Persistence
+Services - 2.7.7.v20200504-69f2c2b80d): org.eclipse.persistence.exceptions.DatabaseException
+Internal Exception: java.sql.SQLException: Connections could not be acquired from the underlying
+database!
+Error Code: 0} messageList={null} }
+javax.ws.rs.WebApplicationException
+     at org.apache.ranger.common.RESTErrorUtil.createRESTException(RESTErrorUtil.java:56)
+```
+
+The connection pool says the same thing more plainly:
+
+```text
+2024-03-19 00:55:23,767 WARN
+C3P0PooledConnectionPoolManager[identityToken->1bqot7nb2ns2s4q1pyen82|14b0e127]-HelperThread-#0:com
+.mchange.v2.resourcepool.BasicResourcePool:
+com.mchange.v2.resourcepool.BasicResourcePool$ScatteredAcquireTask@1ab83b08 -- Acquisition Attempt
+Failed!!! Clearing pending acquires. While trying to acquire a needed new resource, we failed to
+succeed more than the maximum number of allowed acquisition attempts (5). Last acquisition attempt
+exception:
+org.postgresql.util.PSQLException: FATAL: sorry, too many clients already
+        at
+org.postgresql.core.v3.ConnectionFactoryImpl.doAuthentication(ConnectionFactoryImpl.java:698)
+```
+
+```text
+## standard_conforming_strings=off
+2024-03-19 23:16:26.279 PDT [26314] WARNING: nonstandard use of escape in a string literal at
+character 261
+2024-03-19 23:16:26.279 PDT [26314] HINT: Use the escape string syntax for escapes, e.g., E'\r\n'.
+2024-03-19 23:16:33.719 PDT [24593] FATAL: sorry, too many clients already
+```
+
+**Solution.** Increase `max_connections` to 1000 in the `postgresql.conf` file.
+
+### Atlas: "Can not find the specified config set: vertex_index"
+
+```text
+2024-03-26 03:35:19,203 ERROR - [main:] ~ GraphBackedSearchIndexer.initialize() failed
+(GraphBackedSearchIndexer:386)
+org.apache.solr.client.solrj.impl.HttpSolrClient$RemoteSolrException: Error from server at
+https://pvcbasemaster.cldrsetup.local:8995/solr: Can not find the specified config set:
+vertex_index
+```
+
+**Solution.** Stop Atlas, initialize Atlas, then start Atlas. Reference: [https://community.cloudera.com/t5/Support-Questions/atlas-webui-is-not-accessible/td-p/324743](https://community.cloudera.com/t5/Support-Questions/atlas-webui-is-not-accessible/td-p/324743)
+
+### Solr and ZooKeeper client access
+
+```bash
+[root@pvcbase-master ~]# klist -kt /run/cloudera-scm-agent/process/1546342867-SolrServerGracefulShutDown/solr.keytab
+[root@pvcbase-master ~]# kinit -kt /run/cloudera-scm-agent/process/1546342867-SolrServerGracefulShutDown/solr.keytab solr/pvcbasemaster.cldrsetup.local@CLDRSETUP.LOCAL
+[root@pvcbase-master ~]# /opt/cloudera/parcels/CDH/bin/zookeeper-client
+```
+
+### Charts not showing
+
+Install the Cloudera Management Service. The agent's supervisor log is at:
+
+```text
+logfile=/var/log/cloudera-scm-agent/supervisord.log
+```
+
+### NullPointerException while starting ZooKeeper
+
+```text
+Failed due to com.cloudera.cmf.command.CmdExecException: java.lang.NullPointerException
+```
+
+**Solution.** ZooKeeper instances should be 3.
+
+![Cloudera Manager First Run Command page showing the failed step tree, with Start ZooKeeper failing due to java.lang.NullPointerException](/images/cdp-7-3-2/error-handling/zookeeper-nullpointerexception-first-run-command.png)
+
+### Solr error: missing Ozone filesystem JAR
+
+```text
+java.nio.file.NoSuchFileException:
+/opt/cloudera/parcels/CDH-7.3.2-1.cdh7.3.2.p1032.62597146/lib/solr/server/solr-webapp/webapp/WEB-INF/lib/ozone-filesystem-hadoop3-1.4.0.7.3.2.1032-3.jar
+```
+
+**Solution.** Find the correct GBN specific to the CDH version installed. URL for the JAR file:
+
+```text
+https://cloudera-build-us-west-1.vpc.cloudera.com/s3/build/52717809/cdh/7.x/maven-repository/org/[…]6/ozone-filesystem-hadoop3-1.4.0.7.3.2.1-246.jar
+```
+
+The URL is elided in the source (`[…]`) and points at an internal Cloudera build host that is not reachable from a customer network. Treat it as an indication of *which* artefact is missing, not as a download link.
+
+### YARN error: MapReduce framework JARs
+
+```text
+Failed to execute command Install YARN MapReduce Framework JARs on service YARN
+```
+
+**Solution.** Find the correct GBN specific to the CDH version installed.
+
+### Ranger admin UI not opening
+
+**Solution.** The issue is with time synchronization — run `chronyc -a makestep` to sync the time.
+
+### Atlas and Knox UI login failures
+
+**Solution.** You need to update permissions in order to access the Atlas and Knox UIs with the default PAM authentication enabled:
+
+```bash
+chmod 444 /etc/shadow
+```
+
+World-readable `/etc/shadow` exposes every local password hash on the host. This is the guide's lab workaround; on any real deployment, configure PAM or LDAP authentication properly instead.
+
+Important links:
+
+- [https://community.cloudera.com/t5/Support-Questions/atlas-webui-is-not-accessible/td-p/324743](https://community.cloudera.com/t5/Support-Questions/atlas-webui-is-not-accessible/td-p/324743)
+- [https://community.cloudera.com/t5/Support-Questions/how-to-change-default-Atlas-UI-admin-password/td-p/177312](https://community.cloudera.com/t5/Support-Questions/how-to-change-default-Atlas-UI-admin-password/td-p/177312)
+- [https://community.cloudera.com/t5/Support-Questions/Knox-authentication-with-PAM/m-p/339556](https://community.cloudera.com/t5/Support-Questions/Knox-authentication-with-PAM/m-p/339556)
+
+## Data Services (ECS) cluster error handling
+
+The guide's references for this section:
+
+- [https://spacelift.io/blog/kubectl-port-forward](https://spacelift.io/blog/kubectl-port-forward)
+- [https://docs.cloudera.com/cdp-private-cloud-data-services/1.5.5/day-two-operations/cdppvc-data-services-day-two-operations.pdf](https://docs.cloudera.com/cdp-private-cloud-data-services/1.5.5/day-two-operations/cdppvc-data-services-day-two-operations.pdf)
+- [https://docs.cloudera.com/cdp-private-cloud-data-services/1.5.5/managing-ecs/topics/cm-manage-experiences-compute-service.html](https://docs.cloudera.com/cdp-private-cloud-data-services/1.5.5/managing-ecs/topics/cm-manage-experiences-compute-service.html)
+- [https://docs.cloudera.com/documentation/other/reference-architecture/PDF/cloudera_ref_arch_cdp_dc.pdf](https://docs.cloudera.com/documentation/other/reference-architecture/PDF/cloudera_ref_arch_cdp_dc.pdf)
+- [https://docs.cloudera.com/cdp-private-cloud-data-services/1.5.5/upgrade-ocp/topics/cdppvc-installation-update-pvc-ds.html](https://docs.cloudera.com/cdp-private-cloud-data-services/1.5.5/upgrade-ocp/topics/cdppvc-installation-update-pvc-ds.html)
+
+### `kubectl` cannot reach the API server
+
+```text
+Could not get current server API group list: Get "http://localhost:8080/api?timeout=32s": dial tcp 127.0.0.1:8080: connect: connection refused
+```
+
+Port 8080 and no TLS means `kubectl` found no kubeconfig at all and fell back to its default. Copy the RKE2 kubeconfig into place, and put the RKE2 binary directory on your `PATH`.
+
+**Solution.** kubeconfig error.
+
+```text
+[root@pvcecs-master ~]# journalctl -xeu kubelet
+[root@pvcecs-master ~]# mkdir -p ~/.kube && cp /etc/rancher/rke2/rke2.yaml ~/.kube/config
+[root@pvcecs-master ~]# mkdir -p ~/.kube && cp /etc/rancher/rke2/rke2.yaml ~/.kube/config
+[root@pvcecs-master ~]# kubectl get pods
+-bash: kubectl: command not found
+[root@pvcecs-master ~]# export PATH=/var/lib/rancher/rke2/data/v1.26.10-rke2r1-e58e49f33617/bin/:$PATH
+[root@pvcecs-master ~]# kubectl get pods
+No resources found in the default namespace.
+[root@pvcecs-master ~]# kubectl get all
+NAME                  TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+service/kubernetes    ClusterIP   10.43.0.1    <none>        443/TCP   13h
+[root@pvcecs-master ~]#
+```
+
+### Dashboard token: the documented command returns nothing
+
+The `sa/admin-user` service account no longer carries a `secrets[0]` reference on this Kubernetes version:
+
+```bash
+kubectl -n kubernetes-dashboard get sa/admin-user -o 'jsonpath={.secrets[0].name}'
+```
+
+**Solution.** Read the secret by name instead:
+
+```bash
+kubectl -n kubernetes-dashboard get secret/admin-user-secret  -o 'jsonpath={.metadata.name}'
+(working)
+```
+
+### Dashboard token: `base64decode` template error
+
+Without naming the secret, the template runs against a list and `base64decode` gets a non-string:
+
+```text
++ /var/lib/rancher/rke2/bin/kubectl --kubeconfig /etc/rancher/rke2/rke2.yaml -n
+kubernetes-dashboard get secret -o 'go-template={{.data.token | base64decode}}'
+error: error executing template "{{.data.token | base64decode}}": template: output:1:16: executing
+"output" at <base64decode>: invalid value; expected string
+```
+
+**Solution.**
+
+```bash
+kubectl get secret -n kubernetes-dashboard admin-user-secret -o 'go-template={{.data.token | base64decode}}' (working command)
+```
+
+### `INSTALLATION FAILED: cannot re-use a name that is still in use`
+
+The Helm release for the Kubernetes dashboard already exists from a previous attempt:
+
+```text
+Error: INSTALLATION FAILED: cannot re-use a name that is still in use
+++ K8S_DASHBOARD_CHART_FILE_NAME=kubernetes-dashboard-5.10.0.tgz
+++
+/opt/cloudera/parcels/ECS-1.5.5-b238-ecs-1.5.5-b238.p0.50802651/kubernetes-dashboard/../installer/install/bin/linux/helm install kubernetes-dashboard
+/opt/cloudera/parcels/ECS-1.5.5-b238-ecs-1.5.5-b238.p0.50802651/kubernetes-dashboard/kubernetes-dashboard-5.10.0.tgz -n kubernetes-dashboard --create-namespace -f
+/opt/cloudera/parcels/ECS-1.5.5-b238-ecs-1.5.5-b238.p0.50802651/kubernetes-dashboard/kubernetes-dashboard-overrides.yaml
+```
+
+**Solution.** Delete the namespace and let the installer recreate it:
+
+```bash
+kubectl delete ns kubernetes-dashboard
+```
+
+If deleting the namespace alone does not clear it, delete the running pod first, then the namespace:
+
+```text
+[root@pvcecs-master ~]# k get pods -A|grep dashboard
+kubernetes-dashboard    kubernetes-dashboard-68876b7cb8-fl58c                   1/1     Running   0             4m13s
+[root@pvcecsmaster ~]# k delete pod kubernetes-dashboard
+Error from server (NotFound): pods "kubernetes-dashboard" not found
+[root@pvcecsmaster ~]# k delete pod kubernetes-dashboard-68876b7cb8-fl58c -n kubernetes-dashboard
+pod "kubernetes-dashboard-68876b7cb8-fl58c" deleted
+[root@pvcecsmaster ~]#
+[root@pvcecsmaster ~]# k delete ns kubernetes-dashboard
+```
+
+The first `delete pod` fails because the pod name carries the ReplicaSet hash — you have to name the pod exactly, and pass `-n kubernetes-dashboard`.
+
+### Miscellaneous ECS prerequisites
+
+- Install Python 3.8 for ECS.
+- Always mount the correct volumes in the configuration, created previously.
+- Bootstrap error with `kubectl` — remove the `/var/lib/rancher` directory.
+- The kubelet log lives at `/var/lib/rancher/rke2/agent/logs/kubelet.log`.
+
+### `x509: certificate signed by unknown authority`
+
+```text
+[root@pvcecsmaster ~]# kubectl get pods
+Unable to connect to the server: tls: failed to verify certificate: x509: certificate signed by unknown authority
+```
+
+**Solution.** After a proper cleanup and reinstall the issue will be solved.
+
+```text
+[root@pvcecs-master ~]# mkdir -p ~/.kube
+[root@pvcecsmaster opt]# cp /etc/rancher/rke2/rke2.yaml ~/.kube/config
+cp: overwrite '/root/.kube/config'? Yes
+
+[root@pvcecsmaster opt]# /var/lib/rancher/rke2/data/v1.26.10-rke2r1-e58e49f33617/bin/kubectl get nodes
+NAME                         STATUS   ROLES                        AGE     VERSION
+pvcecsmaster.cldrsetup.local    Ready    control-plane,etcd,master     61s    v1.26.10+rke2r1
+[root@pvcecsmaster opt]# cp /tmp/ecs_util.sh /opt/cloudera/cm-agent/service/ecs/ecs_util.sh
+```
+
+Cleanup was not done properly; after a proper cleanup by script, it started running.
+
+### Environment creation fails to resolve the console hostname
+
+```text
+[root@pvcecs-master ~]# k logs cli-v2m7w -n cdp
+
+HTTPSConnectionPool(host='console-cdp.apps.cldrsetup.local', port=443): Max retries exceeded with
+url: /api/v1/environments2/createPrivateEnvironment (Caused by
+NameResolutionError("<cdpcli.cdprequest.CdpHTTPSConnection object at 0x7fbb901047f0>: Failed to
+resolve 'console-cdp.apps.cldrsetup.local' ([Errno -2] Name or service not known)"))
+```
+
+**Solution.** Make sure to set up wildcard DNS in advance, before proceeding with the ECS setup steps. Wildcard DNS was not set up properly — before proceeding with the ECS installation, set up the wildcard DNS.
+
+Map the Docker dependency if the `localhost:6443` apiserver error comes up in ECS.
+
+### Bootstrap error: etcd token mismatch
+
+```text
+[time="2024-03-19T11:10:29-07:00" level=fatal msg="Failed to reconcile with temporary etcd: bootstrap data already found and encrypted with different token"
+```
+
+**Solution.** Cleanup was not done properly. See [Cluster Cleanup](/installations/cdp-7-3-2/cleanup) — the RKE2 state under `/var/lib/rancher` survived the previous teardown.
+
+### Embedded Vault initialization fails
+
+```text
+failed to create secret namespaces "istio-ingress" not found
+Error from server (NotFound): pods "vault-0" not found
+
+Warning: deleting cluster-scoped resources, not scoped to the provided namespace
+++ kubectl delete secret ingress-default-cert -n kube-system
+++ kubectl delete secret ingress-default-cert -n istio-ingress
+Error from server (NotFound): secrets "ingress-default-cert" not found
+++ exit_code=1
+++ kubectl delete namespace vault-system
+++ kubectl create namespace vault-system
+++ kubectl apply -f /opt/cloudera/parcels/ECS-1.5.5-b82-ecs-1.5.5-b82.p0.65068258/vault/vault.yaml
+Warning: Detected changes to resource vault which is currently being deleted.
+++ TMPDIR=logs
+++ openssl genrsa -out logs/vault.key 2048
+++ cat /opt/cloudera/parcels/ECS-1.5.5-b82-ecs-1.5.5-b82.p0.65068258/vault/csr.conf
+++ envsubst
+++ openssl req -new -key logs/vault.key -subj
+'/CN=system:node:vault.vault-system.svc;/O=system:nodes' -out logs/server.csr -config logs/csr.conf
+++ cat
++++ cat logs/server.csr
++++ base64
++++ tr -d '\n'
+++ kubectl create -f logs/csr.yaml
+++ kubectl certificate approve vault-csr
+++ '[' -z ']'
+++ sleep 1
++++ kubectl get csr vault-csr -o 'jsonpath={.status.certificate}'
+```
+
+**Solution.** Manually create the `istio-ingress` namespace with the command below. Once it becomes active, delete the `vault-0` pod in the terminating state, then simply resume the installation process again from the UI, and it should proceed correctly from that point.
+
+```bash
+create ns istio-ingress
+```
+
+### CDW environment will not activate
+
+```text
+failed to create secret namespaces "istio-ingress" not found
+Error from server (NotFound): pods "vault-0" not found
+
+unable to create cluster initial state: unable to create the CDW resource pool: non-retriable
+error: failed to update the resource pool 'root.cdp-env-1.cdw', because: 'Request type:
+'UpdateResourcePool', state: 'FAILED', last updated: '2025-04-21T07:35:46.134Z', finished: 'true',
+error: 'policy violation: child quota larger than parent quota'', request ID:
+'rp-req-e235fed3-757b-4cb9-91ad-f4570d1e2a25'
+```
+
+**Solution.** There was some issue with the CDW environment due to which it was not getting activated. The workaround was to create another environment to activate the CDW service, and it worked.
+
+```bash
+kubectl get po -A|grep access
+kubectl delete pod -n cdp cdp-release-cluster-access-manager-67c7b5d8cc-5gcrh
+kubectl get po -A|grep pool
+kubectl delete pod -n cdp cdp-release-resource-pool-manager-7dd8c84569-42d6c
+```
+
+### Resource Pool Manager fails to start after an upgrade
+
+```text
+{"level":"ERROR","timestamp":"2025-04-29T10:09:01.448Z","caller":"cam/driver.go:265","message":"Error updating queueConfig","grpc error":"rpc error: code = InvalidArgument desc = queue config update failed"}
+...
+"pool manager startup failure","error":"cam operation failed, returned state 'UNSET', info: '', grpc error: rpc error: code = InvalidArgument desc = queue config update failed"
+```
+
+**Solution.** This issue was observed in the monitoring namespace under CDW. It can be resolved by restarting the Cluster Access Manager followed by the Resource Pool Manager services, in that sequence.
+
+### Vault pod not running — upgrade process stuck
+
+```text
+Vault pod not in running state.
+Upgrade checks hanging on "Vault unseal".
+```
+
+**Solution.** The Vault pod was sealed due to node issues during the earlier stages of the upgrade. Manually unseal it using the command below, then verify the pod status before continuing with the upgrade.
+
+```bash
+vault operator unseal
+```
+
+### Upgrade hook job stuck — pod deleted but not recreated
+
+```text
+kubectl get job cdp-release-pre-upgrade-hook-job1 -n cdp
+NAME                                STATUS    COMPLETIONS   DURATION   AGE
+cdp-release-pre-upgrade-hook-job1   Running   0/1           12s        12s
+```
+
+**Solution.** If the pod was deleted, manually reapply the job YAML. Monitor the job's progress or troubleshoot it with the command below. If necessary, delete and recreate the job.
+
+```bash
+kubectl logs job/cdp-release-pre-upgrade-hook-job1 -n cdp
+```
+
+Commands to delete and recreate the job:
+
+```bash
+kubectl get job -A | grep cdp-release-pre-upgrade-hook
+kubectl get job -o yaml -n cdp cdp-release-pre-upgrade-hook-job1 > upgrade.yml
+cat upgrade.yml
+kubectl get job -A | grep cdp-release-pre-upgrade-hook
+kubectl delete job cdp-release-pre-upgrade-hook-job1 -n cdp
+kubectl get job -A | grep cdp-release-pre-upgrade-hook
+kubectl apply -f upgrade.yml -n cdp
+```
+
+### CDW Data Catalog creation fails on a certificate
+
+```text
+Initializing the schema to: 3.1.3000.2025.0.19.1-49
+Metastore connection URL:
+jdbc:postgresql://postgres-service-default-warehouse:5432/hive?createDatabaseIfNotExist=true&sslmode=verify-ca&sslrootcert=/mnt/certs/hms-root.crt
+Metastore connection Driver: org.postgresql.Driver
+Metastore connection User: hive
+Failed to get schema version.
+Underlying cause: org.postgresql.util.PSQLException : SSL error: PKIX path building failed:
+sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path
+to requested target
+
+│ warehouse-cldrsetup                  metastore-0                    ●   0/1                     Init:0/4                    0   0      0
+0     n/a       0                      0 n/a    pvcecs-worker10.cldrsetup.local                     20s          │
+```
+
+**Solution.** The CDW Data Catalog creation failed due to a certificate validation error between the Hive metastore and the PostgreSQL backend. This was caused by an invalid or missing truststore certificate (`hms-root.crt`). To fix this, extract the correct certificate, validate it, and reapply the secret before restarting the metastore pod.
+
+```bash
+# Backup current file if needed
+kubectl get secret pg-hms-db-certs -n warehouse-cldrsetup -o yaml > pg-hms-db-certs-backup.yaml
+
+# Recreate the secret with the expected key
+kubectl delete secret pg-hms-db-certs -n warehouse-cldrsetup
+
+kubectl create secret generic pg-hms-db-certs \
+  --from-file=TRUSTSTORE_PEM=root.crt \
+  -n warehouse-cldrsetup
+```
+
+### Websocket connection failed
+
+```text
+livelog.ml-94961167-848.apps.ntnxlab.local
+```
+
+**Solution.** Right-click on the page and select **Inspect**. Go to the **Network** tab, look for the `livelog` request, and add the corresponding livelog URL as an entry in the `/etc/hosts` file.
+
+This hostname ends `apps.ntnxlab.local` rather than `apps.cldrsetup.local` — it is captured from a different lab build than the rest of the guide. Substitute your own wildcard DNS domain.
