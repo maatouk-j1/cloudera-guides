@@ -1,0 +1,38 @@
+---
+title: Glossary of Terms
+topicTitle: Appendix
+topicSlug: cdp-7-3-2/appendix
+summary: Appendix B - seventeen terms used in this document, from Ansible and IaC through to Terraform, each with an upstream reference.
+prevTitle: References Used in Guide
+prevSlug: /installations/cdp-7-3-2/appendix/references
+nextTitle: Glossary of Acronyms
+nextSlug: /installations/cdp-7-3-2/appendix/glossary-acronyms
+---
+
+## Appendix B - Glossary of Terms
+
+This glossary addresses some terms used in this document, for the purposes of aiding understanding. This is not a complete list of all multi cloud terminology.
+
+| Term | Definition |
+|:--|:--|
+| **Ansible** | An infrastructure automation tool, used to implement processes for instantiating and configuring IT service components, such as VMs on an IaaS platform. Supports the consistent execution of processes defined in YAML "playbooks" at scale, across multiple targets. Because the Ansible artifacts (playbooks) are text-based, they can be stored in a Source Code Management (SCM) system, such as GitHub. This allows for software development like processes to be applied to infrastructure automation, such as, Infrastructure-as-code (see IaC below). [https://www.ansible.com](https://www.ansible.com) |
+| **AWS (Amazon Web Services)** | Provider of IaaS and PaaS. [https://aws.amazon.com](https://aws.amazon.com) |
+| **Azure** | Microsoft IaaS and PaaS. [https://azure.microsoft.com/en-gb/](https://azure.microsoft.com/en-gb/) |
+| **Containers (Docker)** | A (Docker) container is a means to create a package of code for an application and its dependencies, such that the application can run on different platforms which support the Docker environment. In the context of aaS, microservices are typically packaged within Linux containers orchestrated by Kubernetes (K8s). [https://www.docker.com](https://www.docker.com) — [https://www.cisco.com/c/en/us/products/cloud-systems-management/containerplatform/index.html](https://www.cisco.com/c/en/us/products/cloud-systems-management/containerplatform/index.html) |
+| **DevOps** | The underlying principle of DevOps is that the application development and operations teams should work closely together, ideally within the context of a toolchain that automates the stages of development, test, deployment, monitoring, and issue handling. DevOps is closely aligned with IaC, continuous integration and deployment (CI/CD), and Agile software development practices. [https://en.wikipedia.org/wiki/DevOps](https://en.wikipedia.org/wiki/DevOps) — [https://en.wikipedia.org/wiki/CI/CD](https://en.wikipedia.org/wiki/CI/CD) |
+| **IaaS (Infrastructure as-a-Service)** | Infrastructure components provided aaS, located in data centers operated by a provider, typically accessed over the public Internet. IaaS provides a base platform for the deployment of workloads, typically with containers and Kubernetes (K8s). |
+| **IaC (Infrastructure as-Code)** | Given the ability to automate aaS via APIs, the implementation of the automation is typically via Python code, Ansible playbooks, and similar. These automation artifacts are programming code that define how the services are consumed. As such, they can be subject to the same code management and software development regimes as any other body of code. This means that infrastructure automation can be subject to all of the quality and consistency benefits, CI/CD, traceability, automated testing, compliance checking, and so on, that could be applied to any coding project. [https://en.wikipedia.org/wiki/Infrastructure_as_code](https://en.wikipedia.org/wiki/Infrastructure_as_code) |
+| **IAM (Identity and Access Management)** | IAM is the means to control access to IT resources so that only those explicitly authorized to access given resources can do so. IAM is an essential foundation to a secure multi cloud environment. [https://en.wikipedia.org/wiki/Identity_management](https://en.wikipedia.org/wiki/Identity_management) |
+| **GCP (Google Cloud Platform)** | Google IaaS and PaaS. [https://cloud.google.com/gcp](https://cloud.google.com/gcp) |
+| **Kubernetes (K8s)** | Kubernetes is an open-source system for automating deployment, scaling, and management of containerized applications. [https://kubernetes.io](https://kubernetes.io) |
+| **Microservices** | A microservices architecture is characterized by processes implementing fine-grained services, typically exposed via REST APIs and which can be composed into systems. The processes are often container-based, and the instantiation of the services is often managed with Kubernetes. Microservices managed in this way are intrinsically well suited for deployment into IaaS environments, and as such, are the basis of a cloud native architecture. [https://en.wikipedia.org/wiki/Microservices](https://en.wikipedia.org/wiki/Microservices) |
+| **PaaS (Platform-as-a-Service)** | PaaS is a layer of value-add services, typically for application development, deployment, monitoring, and general lifecycle management. The use of IaC with IaaS and PaaS is very closely associated with DevOps practices. |
+| **Private on-premises data center** | A data center infrastructure housed within an environment owned by a given enterprise is distinguished from other forms of data center, with the implication that the private data center is more secure, given that access is restricted to those authorized by the enterprise. Thus, circumstances can arise where very sensitive IT assets are only deployed in a private data center, in contrast to using public IaaS. For many intents and purposes, the underlying technology can be identical, allowing for hybrid deployments where some IT assets are privately deployed but also accessible to other assets in public IaaS. IAM, VPNs, firewalls, and similar are key technologies needed to underpin the security of such an arrangement. |
+| **REST API** | Representational State Transfer (REST) APIs is a generic term for APIs accessed over HTTP(S), typically transporting data encoded in JSON or XML. REST APIs have the advantage that they support distributed systems, communicating over HTTP, which is a well-understood protocol from a security management perspective. REST APIs are another element of a cloud-native applications architecture, alongside microservices. [https://en.wikipedia.org/wiki/Representational_state_transfer](https://en.wikipedia.org/wiki/Representational_state_transfer) |
+| **SaaS (Software-as-a-Service)** | End-user applications provided "aaS" over the public Internet, with the underlying software systems and infrastructure owned and managed by the provider. |
+| **SAML (Security Assertion Markup Language)** | Used in the context of Single-Sign-On (SSO) for exchanging authentication and authorization data between an identity provider, typically an IAM system, and a service provider (some form of SaaS). The SAML protocol exchanges XML documents that contain security assertions used by the aaS for access control decisions. [https://en.wikipedia.org/wiki/Security_Assertion_Markup_Language](https://en.wikipedia.org/wiki/Security_Assertion_Markup_Language) |
+| **Terraform** | An open-source IaC software tool for cloud services, based on declarative configuration files. [https://www.terraform.io](https://www.terraform.io) |
+
+## Note on the source
+
+Two term labels are clipped by the table cell in the source PDF and are reproduced here in full: `IAM (Identity and Access Managemen` and `SAML (Security Assertion Markup Language` both lose their closing characters in the original. The definitions themselves are transcribed verbatim.
