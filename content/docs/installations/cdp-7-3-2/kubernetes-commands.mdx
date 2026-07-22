@@ -1,0 +1,100 @@
+---
+title: Kubernetes Command Reference
+topicTitle: CDP 7.3.2
+topicSlug: cdp-7-3-2
+summary: The kubectl, helm and diagnostic commands used throughout this guide against the RKE2 cluster underneath ECS, including the shell aliases that put kubectl, helm and docker on your PATH.
+prevTitle: Error Handling
+prevSlug: /installations/cdp-7-3-2/error-handling
+nextTitle: Acknowledgements
+nextSlug: /installations/cdp-7-3-2/acknowledgements
+---
+
+ECS ships its own `kubectl`, `helm` and `docker` inside the parcel and the RKE2 data directory, so none of them are on your `PATH` by default. Set up the aliases first, then the rest of this page is the working set of commands used across the installation and the troubleshooting in [Error Handling](/installations/cdp-7-3-2/error-handling).
+
+## Shell aliases
+
+```bash
+export PATH=$PATH:/var/lib/rancher/rke2/bin
+echo "alias helm='/opt/cloudera/parcels/ECS-1.5.5-b238-ecs-1.5.5-b238.p0.50802651/installer/install/bin/linux/helm'" >> ~/.bashrc
+echo "alias docker='/opt/cloudera/parcels/ECS-1.5.5-b238-ecs-1.5.5-b238.p0.50802651/docker/docker'" >> ~/.bashrc
+echo "alias helm='/opt/cloudera/parcels/ECS-1.5.5-b238-ecs-1.5.5-b238.p0.50802651/installer/install/bin/linux/helm'" >> ~/.bashrc
+echo "alias kubectl="sudo -E /var/lib/rancher/rke2/data/v1.26.10-rke2r1-e58e49f33617/bin/kubectl --kubeconfig /etc/rancher/rke2/rke2.yaml'" >> ~/.bashrc
+alias k=kubectl
+. ~/.bashrc
+```
+
+Three things to fix before pasting this:
+
+- The `kubectl` line has mismatched quotes in the source — it opens with `"` and closes with `'`. Write it with matching single quotes inside the double-quoted `echo`, as the `helm` and `docker` lines do.
+- The `helm` alias is repeated; once is enough.
+- The parcel path pins the ECS build `1.5.5-b238-ecs-1.5.5-b238.p0.50802651` and the RKE2 data directory pins `v1.26.10-rke2r1-e58e49f33617`. Both change between builds — check the actual directory names under `/opt/cloudera/parcels/` and `/var/lib/rancher/rke2/data/` on your own hosts.
+
+## General resource inspection
+
+The first entry is the guide's shorthand, not a runnable line: pick one verb, one resource type, and one namespace scope.
+
+```bash
+kubectl   get|describe|delete|create
+all|pods|nodes|ns|namespaces|svc|service|pv|pvc|rb|rolebinding|sa|roles|csr|secret|hpa|netpol|statefulset|replicaset|crd              -n vault-system | -A
+kubectl get namespace vault-system -o json|yaml > tmp.json
+```
+
+## Enumerate everything in a namespace
+
+`kubectl get all` does not really get everything — it covers a small built-in set. To sweep every namespaced resource type, including custom resources, drive `kubectl get` from `api-resources`:
+
+```bash
+kubectl api-resources --namespaced=true -o name | xargs -n 1 kubectl get -n vault-system
+kubectl api-resources --verbs=list --namespaced -o name | xargs -n 1 kubectl get -n vault-system --kubeconfig /etc/rancher/rke2/rke2.yaml
+```
+
+Useful when a namespace refuses to terminate and you need to find what is still in it:
+
+```bash
+k delete ns vault-system --force
+```
+
+## Kubernetes dashboard
+
+```bash
+k get pods -A -o wide |grep dash
+k get sa kubernetes-dashboard -n kubernetes-dashboard -o yaml
+kubectl delete pods -n kube-system -l k8s-app=kube-dns
+kubectl port-forward deployment.apps/kubernetes-dashboard 8443:https -n kubernetes-dashboard
+kubectl port-forward deployment.apps/kubernetes-dashboard 8443:443 -n kubernetes-dashboard
+```
+
+## Logs, secrets and tokens
+
+```bash
+k logs -n cdp cdp-release-dssapp-6b5b68bcfd-b9rdd
+k apply -f secret.yaml
+k create token default
+```
+
+## Helm
+
+```bash
+helm list -n vault-system
+helm list -n kubernetes-dashboard
+helm list -A
+k get|delete|describe|edit helmcharts.helm.cattle.io     -n vault-system
+```
+
+Reinstall or upgrade the dashboard chart in place. The `--dry-run | grep admin` at the end renders the manifests without applying them, so you can check what the chart would create for the admin user:
+
+```bash
+helm upgrade --install kubernetes-dashboard /opt/cloudera/parcels/ECS-1.5.5-b238-ecs-1.5.5-b238.p0.50802651/kubernetes-dashboard/kubernetes-dashboard-5.10.0.tgz -n kubernetes-dashboard -f /opt/cloudera/parcels/ECS-1.5.5-b238-ecs-1.5.5-b238.p0.50802651/kubernetes-dashboard/kubernetes-dashboard-overrides.yaml --dry-run | grep admin
+find / -name kubernetes-dashboard*.tgz
+```
+
+## Host-level diagnostics
+
+```bash
+netstat -lntup|grep 6443
+openssl s_client -connect pvcbasemaster.cldrsetup.local:5432 -debug -msg
+cp /etc/rancher/rke2/rke2.yaml .kube/config
+envsubst
+```
+
+Port 6443 is the RKE2 API server; 5432 is the PostgreSQL backend on the Base cluster master, which the ECS-side services reach over TLS. `envsubst` appears on its own because the ECS installer uses it to expand variables into the Vault CSR configuration — see the Vault failure in [Error Handling](/installations/cdp-7-3-2/error-handling).

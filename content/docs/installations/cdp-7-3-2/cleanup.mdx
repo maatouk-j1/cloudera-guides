@@ -1,0 +1,185 @@
+---
+title: Cluster Cleanup
+topicTitle: CDP 7.3.2
+topicSlug: cdp-7-3-2
+summary: Tear down a failed deployment cleanly — uninstall Cloudera Manager and its PostgreSQL database, purge service directories and accounts on the Base cluster, then kill and uninstall RKE2, Docker and the iptables rules on every ECS host.
+prevTitle: Cluster Validation
+prevSlug: /installations/cdp-7-3-2/validation
+nextTitle: Error Handling
+nextSlug: /installations/cdp-7-3-2/error-handling
+---
+
+Use this section when an installation has failed and you cannot resolve the issue in place — the fastest route forward is usually a clean slate. Cleanup is also a prerequisite for several of the fixes in [Error Handling](/installations/cdp-7-3-2/error-handling): a surprising number of ECS bootstrap failures trace back to a *partial* teardown, where stale RKE2 state or leftover etcd tokens survive into the next install.
+
+<Banner type="warning">
+Every command on this page is destructive and irreversible. Run them only on hosts you intend to rebuild, and read each block before pasting it — several lines in the source are deliberately commented out because they are *not* meant to run in this topology.
+</Banner>
+
+## Cleanup the Base cluster
+
+Reference: [https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/cdp-private-cloud-base-installation/topics/cdpdc-uninstallation.html](https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/cdp-private-cloud-base-installation/topics/cdpdc-uninstallation.html)
+
+Work top-down, from the Cloudera Manager UI to the filesystem:
+
+1. **Stop all services** in Cloudera Manager.
+
+2. **Delete the cluster.** On the Home page, click the drop-down list next to the cluster you want to delete and select **Delete**.
+
+3. **Uninstall the Cloudera Manager Server.** Note that the PostgreSQL removal lines are commented out in the source: rather than dropping the database, the guide *moves* the data directory aside with a dated backup name, which is the safer choice if you may need to inspect it later.
+
+    ```bash
+    #### Cleanup DB
+    systemctl status cloudera-scm-server
+    #cd /etc/yum.repos.d
+    #rm -rvf cloudera-manager.repo
+    date
+    systemctl stop postgresql-17
+    #dnf remove -y postgresql-contrib postgresql-17-contrib postgresql-server postgresql-17-server
+    #userdel postgres
+
+    systemctl stop cloudera-scm-server cloudera-scm-agent cloudera-scm-server-db cloudera-manager-server-db
+    dnf remove -y cloudera-manager-daemons cloudera-manager-agent cloudera-manager-server cloudera-manager-server-db
+
+    systemctl daemon-reload
+    #rm -rvf /var/lib/pgsql/17/data/
+    mv -v /var/lib/pgsql/17/data/ /var/lib/pgsql/17/data_bkp_$(date +%Y%m%d)
+    ```
+
+4. **Clean up Cloudera Manager, the Base master and the worker nodes.** Run this on every Base cluster host. The `for` loop kills any process still running as a service account, `umount cm_processes` releases the tmpfs Cloudera Manager mounts for role process directories, and the final `rm -rvf` removes the parcels, configuration and agent state.
+
+    ```bash
+    ##### Cleanup CDP-CM, Base Master and Worker nodes
+    #/opt/cloudera/installer/uninstall-cloudera-manager.sh
+    systemctl stop cloudera-scm-server cloudera-scm-agent cloudera-scm-server-db supervisord;
+    dnf remove -y cloudera-manager-server cloudera-manager-server-db-2 cloudera-management-agent cloudera-management-daemon cloudera-manager-*; dnf clean all; systemctl daemon-reload;
+    for u in cloudera-scm* flume hadoop hdfs hbase hive httpfs hue impala llama mapred oozie solr spark sqoop sqoop2 yarn zookeeper; do sudo kill $(ps -u $u -o pid=); done
+    sudo umount cm_processes
+    sudo rm -rvf /usr/share/cmf /var/lib/cloudera* /var/cache/yum/cloudera* /var/log/cloudera* /var/run/cloudera* /etc/cloudera-scm-server /opt/cloudera /etc/cloudera-scm-agent /var/lib/cloudera-scm-agent/cm_guid*
+    ```
+
+5. **Purge the data and configuration directories.** The first block is prefixed `#do not run` in the source and is reproduced here only so you can see what it would have deleted — it removes the service state directories the guide chooses to keep. The second block is the one that runs.
+
+    ```bash
+    ##### Cleanup CDP-CM, Base Master and Worker nodes
+    #do not run #sudo rm -rvf /var/lib/flume-ng /var/lib/hadoop* /var/lib/hue /var/lib/hbase /var/lib/navigator /var/lib/oozie /var/lib/solr /var/lib/sqoop* /var/lib/zookeeper /hadoop-ozone /impala /var/lib/{*ranger*,*oozie*,*ozone*,*tez*,*spark*,*nifi*,*hadoop*,*hdfs*}
+
+    sudo rm -rvf /tmp/kafka-logs /tmp/.scm_prepare_node.lock /var/local/kafka/data/meta.properties /hdfs/* /dfs/* /hdfs/mapred/* /hdfs/yarn/* /var/lib/had*ozon* /yarn* /hadoop* /etc/{*atlas*,*hadoop*,*ranger*,hue,impala,knox,hbase,*hive*,hbase-solr,hadoop-kms,*ozone*,oozie,*kafka*,*zeppelin*,*spark*,sqoop*,schemaregistry,*solr*,hive-hcatalog,hive-webhcat,hue,*hbase*,*kudu*,*knox*,zookeeper,*tez*,streams*, *nifi*} /tmp/kafka-logs/* /var/lib/cloudera-scm-agent/cm_guid
+    ```
+
+    Deleting `/var/local/kafka/data/meta.properties` here is the same fix that appears standalone under **Kafka error** in [Error Handling](/installations/cdp-7-3-2/error-handling) — a stale Kafka cluster id is enough to stop a rebuilt broker from starting.
+
+6. **Remove the service accounts and groups.** Run this on all hosts, and only if you are doing an end-to-end cleanup that includes Cloudera Manager and the PostgreSQL database. `userdel -r` also removes each account's home directory.
+
+    ```bash
+    ##### Only If you are doing end-to-end cleanup, including cloudera-manager and postgres DB, run on all
+    for user in hdfs httpfs sqoop kafka yarn hbase streamsrepmgr streamsmsgmgr livy kms atlas schemaregistry hue zookeeper accumulo phoenix mapred druid ranger zeppelin oozie kudu knox superset solr hive cruisecontrol impala rangerraz ozone tez dpprofiler flume nifi nifiregistry nifitoolkit spark flink rangerrms omid hadoop kraft; do userdel -r "$user" 2>/dev/null; done
+
+    for group in hdfs hue httpfs sqoop kafka yarn hbase streamsrepmgr streamsmsgmgr livy kms atlas schemaregistry hue zookeeper accumulo phoenix mapred druid ranger zeppelin oozie kudu knox superset solr hive cruisecontrol impala rangerraz ozone tez dpprofiler flume nifi nifiregistry nifitoolkit spark flink rangerrms omid hadoop kraft; do groupdel "$group" 2>/dev/null; done
+    ```
+
+7. **Confirm the host is back to a bare OS** — Java and Python should still be present, since they come from the OS and not from Cloudera Manager.
+
+    ```bash
+    java -version
+    python3 -V
+    ```
+
+## Cleanup the Data Services (ECS) cluster
+
+Reference: [https://docs.cloudera.com/cdp-private-cloud-data-services/1.5.5/installation-ecs/topics/cdppvc-installation-ecs-uninstall-pvc.html](https://docs.cloudera.com/cdp-private-cloud-data-services/1.5.5/installation-ecs/topics/cdppvc-installation-ecs-uninstall-pvc.html)
+
+ECS cleanup has to be thorough. RKE2 keeps bootstrap state, an encrypted etcd token and a CNI configuration outside the parcel directory, and any one of them surviving will break the next install — the `bootstrap data already found and encrypted with different token` failure in [Error Handling](/installations/cdp-7-3-2/error-handling) is exactly this.
+
+### 1. Remove the embedded Docker registry
+
+Run on each host in the cluster:
+
+```bash
+# On each host in the cluster:
+/opt/cloudera/parcels/ECS/docker/docker container stop registry
+/opt/cloudera/parcels/ECS/docker/docker container rm -v registry
+/opt/cloudera/parcels/ECS/docker/docker image rm registry:2
+```
+
+### 2. Stop the ECS cluster in Cloudera Manager
+
+Do this from the Cloudera Manager UI before touching RKE2 on the hosts.
+
+### 3. Kill and uninstall RKE2, then purge its state
+
+Run on each host. `rke2-killall.sh` usually needs two passes before every container and mount is gone.
+
+```bash
+# On each host:
+cd /opt/cloudera/parcels/ECS/bin
+./rke2-killall.sh # usually 2 times is sufficient
+
+# Use umount to unmount all NFS disks.
+# umount /docker /lhdata /cdwdata #not needed in our case
+./rke2-uninstall.sh
+systemctl daemon-reload
+rm -rvf /ecs/* # assumes the default defaultDataPath and lsoDataPath
+rm -rvf /var/lib/docker_server/* # deletes the auth and certs
+rm -rvf /etc/docker/certs.d/ /etc/docker/* # delete the ca.crt
+rm -rvf /var/lib/docker/*
+rm -rvf /etc/rancher /var/lib/rancher /var/log/rancher /var/lib/rancher/k3s/server/node-token
+rm -rvf /run/k3s /opt/containerd /opt/cni
+rm -rvf /docker/* /lhdata/* /cdwdata/* /ecs/*
+rm -rvf ~/.kube ~/.cache
+systemctl daemon-reload
+```
+
+The `umount` line is commented out because this deployment uses local storage rather than NFS-backed mounts. If your `/docker`, `/lhdata` or `/cdwdata` paths are NFS mounts, unmount them before the `rm -rvf` lines — otherwise you delete data on the NFS server.
+
+### 4. Delete the ECS cluster in Cloudera Manager
+
+In Cloudera Manager, navigate to **Cloudera on premises Data Services** and click the actions menu, then **Delete**. The Delete Cluster wizard appears; click **Delete**.
+
+### 5. Reset iptables on each host
+
+RKE2 and its CNI leave a dense set of chains behind. This resets every table's built-in chains to `ACCEPT`, then flushes (`-F`) and deletes (`-X`) everything else.
+
+```bash
+#Clean IPtables on each host:
+echo "Reset iptables to ACCEPT all, then flush and delete all other chains";
+declare -A chains=( [filter]=INPUT:FORWARD:OUTPUT [raw]=PREROUTING:OUTPUT
+[mangle]=PREROUTING:INPUT:FORWARD:OUTPUT:POSTROUTING [security]=INPUT:FORWARD:OUTPUT
+[nat]=PREROUTING:INPUT:OUTPUT:POSTROUTING );
+for table in "${!chains[@]}";
+      do
+      echo "${chains[$table]}" | tr : $"\n" | while IFS= read -r;
+      do
+      sudo iptables -t "$table" -P "$REPLY" ACCEPT
+      done
+      sudo iptables -t "$table" -F
+      sudo iptables -t "$table" -X
+done
+iptables -F; iptables -L
+rm -rvf /etc/rancher /var/lib/rancher /var/log/rancher
+```
+
+### 6. Remove the Cloudera Manager agents (optional)
+
+Only if you are also removing the hosts from Cloudera Manager entirely:
+
+```bash
+# remove agents from all hosts in CM UI (Optional)
+systemctl stop cloudera-scm-agent
+dnf remove -y cloudera-manager-agent cloudera-manager-daemons
+rm -rvf /opt/cloudera/cm-agent/
+rm -rf /opt/cloudera/ /var/lib/cloudera-scm-agent
+
+# Remove the hosts from CM-UI
+```
+
+### A scripted alternative
+
+Alternatively, an experimental script is available. This script combines steps three through five. The script is available here: [https://github.com/cloudera-labs/snippets/blob/main/private-cloud/kill-2-rke.sh](https://github.com/cloudera-labs/snippets/blob/main/private-cloud/kill-2-rke.sh)
+
+### 7. Reboot and verify
+
+Reboot the host(s). Before you install ECS again, ensure that the IP tables list is empty by executing the following command:
+
+```bash
+iptables -L
+```
