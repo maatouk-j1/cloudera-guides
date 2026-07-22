@@ -1,0 +1,45 @@
+---
+title: Dedicating ECS Nodes for Specific Workloads (Optional)
+topicTitle: Install CDP Data Services using ECS
+topicSlug: cdp-7-3-2/ds/ecs
+summary: Use Cloudera Manager to dedicate ECS cluster nodes to specific workloads - GPU nodes for CAI and NVME nodes for CDW - either while creating a new cluster or on an existing one.
+prevTitle: Additional Steps for ECS Cluster Setup
+prevSlug: /installations/cdp-7-3-2/ds/ecs/additional-steps
+nextTitle: Accessing Cloudera
+nextSlug: /installations/cdp-7-3-2/accessing-cloudera
+---
+
+This section is **optional** - the guide marks it *"Optional, Skip this step"*.
+
+You use Cloudera Manager to dedicate Embedded Container Service (ECS) cluster nodes for specific workloads. You can dedicate GPU nodes for CAI workloads, and NVME nodes for CDW workloads.
+
+## Dedicating ECS nodes when creating a new cluster
+
+1. Check the ECS installation requirements.
+2. Add the new hosts to **Cloudera Manager**.
+3. In Cloudera Manager, click **Hosts > All Hosts**, then select one or more of the new ECS hosts.
+4. Click the **Configuration** tab, then use the **Search box** to locate the `node_taint` configuration property.
+5. Select **Dedicated GPU Node** to dedicate the node for **CAI** workloads, or select **Dedicated NVME node** to dedicate the node for **CDW** workloads. When either of these options are selected, no other workload pods will be allowed to run on the dedicated node.
+6. Click **Save Changes**.
+7. Repeat the previous steps to add the other ECS hosts to **Cloudera Manager** and assign workload types.
+8. Follow the ECS installation procedure. When you reach the **Specify Hosts** page in the installation wizard, the hosts you added to **Cloudera Manager** appear. Select the hosts, click **Continue**, then proceed through the rest of the installation wizard.
+9. After the installation is complete, the applicable workloads will only run on the specified dedicated nodes.
+
+![Hosts Configuration page filtered by node_taint, showing the Data Services: Restrict workloads types property with Dedicated GPU Node selected, the Edited status and a Reason for change reading Modified Data Services: Restrict workloads types, above a Save Changes button](/images/cdp-7-3-2/ds/ecs/specific-workloads/01-hosts-configuration-new-cluster.png)
+
+## Dedicating ECS nodes in an existing cluster
+
+1. Open the **Cloudera Manager Admin Console**.
+2. On the **Home page**, click the **ECS Cluster**.
+3. Click **Hosts**, select one or more of the ECS hosts, then click the **Configuration** tab.
+4. Click the **Configuration** tab, then use the **Search box** to locate the `node_taint` configuration property.
+5. Select **Dedicated GPU Node** to dedicate the node for **CAI** workloads, or select **Dedicated NVME node** to dedicate the node for **CDW** workloads. When either of these options are selected, no other workload pods will be allowed to run on the dedicated node.
+
+    ![Hosts Configuration page filtered by node_taint on an existing cluster, showing the Data Services: Restrict workloads types property with Dedicated GPU Node selected, the Edited status and a Reason for change reading Modified Data Services: Restrict workloads types, above a Save Changes button](/images/cdp-7-3-2/ds/ecs/specific-workloads/02-hosts-configuration-existing-cluster.png)
+
+6. Click **Save Changes**.
+7. Repeat the previous steps to assign workload types to the other ECS hosts.
+8. On the **ECS Cluster** landing page, click **Actions > Refresh Cluster**.
+9. After the Refresh is complete, click **Actions > Rolling Restart**.
+
+> **Note:** Both configuration captures are recycled from an older lab build - the Cloudera Manager sidebar reads version `7.11.3` against the `7.13.2.0` this guide installs. Read them for the `node_taint` procedure, not for the version shown.
