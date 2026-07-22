@@ -1,0 +1,225 @@
+---
+title: Cloudera Data Engineering (CDE)
+topicTitle: CDP 7.3.2
+topicSlug: cdp-7-3-2
+summary: Enable the CDE service on the ECS cluster, create a Virtual Cluster, initialize it with a self-signed certificate, and configure LDAP users with Kerberos keytabs so they can submit jobs.
+prevTitle: Cloudera Data Warehouse (CDW)
+prevSlug: /installations/cdp-7-3-2/cdw
+nextTitle: Appendix
+nextSlug: /installations/cdp-7-3-2/appendix
+---
+
+Cloudera Data Engineering (CDE) is the third data service to stand up on the Embedded Container Service (ECS) cluster. Enabling it runs in four stages: enable the CDE service itself, create a Virtual Cluster inside it, initialize that Virtual Cluster from the ECS master with a self-signed certificate, and finally push a Kerberos keytab for every LDAP user that needs to submit jobs.
+
+The guide points at the upstream reference [docs.cloudera.com/data-engineering/1.5.5/enable-data-engineering/topics/cde-private-cloud-add-cde-service.html](https://docs.cloudera.com/data-engineering/1.5.5/enable-data-engineering/topics/cde-private-cloud-add-cde-service.html).
+
+## CDP Base cluster requirements
+
+The **Cloudera Data Engineering (CDE)** service requires proper configuration of **Ozone** service in the Base cluster. Ensure that **Ozone** is running properly otherwise you will end up with issues while enabling CDE.
+
+## Enabling CDE Service
+
+1. From the **CDP console page**, click on **Data Engineering**.
+
+    ![Data Services tile grid showing Data Warehouse, Machine Learning and Data Engineering above a Data Management row of Replication Manager and Management Console, with the Data Engineering tile highlighted](/images/cdp-7-3-2/cde/01-data-services-tiles.png)
+
+2. This will open the **CDE home page**. Since this will be the first time you will be opening CDE, you will not see any virtual clusters. Click on **Administration** in the left pane.
+
+    ![CDE Home page reading Welcome and No Virtual Clusters are running!, with Create a Virtual Cluster and View Services buttons, and an arrow pointing at Administration in the left navigation pane](/images/cdp-7-3-2/cde/02-cde-home-no-virtual-clusters.png)
+
+3. Click on **+** icon as shown below which will allow you to **enable CDE service** post which you can **create Virtual Clusters**.
+
+    ![Toolbar showing a search icon beside a highlighted circular plus icon](/images/cdp-7-3-2/cde/03-enable-service-add-icon.png)
+
+4. On the **Enable a Service** page, enter the **values** as shown below and then click on **Enable**.
+
+    ![Administration / Enable a Service form with the Name field annotated cde-service-name, an Environment dropdown annotated choose the default environment, a Resource Quota section with the Resource Pool set to default and annotated keep default, Capacity sliders showing CPU 16 and Memory 48 GB, an empty NFS Storage Class field under Additional Configurations, an enabled Default Virtual Cluster toggle described as Create a Virtual Cluster by default once this CDE Service is running, and Cancel and Enable buttons with an arrow pointing at Enable](/images/cdp-7-3-2/cde/04-enable-a-service.png)
+
+    Please note that the cpu and memory config chosen here are **minimum values**. You can choose to increase it.
+
+5. This will take **approximately 30 mins** after which you will be able to see a **CDE service** on the **CDE** home page.
+
+    ![Administration page showing a Services panel with a count of 1 and a single card named default-cde on the default environment, marked Enabled with a green check](/images/cdp-7-3-2/cde/05-administration-cde-service-enabled.png)
+
+    (default **CDE** is the name given as an example. You will see as per the value you entered in the previous step.)
+
+6. The **CDE Home page** displays the status of the **CDE** service initialization. You can view logs for the service by clicking on the service **vertical ellipsis (three dots) menu**, and then clicking **View Logs**.
+
+    The guide follows this step with the reference `https://docs.cloudera.com/management-console/1.5.5/private-cloud-environments/topics/mc-private-cloud-environment-register-ui.html`.
+
+7. If you are unable to see the service, then the chances are that the default virtual cluster would not have been created properly. In this case, click on the **View Services** button and then you will be able to see the **CDE** service **enabled**.
+
+    ![CDE Home page reading Welcome and No Virtual Clusters are running!, with an arrow pointing at the View Services button beside Create a Virtual Cluster](/images/cdp-7-3-2/cde/06-home-view-services.png)
+
+## Create Virtual Cluster
+
+When you **enable CDE service**, by default a new **Virtual cluster with Spark2.4** will be created. If you have not enabled this option earlier, then you need to create a virtual cluster again.
+
+1. On the **CDE Home page**, click on the **+** icon next to **Virtual clusters** as shown below.
+
+    ![Virtual Clusters header bar with a count field and filter icon on the left and arrows pointing at the search and circular plus icons on the right](/images/cdp-7-3-2/cde/07-virtual-clusters-add.png)
+
+2. On the **Create a Virtual Cluster** page, enter the below values and click on **Create**.
+
+    - **Cluster Name**: Cluster Name should adhere to the below conditions.
+        - Begin with a letter
+        - Be between 3 and 30 characters (inclusive)
+        - Contain only alphanumeric characters and hyphens
+    - **Service**: Select the CDE service created earlier.
+    - **Spark Version**: Select the Spark version as per your requirement. If you need both **Spark2.4** and **Spark3.7**, you can create two virtual clusters provided you have sufficient resources.
+
+    ![Create a Virtual Cluster form with a required Cluster Name field, a required Service dropdown, and a Spark Version dropdown set to Spark 2.4.7 with its list open showing Spark 2.4.7 and Spark 3.2.1](/images/cdp-7-3-2/cde/08-create-virtual-cluster-form.png)
+
+    This will take approximately 20 minutes.
+
+> **Contradiction in the source:** the step text offers **Spark2.4** and **Spark3.7**, but the **Spark Version** dropdown in its own capture lists only **Spark 2.4.7** and **Spark 3.2.1** - there is no Spark 3.7. Pick the Spark 3.x version your CDE build actually offers in the dropdown.
+
+3. You can check the logs of the cluster creation by clicking on the **pencil** icon and selecting the **Logs** section on the cluster page as shown below.
+
+    ![CDE Administration page in a browser at console-cdp.apps.cldrsetup.local/dex/administration/list-cluster, showing a Services panel with the Enabled ptgty-vsvc service on cldrsetup and a Virtual Clusters panel with the Running ptgty-tset-vc1 cluster](/images/cdp-7-3-2/cde/09-administration-services-virtual-clusters.png)
+
+    ![Virtual cluster detail strip showing VERSION 1.18.2-b70, VC ID dex-app-2rjn9ffd, an empty VC RESOURCE POOL, CREATED BY and JOBS columns, a row of CLI TOOL / API DOC / JOBS API URL / GRAFANA CHARTS / AIRFLOW UI links, and an arrow pointing at the Logs tab beside Configuration and Charts](/images/cdp-7-3-2/cde/10-virtual-cluster-logs-tab.png)
+
+## Initializing Virtual Cluster
+
+Every time a **new virtual cluster** is created, there are a few **manual steps** that must be performed.
+
+1. Log in to the **ECS master** and run the next set of **commands** as per the instructions.
+2. Run the below command to create a temporary directory and navigate to the same.
+
+    ```bash
+    [root@pvcecs-master ~]# mkdir -p /tmp/cde-latest && cd /tmp/cde-latest
+    ```
+
+3. Download the script `cdp-cde-utils` using wget.
+
+    ```bash
+    [root@pvcecs-master ~]# wget https://docs.cloudera.com/data-engineering/1.5.5/cdp-cde-utils.sh
+    ```
+
+4. Add execute permission to this script.
+
+    ```bash
+    [root@pvcecs-master ~]# chmod +x /tmp/cde-latest/cdp-cde-utils.sh
+    ```
+
+5. Identify the **virtual cluster endpoint**. On the **CDE homepage**, select the **CDE service** in which the virtual cluster is created. Click on the **pencil** icon on the virtual cluster to be configured.
+
+    ![Services panel with a count of 2 showing the Enabled pse-data-engineering service on cdp-pse-development, beside a Virtual Clusters panel with the Running pse-vc cluster and an arrow pointing at its pencil edit icon](/images/cdp-7-3-2/cde/11-cde-service-virtual-cluster-pencil.png)
+
+6. Click **JOBS API URL** to copy the URL to your clipboard.
+
+    ![pse-vc virtual cluster detail showing VERSION 1.18.2-b70, VC ID dex-app-2rjn9ffd and VC RESOURCE POOL root.default.pse-data-engineering.pse-vc, with an arrow pointing at the copy icon beside the JOBS API URL link in the CLI TOOL / API DOC / JOBS API URL / GRAFANA CHARTS / AIRFLOW UI row](/images/cdp-7-3-2/cde/12-jobs-api-url.png)
+
+7. Paste the URL into a text editor to identify the endpoint host. For example, if the URL is similar to the following:
+
+    ```text
+    http://dfdj6kgx.cde-2cdxw5x5.ecs-demo.example.com/dex/api/v1
+    ```
+
+    Then the endpoint will then be as shown below.
+
+    ```text
+    dfdj6kgx.cde-2cdxw5x5.ecs-demo.example.com
+    ```
+
+8. Once you get the endpoint of the virtual cluster, **login to the ECS master** and navigate to `/tmp/cde-latest` directory where the `cdp-cde-utils.sh` script is present.
+
+    ```bash
+    [root@pvcecs-master ~]# cd /tmp/cde-latest
+    ```
+
+9. Generate a self-signed certificate with the below command. Replace the `endpoint_host` with the endpoint of your virtual cluster that you got from the previous step.
+
+    ```bash
+    [root@pvcecs-master ~]# ./cdp-cde-utils.sh init-virtual-cluster -h <endpoint_host> -a
+    ```
+
+    For the example host we used above, this command will be as below.
+
+    ```bash
+    [root@pvcecs-master ~]# ./cdp-cde-utils.sh init-virtual-cluster -h
+    dfdj6kgx.cde-2cdxw5x5.ecs-demo.example.com -a
+    ```
+
+10. These steps must be performed for each virtual cluster you create.
+
+## Configuring LDAP Users on CDE
+
+This step is required to submit the jobs to CDE from the LDAP users.
+
+1. Log in to the ECS master host and navigate to the directory `/tmp/cde-latest`.
+
+    ```bash
+    [root@pvcecs-master ~]# cd /tmp/cde-latest
+    ```
+
+2. Install `krb5-workstation` package using dnf.
+
+    ```bash
+    [root@pvcecs-master ~]# dnf install krb5-workstation krb5-libs -y
+    ```
+
+3. Create a file named `<username>.principal` containing the user principal. As an example, we will consider admin as the username. Here `CLDRSETUP.LOCAL` is the realm provided during IPA setup. You need to replace it with the realm you configured.
+
+    ```bash
+    [root@pvcecs-master ~]# cat>> admin.principal
+    cdpuser@CLDRSETUP.LOCAL
+    ```
+
+4. Generate a keytab named `<username>.keytab` for the user using `ktutil`:
+
+    ```bash
+    [root@pvcecs-master ~]# cat>> admin.keytab
+    [root@pvcecs-master ~]# sudo ktutil
+    ktutil:  addent -password -p admin@CLDRSETUP.LOCAL -k 1 -e aes256-cts
+    Password for admin@CLDRSETUP.LOCAL:
+    ktutil:  addent -password -p admin@CLDRSETUP.LOCAL -k 2 -e aes128-cts
+    Password for admin@CLDRSETUP.LOCAL:
+    ktutil:  wkt admin.keytab
+    ktutil:  q
+    ```
+
+5. Validate the keytab using `klist`. This command should use the principals created with two encryptions provided above, namely aes256-cts and aes128-cts.
+
+    ```bash
+    [root@pvcecs-master ~]# klist -ekt admin.keytab
+    ```
+
+6. Validate the **keytab** using `kinit`. This command should get executed successfully.
+
+    ```bash
+    [root@pvcecs-master ~]# kinit -kt admin.keytab admin@CLDRSETUP.LOCAL
+    ```
+
+7. Make sure that the **keytab** is valid before continuing. If the `kinit` command fails, the user will not be able to run jobs in the **virtual cluster**. After verifying that the `kinit` command succeeds, you can **destroy** the Kerberos ticket by running `kdestroy`.
+8. Use the `cdp-cde-utils.sh` script to copy the user **keytab** to the virtual cluster hosts.
+
+    ```bash
+    [root@pvcecs-master ~]# ./cdp-cde-utils.sh init-user-in-virtual-cluster -h <endpoint_host> -u <user> -p
+    <principal_file> -k <keytab_file>
+    ```
+
+    For the above example, the command would be below.
+
+    ```bash
+    [root@pvcecs-master ~]# ./cdp-cde-utils.sh init-user-in-virtual-cluster -h
+    dfdj6kgx.cde-2cdxw5x5.ecs-demo.example.com -u cdpuser -p cdpuser.principal -k cdpuser.keytab
+    ```
+
+9. Repeat these steps for all users that need to submit jobs to the virtual cluster.
+
+> **Contradiction in the source:** the keytab procedure mixes two usernames. The prose says *"we will consider admin as the username"* and every file is named `admin.*`, but the principal written into `admin.principal` is `cdpuser@CLDRSETUP.LOCAL`, while `ktutil` adds entries for `admin@CLDRSETUP.LOCAL` and the final `init-user-in-virtual-cluster` example passes `-u cdpuser -p cdpuser.principal -k cdpuser.keytab`. Pick one username and use it consistently across the principal file, the `ktutil` entries, the keytab filename and the `-u` argument - otherwise `kinit` will succeed against a principal the virtual cluster never receives.
+
+## Version strings and hostnames in this section
+
+The captures on this page come from more than one lab build, so what they display does not always match the environment this guide builds.
+
+| Where | The capture shows | This guide installs / uses |
+|:--|:--|:--|
+| Administration, Services and Virtual Clusters | Service `ptgty-vsvc` on `cldrsetup`, virtual cluster `ptgty-tset-vc1`, console at `console-cdp.apps.cldrsetup.local` | Matches the guide's `cldrsetup.local` lab; your own service and cluster names |
+| CDE service / virtual cluster pencil icon | Service `pse-data-engineering` on `cdp-pse-development`, virtual cluster `pse-vc` | A different lab build from the `cldrsetup` captures above |
+| JOBS API URL detail | VC RESOURCE POOL `root.default.pse-data-engineering.pse-vc`, VERSION `1.18.2-b70` | Named after your own CDE service and virtual cluster |
+| Endpoint examples | `dfdj6kgx.cde-2cdxw5x5.ecs-demo.example.com` | The endpoint host copied from your own JOBS API URL |
+
+Two of the guide's link annotations disagree with the text they sit behind, so they are transcribed as plain text rather than wired up: the `cdp-cde-utils` link points at `.../data-engineering/1.5.0/cdp-cde-utils.sh` while the `wget` command directly beneath it downloads the **1.5.5** copy, and the management console reference displays `1.5.5` while its annotation targets `1.5.4`.

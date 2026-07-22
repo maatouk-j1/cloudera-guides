@@ -1,0 +1,66 @@
+---
+title: Cloudera Data Warehouse (CDW)
+topicTitle: CDP 7.3.2
+topicSlug: cdp-7-3-2
+summary: Activate the CDW environment from the Data Services console so a default Database Catalog is created, then add a Hive or Impala Virtual Warehouse and query it through Hue.
+prevTitle: Cloudera AI (CAI)
+prevSlug: /installations/cdp-7-3-2/cai
+nextTitle: Cloudera Data Engineering (CDE)
+nextSlug: /installations/cdp-7-3-2/cde
+---
+
+With Cloudera AI running, Cloudera Data Warehouse (CDW) is the second data service to stand up on the Embedded Container Service (ECS) cluster. Enabling it is a two-part job: activate the environment, which creates a default Database Catalog automatically, then create one or more Virtual Warehouses on top of that catalog.
+
+The guide points at the upstream reference [docs.cloudera.com/data-warehouse/1.5.5/private-cloud-getting-started/topics/dw-private-cloud-create-virtual-warehouse-openshift-overview.html](https://docs.cloudera.com/data-warehouse/1.5.5/private-cloud-getting-started/topics/dw-private-cloud-create-virtual-warehouse-openshift-overview.html).
+
+> **Note:** That reference is the **OpenShift** variant of the topic, even though this guide deploys Data Services on ECS. The Virtual Warehouse creation flow it describes is the same, but check the ECS pages of the same documentation set for anything environment-specific.
+
+## Enable CDW environment and creation of Database Catalog
+
+1. Open the **CDP Data Services** page.
+2. Click on **Data Warehouse**.
+
+    ![Data Services tile grid showing Data Warehouse, Machine Learning and Data Engineering above a Data Management row of Replication Manager and Management Console, with the Data Warehouse tile highlighted](/images/cdp-7-3-2/cdw/01-data-services-tiles.png)
+
+3. On the **Overview** page, click on the **Activate** icon as shown below.
+
+    ![CDW Overview page showing a single environment card with its CRN, a Created status, counts of 0 Database Catalogs and 0 Virtual Warehouses, and an arrow pointing at the lightning-bolt Activate icon in the top right of the card](/images/cdp-7-3-2/cdw/02-overview-activate.png)
+
+4. On the **Activate Environment** page, enter the **LDAP username and password**. Enable **Low resource mode** and click on **Activate**.
+
+    ![Activate Environment dialog asking Do you want to activate the environment cdp-env-temp, with Delegation Username and Delegation Password fields, an arrow pointing at the enabled Enable Low Resource Mode toggle, and Cancel and ACTIVATE buttons](/images/cdp-7-3-2/cdw/03-activate-environment.png)
+
+## Create Virtual Warehouse
+
+1. Once the **environment** is **activated**, a **default Database Catalog** gets created automatically.
+
+    ![Cloudera Data Warehouse Overview page at console-cdp.apps.cldrsetup.local/dwx/home, showing the Welcome to Cloudera Data Warehouse Service banner, the Create / Query and Visualize Data / Resources and Downloads cards, and the Database Catalogs tab listing the cldrsetup catalog in Good Health with 2 Virtual Warehouses on version 2025.0.19.1-49](/images/cdp-7-3-2/cdw/04-overview-database-catalog.png)
+
+2. Once the **database catalog** is created, click on the **+** icon next to **Virtual Warehouses**.
+
+    ![Virtual Warehouses panel reading Virtual Warehouses | 0 and No Virtual Warehouses, with an arrow pointing at the plus icon in the top right](/images/cdp-7-3-2/cdw/05-virtual-warehouses-add.png)
+
+3. A **New Virtual Warehouse** tab appears on the same page.
+4. Enter the **name** for the **new virtual warehouse** (VW).
+5. Choose the **type** of VW, i.e. **Hive** or **Impala**.
+6. Choose the **default Database catalog** that appears in the dropdown.
+7. Choose **Size** as **xsmall-2 Executors**.
+8. **AutoSuspend**: If you want the VW to keep running all the time, you can **Disable** it.
+9. Keep the remaining parameters **default** and click on **Create**.
+
+    ![New Virtual Warehouse form with a required Name field, a Type toggle set to HIVE alongside IMPALA, a Database Catalog dropdown set to cdp-pse-development-datalake-default, a Size dropdown set to xsmall - 2 Executors, a Disable AutoSuspend toggle with AutoSuspend Timeout of 300 seconds, Concurrency Autoscaling with Executors Min:2 Max:6 and WaitTime Seconds 60, a Query Isolation toggle, and a Create button](/images/cdp-7-3-2/cdw/06-new-virtual-warehouse-form.png)
+
+10. A new **Virtual Warehouse** will be created. You can use **Hue** to submit queries to the underlying engine of the Virtual Warehouse.
+
+    ![Cloudera Data Warehouse Overview page on the Virtual Warehouses tab, listing ptgty-imp-wh1 of type IMPALA with 3 CPU and ptgty-hiv-wh1 of type HIVE with 12 CPU, both Stopped on version 2025.0.19.1-49, each with a HUE app link and a Start action](/images/cdp-7-3-2/cdw/07-virtual-warehouses-list.png)
+
+## Version strings and hostnames in this section
+
+The captures on this page come from more than one lab build, so what they display does not always match the environment this guide builds. Read them for the workflow, not for the values.
+
+| Where | The capture shows | This guide installs / uses |
+|:--|:--|:--|
+| New Virtual Warehouse form | Database Catalog `cdp-pse-development-datalake-default` | The default catalog named after your own environment, e.g. `cldrsetup` |
+| Overview, Database Catalogs tab | Catalog `warehouse-cldrsetup` on `cldrsetup` | Matches the guide's `cldrsetup.local` lab |
+| Overview, Virtual Warehouses tab | `ptgty-imp-wh1` and `ptgty-hiv-wh1`, already created and Stopped | You are creating your first VW, so the list starts empty |
+| Activate Environment dialog | Environment `cdp-env-temp` | Your registered PvC Base environment |
