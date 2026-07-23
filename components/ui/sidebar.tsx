@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useState, useId } from 'react'
 import { useAppProvider } from '@/app/app-provider'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
@@ -56,37 +56,94 @@ function NavGroup({ item, depth, pathname }: { item: NavItem; depth: number; pat
   if (!item.children) return null;
 
   return (
-    <NavBranch item={item} depth={depth} pathname={pathname} defaultOpen={active} />
+    <NavBranch item={item} depth={depth} pathname={pathname} active={active} />
   );
 }
 
-function NavBranch({ item, depth, pathname, defaultOpen }: { item: NavItem; depth: number; pathname: string; defaultOpen: boolean }) {
+/**
+ * A container node. When it carries an `href` the row splits into two targets:
+ * the chevron toggles the disclosure, the title navigates to the section's
+ * landing page.
+ *
+ * This replaces `<details>/<summary>`, which could only ever be one or the
+ * other — a node with both an href and children silently dropped its href, so
+ * every landing page needed a synthetic `Overview` leaf to be reachable at all.
+ * Seventeen of those leaves were retired when the hrefs moved onto their
+ * containers (issue #56). A nested <a> inside <summary> would have fought
+ * <summary>'s built-in Enter/Space toggle semantics, hence the explicit
+ * button + aria-expanded pair.
+ */
+function NavBranch({ item, depth, pathname, active }: { item: NavItem; depth: number; pathname: string; active: boolean }) {
   const isTopLevel = depth === 0;
+  const panelId = useId();
+  const [open, setOpen] = useState(active);
+
+  // Mirrors what `<details open={active}>` used to do: the branch springs open
+  // when the active page moves into it and closes when it moves out, but a
+  // manual toggle in between is left alone.
+  const wasActive = useRef(active);
+  useEffect(() => {
+    if (active === wasActive.current) return;
+    wasActive.current = active;
+    setOpen(active);
+  }, [active]);
+
+  const rowClasses = `flex items-center font-medium ${
+    isTopLevel
+      ? 'font-[650] text-slate-800 p-1 dark:text-slate-200'
+      : 'text-slate-800 dark:text-slate-200'
+  } ${active && isTopLevel ? 'relative before:absolute before:inset-0 before:rounded-sm before:bg-linear-to-tr before:from-[#f26622] before:to-[#f5854e] before:opacity-20 before:-z-10 before:pointer-events-none' : ''}`;
+
+  const chevron = (
+    <svg
+      className={`fill-slate-400 shrink-0 transition-transform ${open ? 'rotate-90' : ''}`}
+      width="8"
+      height="10"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+    >
+      <path d="M1 2 2.414.586 6.828 5 2.414 9.414 1 8l3-3z" />
+    </svg>
+  );
+
+  const toggleProps = {
+    type: 'button' as const,
+    'aria-expanded': open,
+    'aria-controls': panelId,
+    onClick: () => setOpen((o) => !o),
+  };
 
   return (
     <li className={isTopLevel ? "mb-1" : "mt-3"}>
-      <details open={defaultOpen}>
-        <summary
-          className={`flex items-center cursor-pointer list-none font-medium ${
-            isTopLevel
-              ? 'font-[650] text-slate-800 p-1 dark:text-slate-200'
-              : 'text-slate-800 dark:text-slate-200'
-          } ${isActive(item, pathname) && isTopLevel ? 'relative before:absolute before:inset-0 before:rounded-sm before:bg-linear-to-tr before:from-[#f26622] before:to-[#f5854e] before:opacity-20 before:-z-10 before:pointer-events-none' : ''}`}
-        >
-          {isTopLevel && <TopLevelIcon />}
-          {!isTopLevel && (
-            <svg className="fill-slate-400 shrink-0 mr-2 transition-transform [details[open]>summary>&]:rotate-90" width="8" height="10" xmlns="http://www.w3.org/2000/svg">
-              <path d="M1 2 2.414.586 6.828 5 2.414 9.414 1 8l3-3z" />
-            </svg>
-          )}
+      {item.href ? (
+        <div className={rowClasses}>
+          <button
+            {...toggleProps}
+            className="shrink-0 mr-2 cursor-pointer"
+            aria-label={`Toggle ${item.title} section`}
+          >
+            {chevron}
+          </button>
+          <SidebarLink href={item.href}>
+            {isTopLevel && <TopLevelIcon />}
+            <span className={isTopLevel ? "font-[650]" : ""}>{item.title}</span>
+          </SidebarLink>
+        </div>
+      ) : (
+        <button {...toggleProps} className={`${rowClasses} w-full text-left cursor-pointer`}>
+          {isTopLevel ? <TopLevelIcon /> : <span className="mr-2 flex">{chevron}</span>}
           <span>{item.title}</span>
-        </summary>
-        <ul className={`${isTopLevel ? 'mb-3 ml-4 pl-6' : 'ml-1 pl-4'} border-l border-slate-200 dark:border-slate-800`}>
-          {item.children!.map((child, i) => (
-            <NavGroup key={i} item={child} depth={depth + 1} pathname={pathname} />
-          ))}
-        </ul>
-      </details>
+        </button>
+      )}
+      <ul
+        id={panelId}
+        hidden={!open}
+        className={`${isTopLevel ? 'mb-3 ml-4 pl-6' : 'ml-1 pl-4'} border-l border-slate-200 dark:border-slate-800`}
+      >
+        {item.children!.map((child, i) => (
+          <NavGroup key={i} item={child} depth={depth + 1} pathname={pathname} />
+        ))}
+      </ul>
     </li>
   );
 }

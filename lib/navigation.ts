@@ -10,12 +10,12 @@ export const navigation: NavItem[] = [
     children: [
       {
         title: "Installations",
+        href: "/installations",
         children: [
-          { title: "Overview", href: "/installations" },
           {
             title: "CDP 7.1.7",
+            href: "/installations/cdp-7-1-7",
             children: [
-              { title: "Overview", href: "/installations/cdp-7-1-7" },
               {
                 title: "CDP Private Cloud Overview",
                 href: "/installations/cdp-7-1-7/cdppvc/cdppvc",
@@ -28,8 +28,8 @@ export const navigation: NavItem[] = [
               { title: "Cloudera Manager Deployment", href: "/installations/cdp-7-1-7/cdppvc/cm" },
               {
                 title: "Base Cluster (Data Lake)",
+                href: "/installations/cdp-7-1-7/cdppvc/base",
                 children: [
-                  { title: "Overview", href: "/installations/cdp-7-1-7/cdppvc/base" },
                   { title: "Base Deployment", href: "/installations/cdp-7-1-7/cdppvc/basedeploy" },
                   { title: "Base Post-Deployment", href: "/installations/cdp-7-1-7/cdppvc/baseconfig" },
                 ],
@@ -37,8 +37,8 @@ export const navigation: NavItem[] = [
               { title: "ECS Deployment", href: "/installations/cdp-7-1-7/cdppvc/ecs" },
               {
                 title: "Openshift Deployment",
+                href: "/installations/cdp-7-1-7/cdppvc/ocp",
                 children: [
-                  { title: "Overview", href: "/installations/cdp-7-1-7/cdppvc/ocp" },
                   { title: "Docker Registry in Nexus", href: "/installations/cdp-7-1-7/cdppvc/nexus" },
                   { title: "Vault Deployment", href: "/installations/cdp-7-1-7/cdppvc/vault" },
                   {
@@ -49,8 +49,8 @@ export const navigation: NavItem[] = [
               },
               {
                 title: "CDP PvC Data Services",
+                href: "/installations/cdp-7-1-7/cdppvc/ds",
                 children: [
-                  { title: "Overview", href: "/installations/cdp-7-1-7/cdppvc/ds" },
                   { title: "Data Services Console", href: "/installations/cdp-7-1-7/cdppvc/dsconsole" },
                   { title: "Cloudera Machine Learning", href: "/installations/cdp-7-1-7/cdppvc/cmlds" },
                   {
@@ -73,8 +73,8 @@ export const navigation: NavItem[] = [
               },
               {
                 title: "CDP PvC ECS: Day-2",
+                href: "/installations/cdp-7-1-7/cdppvc/ecsday2",
                 children: [
-                  { title: "Overview", href: "/installations/cdp-7-1-7/cdppvc/ecsday2" },
                   { title: "Setup ECS Environment", href: "/installations/cdp-7-1-7/cdppvc/ecsenv" },
                   { title: "Deploy LVM Disk", href: "/installations/cdp-7-1-7/cdppvc/lvm" },
                   { title: "Add ECS Node", href: "/installations/cdp-7-1-7/cdppvc/addecs" },
@@ -83,8 +83,8 @@ export const navigation: NavItem[] = [
               },
               {
                 title: "CDP PvC Openshift: Day-2",
+                href: "/installations/cdp-7-1-7/cdppvc/ocpday2",
                 children: [
-                  { title: "Overview", href: "/installations/cdp-7-1-7/cdppvc/ocpday2" },
                   {
                     title: "Deploy CDW Disk in Openshift",
                     href: "/installations/cdp-7-1-7/cdppvc/ocpcdwdisk",
@@ -101,8 +101,8 @@ export const navigation: NavItem[] = [
               },
               {
                 title: "Data Warehousing",
+                href: "/installations/cdp-7-1-7/cdw/cdw",
                 children: [
-                  { title: "Overview", href: "/installations/cdp-7-1-7/cdw/cdw" },
                   {
                     title: "Parquet, ORC, Avro and CSV Benchmarking",
                     href: "/installations/cdp-7-1-7/cdw/benchmarkfs",
@@ -113,8 +113,8 @@ export const navigation: NavItem[] = [
               },
               {
                 title: "Longhorn",
+                href: "/installations/cdp-7-1-7/longhorn/longhorn",
                 children: [
-                  { title: "Overview", href: "/installations/cdp-7-1-7/longhorn/longhorn" },
                   {
                     title: "Performance Benchmarking",
                     href: "/installations/cdp-7-1-7/longhorn/benchmarking",
@@ -123,8 +123,8 @@ export const navigation: NavItem[] = [
               },
               {
                 title: "Machine Learning",
+                href: "/installations/cdp-7-1-7/cml/cml",
                 children: [
-                  { title: "Overview", href: "/installations/cdp-7-1-7/cml/cml" },
                   { title: "Threading in Python", href: "/installations/cdp-7-1-7/cml/mthread" },
                   { title: "Multiprocessing in Python", href: "/installations/cdp-7-1-7/cml/mprocess" },
                   { title: "Image Processing", href: "/installations/cdp-7-1-7/cml/imagep" },
@@ -141,8 +141,8 @@ export const navigation: NavItem[] = [
           },
           {
             title: "CDP 7.3.2",
+            href: "/installations/cdp-7-3-2",
             children: [
-              { title: "Overview", href: "/installations/cdp-7-3-2" },
               { title: "VM Creation", href: "/installations/cdp-7-3-2/vm" },
               { title: "Solution Summary", href: "/installations/cdp-7-3-2/summary" },
               {
@@ -151,8 +151,8 @@ export const navigation: NavItem[] = [
               },
               {
                 title: "Install CDP Private Cloud",
+                href: "/installations/cdp-7-3-2/cdppvc",
                 children: [
-                  { title: "Overview", href: "/installations/cdp-7-3-2/cdppvc" },
                   {
                     title: "Prerequisites Overview",
                     href: "/installations/cdp-7-3-2/cdppvc/prerequisites",
@@ -163,8 +163,8 @@ export const navigation: NavItem[] = [
                   },
                   {
                     title: "Setup Cloudera Manager Server",
+                    href: "/installations/cdp-7-3-2/cdppvc/cm",
                     children: [
-                      { title: "Overview", href: "/installations/cdp-7-3-2/cdppvc/cm" },
                       {
                         title: "Setup Database for Cloudera Manager",
                         href: "/installations/cdp-7-3-2/cdppvc/cm/database",
@@ -187,8 +187,8 @@ export const navigation: NavItem[] = [
                   },
                   {
                     title: "Setup CDP PvC Base Cluster",
+                    href: "/installations/cdp-7-3-2/cdppvc/base",
                     children: [
-                      { title: "Overview", href: "/installations/cdp-7-3-2/cdppvc/base" },
                       {
                         title: "Install CDP PvC Base using the CM Web UI",
                         href: "/installations/cdp-7-3-2/cdppvc/base/installation",
@@ -227,8 +227,8 @@ export const navigation: NavItem[] = [
               },
               {
                 title: "CDP Data Services Installation (ECS)",
+                href: "/installations/cdp-7-3-2/ds",
                 children: [
-                  { title: "Overview", href: "/installations/cdp-7-3-2/ds" },
                   {
                     title: "Embedded Container Service (ECS) Requirements",
                     href: "/installations/cdp-7-3-2/ds/ecs-requirements",
@@ -236,8 +236,8 @@ export const navigation: NavItem[] = [
                   { title: "Checklist", href: "/installations/cdp-7-3-2/ds/checklist" },
                   {
                     title: "Install CDP Data Services using ECS",
+                    href: "/installations/cdp-7-3-2/ds/ecs",
                     children: [
-                      { title: "Overview", href: "/installations/cdp-7-3-2/ds/ecs" },
                       {
                         title: "Install ECS Cluster",
                         href: "/installations/cdp-7-3-2/ds/ecs/installation",
@@ -263,8 +263,8 @@ export const navigation: NavItem[] = [
               { title: "Cloudera Data Engineering (CDE)", href: "/installations/cdp-7-3-2/cde" },
               {
                 title: "Appendix",
+                href: "/installations/cdp-7-3-2/appendix",
                 children: [
-                  { title: "Overview", href: "/installations/cdp-7-3-2/appendix" },
                   {
                     title: "References Used in Guide",
                     href: "/installations/cdp-7-3-2/appendix/references",
