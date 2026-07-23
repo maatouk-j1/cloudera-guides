@@ -29,11 +29,14 @@ page.
 
 ### If Cloudera AI is in scope
 
-Cloudera AI is not certified against Base Runtime 7.3.2.0 at the time of writing. A cluster that will
-run [Cloudera AI](/installations/cdp-7-3-2/cai) must be deployed on **Base Runtime 7.3.1 SP3 CHF2**
-instead — every other version in the table above is unchanged. Decide this before
-[setting up repositories and parcels](/installations/cdp-7-3-2/cdppvc/repos-and-parcels), because the
-parcel and repository URLs differ and changing them afterwards means redeploying the cluster.
+> Install Base Runtime 7.3.2 only if you are not planning to use CAI (Data Service), otherwise
+> install 7.3.1 SP3 CHF2
+
+The rest of this guide nonetheless deploys 7.3.2 and installs
+[Cloudera AI](/installations/cdp-7-3-2/cai) on it. See the
+[Base on premises 7.3.2 release summary](https://docs.cloudera.com/cdp-private-cloud/latest/release-summaries/topics/announcement-202603-732.html)
+for the current support position — the exclusion applies to Data Services 1.5.5 SP1 and SP2, and is
+lifted from 1.5.5 SP2 CHF1 onwards.
 
 ## How this guide is ordered
 
