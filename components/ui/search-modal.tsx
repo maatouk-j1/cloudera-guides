@@ -16,6 +16,35 @@ interface SearchModalProps {
   searchIndex: SearchItem[]
 }
 
+const MAX_RESULTS = 10;
+
+/**
+ * A term found in the title outweighs the same term found in the breadcrumb.
+ *
+ * Matching was unranked while every page's section was the constant string
+ * "CDP Private Cloud", which contributed nothing. Now that the section carries
+ * the real nav trail, a common word like "install" appears in all 93 breadcrumbs
+ * via the "Installations" node — so without ranking the top 10 was decided by
+ * index order alone, which is alphabetical by path and never reached CDP 7.3.2.
+ */
+const SCORE_TITLE_PREFIX = 6;
+const SCORE_TITLE = 4;
+const SCORE_SECTION = 1;
+
+/** Score for one item, or -1 if any term is absent from both title and trail. */
+function scoreItem(item: SearchItem, terms: string[]): number {
+  const title = item.title.toLowerCase();
+  const section = item.section.toLowerCase();
+  let score = 0;
+  for (const term of terms) {
+    if (title.startsWith(term)) score += SCORE_TITLE_PREFIX;
+    else if (title.includes(term)) score += SCORE_TITLE;
+    else if (section.includes(term)) score += SCORE_SECTION;
+    else return -1;
+  }
+  return score;
+}
+
 export default function SearchModal({
   isOpen,
   setIsOpen,
@@ -23,15 +52,18 @@ export default function SearchModal({
 }: SearchModalProps) {
   const [query, setQuery] = useState('')
 
-  const results = useMemo(() => {
-    if (!query.trim()) return [];
+  const { results, totalMatches } = useMemo(() => {
+    if (!query.trim()) return { results: [], totalMatches: 0 };
     const terms = query.toLowerCase().split(/\s+/);
-    return searchIndex
-      .filter((item) => {
-        const text = `${item.title} ${item.section}`.toLowerCase();
-        return terms.every((term) => text.includes(term));
-      })
-      .slice(0, 10);
+    const scored = searchIndex
+      .map((item) => ({ item, score: scoreItem(item, terms) }))
+      .filter((entry) => entry.score >= 0);
+    // Sort is stable, so equally-scored pages keep their nav/index order.
+    scored.sort((a, b) => b.score - a.score);
+    return {
+      results: scored.slice(0, MAX_RESULTS).map((entry) => entry.item),
+      totalMatches: scored.length,
+    };
   }, [query, searchIndex]);
 
   return (
@@ -75,7 +107,14 @@ export default function SearchModal({
               <div className="text-sm text-slate-500 px-2 dark:text-slate-400">No results found for &quot;{query}&quot;</div>
             ) : (
               <div>
-                <div className="text-sm font-medium text-slate-500 px-2 mb-2 dark:text-slate-400">Results</div>
+                <div className="text-sm font-medium text-slate-500 px-2 mb-2 dark:text-slate-400">
+                  Results
+                  {totalMatches > results.length && (
+                    <span className="font-normal text-slate-400 dark:text-slate-500">
+                      {' '}— top {results.length} of {totalMatches}, keep typing to narrow
+                    </span>
+                  )}
+                </div>
                 <ul>
                   {results.map((item) => (
                     <li key={item.slug}>
