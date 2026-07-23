@@ -7,6 +7,12 @@ export default function PostBanner({ type, ...props }: PostBannerProps) {
 
   const typeIcon = (type: string) => {
     switch (type) {
+      case 'warning':
+        return (
+          <svg className="fill-amber-500 shrink-0 mr-4" width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+            <path fillRule="evenodd" d="M8.864 1.496a1 1 0 0 0-1.728 0L.14 13.5A1 1 0 0 0 1.004 15h13.992a1 1 0 0 0 .864-1.504L8.864 1.496ZM7 6h2v4H7V6Zm0 5h2v2H7v-2Z" />
+          </svg>
+        );
       case 'important':
         return (
           <svg className="fill-purple-500 shrink-0 mr-4" width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
