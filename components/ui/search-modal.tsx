@@ -16,6 +16,35 @@ interface SearchModalProps {
   searchIndex: SearchItem[]
 }
 
+const MAX_RESULTS = 10;
+
+/**
+ * A term found in the title outweighs the same term found in the breadcrumb.
+ *
+ * Matching was unranked while every page's section was the constant string
+ * "CDP Private Cloud", which contributed nothing. Now that the section carries
+ * the real nav trail, a common word like "install" appears in all 93 breadcrumbs
+ * via the "Installations" node — so without ranking the top 10 was decided by
+ * index order alone, which is alphabetical by path and never reached CDP 7.3.2.
+ */
+const SCORE_TITLE_PREFIX = 6;
+const SCORE_TITLE = 4;
+const SCORE_SECTION = 1;
+
+/** Score for one item, or -1 if any term is absent from both title and trail. */
+function scoreItem(item: SearchItem, terms: string[]): number {
+  const title = item.title.toLowerCase();
+  const section = item.section.toLowerCase();
+  let score = 0;
+  for (const term of terms) {
+    if (title.startsWith(term)) score += SCORE_TITLE_PREFIX;
+    else if (title.includes(term)) score += SCORE_TITLE;
+    else if (section.includes(term)) score += SCORE_SECTION;
+    else return -1;
+  }
+  return score;
+}
+
 export default function SearchModal({
   isOpen,
   setIsOpen,
@@ -23,15 +52,18 @@ export default function SearchModal({
 }: SearchModalProps) {
   const [query, setQuery] = useState('')
 
-  const results = useMemo(() => {
-    if (!query.trim()) return [];
+  const { results, totalMatches } = useMemo(() => {
+    if (!query.trim()) return { results: [], totalMatches: 0 };
     const terms = query.toLowerCase().split(/\s+/);
-    return searchIndex
-      .filter((item) => {
-        const text = `${item.title} ${item.section}`.toLowerCase();
-        return terms.every((term) => text.includes(term));
-      })
-      .slice(0, 10);
+    const scored = searchIndex
+      .map((item) => ({ item, score: scoreItem(item, terms) }))
+      .filter((entry) => entry.score >= 0);
+    // Sort is stable, so equally-scored pages keep their nav/index order.
+    scored.sort((a, b) => b.score - a.score);
+    return {
+      results: scored.slice(0, MAX_RESULTS).map((entry) => entry.item),
+      totalMatches: scored.length,
+    };
   }, [query, searchIndex]);
 
   return (
@@ -75,7 +107,14 @@ export default function SearchModal({
               <div className="text-sm text-slate-500 px-2 dark:text-slate-400">No results found for &quot;{query}&quot;</div>
             ) : (
               <div>
-                <div className="text-sm font-medium text-slate-500 px-2 mb-2 dark:text-slate-400">Results</div>
+                <div className="text-sm font-medium text-slate-500 px-2 mb-2 dark:text-slate-400">
+                  Results
+                  {totalMatches > results.length && (
+                    <span className="font-normal text-slate-400 dark:text-slate-500">
+                      {' '}— top {results.length} of {totalMatches}, keep typing to narrow
+                    </span>
+                  )}
+                </div>
                 <ul>
                   {results.map((item) => (
                     <li key={item.slug}>
@@ -85,12 +124,12 @@ export default function SearchModal({
                           The result set changes on each keystroke, so this fans out fast. */}
                       <Link
                         prefetch={false}
-                        className="flex items-center px-2 py-1.5 leading-6 text-sm text-slate-800 hover:bg-slate-100 rounded-sm dark:text-slate-200 dark:hover:bg-slate-700 outline-hidden"
+                        className="flex items-start px-2 py-1.5 leading-6 text-sm text-slate-800 hover:bg-slate-100 rounded-sm dark:text-slate-200 dark:hover:bg-slate-700 outline-hidden"
                         href={`/${item.slug}`}
                         onClick={() => { setIsOpen(false); setQuery(''); }}
                       >
                         <svg
-                          className="w-3 h-3 fill-[#f26622] shrink-0 mr-3"
+                          className="w-3 h-3 fill-[#f26622] shrink-0 mr-3 mt-1.5"
                           width="12"
                           height="12"
                           viewBox="0 0 12 12"
@@ -99,9 +138,14 @@ export default function SearchModal({
                           <path d="M11.953 4.29a.5.5 0 0 0-.454-.292H6.14L6.984.62A.5.5 0 0 0 6.12.173l-6 7a.5.5 0 0 0 .379.825h5.359l-.844 3.38a.5.5 0 0 0 .864.445l6-7a.5.5 0 0 0 .075-.534Z" />
                         </svg>
                         <div className="min-w-0">
-                          <span className="font-medium">{item.title}</span>
+                          <div className="font-medium truncate">{item.title}</div>
+                          {/* The full nav trail, on its own line: page titles repeat
+                              across guide versions, so the breadcrumb is what tells
+                              two same-named results apart (issue #55). */}
                           {item.section && (
-                            <span className="text-slate-400 ml-2 dark:text-slate-500">{item.section}</span>
+                            <div className="text-xs leading-5 text-slate-400 truncate dark:text-slate-500">
+                              {item.section}
+                            </div>
                           )}
                         </div>
                       </Link>
