@@ -1,4 +1,4 @@
-import Logo from '@/components/ui/logo'
+import { LogoMark } from '@/components/ui/logo'
 
 export default function Footer() {
   return (
@@ -7,7 +7,7 @@ export default function Footer() {
         <div className="mb-4 md:mb-0">
           <div className="shrink-0 flex flex-col md:flex-row items-center">
             {/* Logo */}
-            <Logo />
+            <LogoMark />
             <div className="text-sm text-slate-500 ml-4">
               All trademarks, logos, service marks and company names appeared here are the property of their respective owners.
             </div>
