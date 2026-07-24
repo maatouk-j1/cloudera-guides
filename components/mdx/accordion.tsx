@@ -19,7 +19,7 @@ export default function PostAccordion({ title, active = false, ...props }: PostA
   return (
     <div className="mb-3 prose-p:m-0">
       <button
-        className="flex items-center w-full text-slate-800 font-medium text-left dark:text-slate-200"
+        className="flex items-center w-full text-stone-800 font-medium text-left dark:text-stone-200"
         onClick={(e) => {
           e.preventDefault();
           setAccordionOpen(!accordionOpen);
@@ -28,7 +28,7 @@ export default function PostAccordion({ title, active = false, ...props }: PostA
       >
         <div className="shrink-0 mr-3">
           <svg
-            className={`fill-slate-400 dark:fill-slate-500 ${accordionOpen && 'rotate-90'}`}
+            className={`fill-stone-400 dark:fill-stone-500 ${accordionOpen && 'rotate-90'}`}
             xmlns="http://www.w3.org/2000/svg"
             width="8"
             height="12"

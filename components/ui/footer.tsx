@@ -2,13 +2,13 @@ import { LogoMark } from '@/components/ui/logo'
 
 export default function Footer() {
   return (
-    <footer className="border-t border-slate-200 pt-8 dark:border-slate-800">
+    <footer className="border-t border-stone-200 pt-8 dark:border-stone-800">
       <div className="flex flex-col md:flex-row items-center justify-center md:justify-between gap-4">
         <div className="mb-4 md:mb-0">
           <div className="shrink-0 flex flex-col md:flex-row items-center">
             {/* Logo */}
             <LogoMark />
-            <div className="text-sm text-slate-500 ml-4">
+            <div className="text-sm text-stone-500 ml-4">
               All trademarks, logos, service marks and company names appeared here are the property of their respective owners.
             </div>
           </div>

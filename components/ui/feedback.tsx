@@ -6,8 +6,8 @@ import Feedback04 from '@/public/images/feedback-04.svg'
 
 export default function Feedback() {
   return (
-    <div className="flex items-center justify-between py-8 border-b border-slate-200 space-x-6 dark:border-slate-800">
-      <div className="text-lg font-bold text-slate-800 dark:text-slate-200">Was this helpful?</div>
+    <div className="flex items-center justify-between py-8 border-b border-stone-200 space-x-6 dark:border-stone-800">
+      <div className="text-lg font-bold text-stone-800 dark:text-stone-200">Was this helpful?</div>
       <div className="flex items-center space-x-4">
         <button className="opacity-30">
           <span className="sr-only">No, it didn't help</span>

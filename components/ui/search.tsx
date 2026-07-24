@@ -26,12 +26,12 @@ export default function Search({ searchIndex = [] }: SearchProps) {
   return (
     <div className="grow ml-4 md:ml-8">
       <button
-        className="w-full sm:w-[380px] text-[15px] bg-white text-slate-400 inline-flex items-center justify-between leading-5 pl-3 pr-2 py-[7px] rounded-sm border border-slate-200 hover:border-slate-300 shadow-xs whitespace-nowrap dark:text-slate-500 dark:bg-slate-800 dark:border-slate-700 dark:hover:border-slate-600"
+        className="w-full sm:w-[380px] text-[15px] bg-white text-stone-400 inline-flex items-center justify-between leading-5 pl-3 pr-2 py-[7px] rounded-sm border border-stone-200 hover:border-stone-300 shadow-xs whitespace-nowrap dark:text-stone-500 dark:bg-stone-900 dark:border-stone-700 dark:hover:border-stone-600"
         onClick={() => { setSearchModalOpen(true) }}
       >
         <div className="flex items-center justify-center">
           <svg
-            className="w-4 h-4 fill-slate-500 mr-3 shrink-0 dark:fill-slate-400"
+            className="w-4 h-4 fill-stone-500 mr-3 shrink-0 dark:fill-stone-400"
             width="16"
             height="16"
             viewBox="0 0 16 16"
@@ -43,7 +43,7 @@ export default function Search({ searchIndex = [] }: SearchProps) {
             Search<span className="hidden sm:inline"> documentation</span>...
           </span>
         </div>
-        <div className="flex items-center justify-center h-5 w-5 font-medium text-slate-500 rounded-sm border border-slate-200 shadow-xs ml-3 dark:bg-slate-700 dark:text-slate-400 dark:border-slate-600">
+        <div className="flex items-center justify-center h-5 w-5 font-medium text-stone-500 rounded-sm border border-stone-200 shadow-xs ml-3 dark:bg-stone-800 dark:text-stone-400 dark:border-stone-600">
           /
         </div>
       </button>

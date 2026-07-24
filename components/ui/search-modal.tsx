@@ -24,7 +24,7 @@ const MAX_RESULTS = 10;
  * Matching was unranked while every page's section was the constant string
  * "CDP Private Cloud", which contributed nothing. Now that the section carries
  * the real nav trail, a common word like "install" appears in all 93 breadcrumbs
- * via the "Installations" node — so without ranking the top 10 was decided by
+ * via the "Installations" node â€” so without ranking the top 10 was decided by
  * index order alone, which is alphabetical by path and never reached CDP 7.3.2.
  */
 const SCORE_TITLE_PREFIX = 6;
@@ -70,17 +70,17 @@ export default function SearchModal({
     <Dialog as="div" open={isOpen} onClose={() => { setIsOpen(false); setQuery(''); }}>
       <DialogBackdrop
         transition
-        className="fixed inset-0 z-99999 bg-slate-900/30 transition-opacity duration-200 ease-out data-closed:opacity-0"
+        className="fixed inset-0 z-99999 bg-stone-900/30 transition-opacity duration-200 ease-out data-closed:opacity-0"
       />
       <div className="fixed inset-0 top-20 z-99999 mb-4 flex items-start justify-center overflow-hidden px-4 sm:px-6 md:top-28">
-        <DialogPanel transition className="max-h-full w-full max-w-2xl overflow-auto rounded-xl bg-white shadow-lg duration-300 ease-out data-closed:translate-y-4 data-closed:opacity-0 dark:bg-slate-800">
+        <DialogPanel transition className="max-h-full w-full max-w-2xl overflow-auto rounded-xl bg-white shadow-lg duration-300 ease-out data-closed:translate-y-4 data-closed:opacity-0 dark:bg-stone-900">
           {/* Search form */}
-          <div className="border-b border-slate-200 dark:border-slate-700">
+          <div className="border-b border-stone-200 dark:border-stone-700">
             <div className="flex items-center">
               <label htmlFor="search-modal">
                 <span className="sr-only">Search</span>
                 <svg
-                  className="w-4 h-4 fill-slate-500 shrink-0 ml-4 dark:fill-slate-400"
+                  className="w-4 h-4 fill-stone-500 shrink-0 ml-4 dark:fill-stone-400"
                   width="16"
                   height="16"
                   viewBox="0 0 16 16"
@@ -92,7 +92,7 @@ export default function SearchModal({
               <input
                 id="search-modal"
                 data-autofocus
-                className="text-sm w-full bg-white border-0 focus:ring-transparent placeholder-slate-400 appearance-none py-3 pl-2 pr-4 dark:bg-slate-800 dark:placeholder:text-slate-500 dark:text-slate-200"
+                className="text-sm w-full bg-white border-0 focus:ring-transparent placeholder-stone-400 appearance-none py-3 pl-2 pr-4 dark:bg-stone-900 dark:placeholder:text-stone-500 dark:text-stone-200"
                 type="search"
                 placeholder="Search documentation..."
                 value={query}
@@ -102,16 +102,16 @@ export default function SearchModal({
           </div>
           <div className="py-4 px-2 space-y-4">
             {query.trim() === '' ? (
-              <div className="text-sm text-slate-500 px-2 dark:text-slate-400">Type to search across all documentation pages...</div>
+              <div className="text-sm text-stone-500 px-2 dark:text-stone-400">Type to search across all documentation pages...</div>
             ) : results.length === 0 ? (
-              <div className="text-sm text-slate-500 px-2 dark:text-slate-400">No results found for &quot;{query}&quot;</div>
+              <div className="text-sm text-stone-500 px-2 dark:text-stone-400">No results found for &quot;{query}&quot;</div>
             ) : (
               <div>
-                <div className="text-sm font-medium text-slate-500 px-2 mb-2 dark:text-slate-400">
+                <div className="text-sm font-medium text-stone-500 px-2 mb-2 dark:text-stone-400">
                   Results
                   {totalMatches > results.length && (
-                    <span className="font-normal text-slate-400 dark:text-slate-500">
-                      {' '}— top {results.length} of {totalMatches}, keep typing to narrow
+                    <span className="font-normal text-stone-400 dark:text-stone-500">
+                      {' '}â€” top {results.length} of {totalMatches}, keep typing to narrow
                     </span>
                   )}
                 </div>
@@ -124,7 +124,7 @@ export default function SearchModal({
                           The result set changes on each keystroke, so this fans out fast. */}
                       <Link
                         prefetch={false}
-                        className="flex items-start px-2 py-1.5 leading-6 text-sm text-slate-800 hover:bg-slate-100 rounded-sm dark:text-slate-200 dark:hover:bg-slate-700 outline-hidden"
+                        className="flex items-start px-2 py-1.5 leading-6 text-sm text-stone-800 hover:bg-stone-100 rounded-sm dark:text-stone-200 dark:hover:bg-stone-700 outline-hidden"
                         href={`/${item.slug}`}
                         onClick={() => { setIsOpen(false); setQuery(''); }}
                       >
@@ -143,7 +143,7 @@ export default function SearchModal({
                               across guide versions, so the breadcrumb is what tells
                               two same-named results apart (issue #55). */}
                           {item.section && (
-                            <div className="text-xs leading-5 text-slate-400 truncate dark:text-slate-500">
+                            <div className="text-xs leading-5 text-stone-400 truncate dark:text-stone-500">
                               {item.section}
                             </div>
                           )}

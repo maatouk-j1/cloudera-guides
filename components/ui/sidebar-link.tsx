@@ -20,7 +20,7 @@ export default function SidebarLink({
   // preloads each of those pages' <img> sources against the *current* document,
   // downloading tens of MB of screenshots this page never renders. See issue #35.
   return (
-    <Link prefetch={false} className={`flex items-center space-x-3 font-medium ${pathname === href ? 'text-[#f26622]' : 'text-slate-800 dark:text-slate-200'}`} href={href} onClick={() => setSidebarOpen(false)}>
+    <Link prefetch={false} className={`flex items-center space-x-3 font-medium ${pathname === href ? 'text-[#f26622]' : 'text-stone-800 dark:text-stone-200'}`} href={href} onClick={() => setSidebarOpen(false)}>
       {children}
     </Link>
   )

@@ -23,7 +23,7 @@ function TopLevelIcon() {
         d="M19.888 7.804a.88.88 0 0 0-.314-.328l-7.11-4.346a.889.889 0 0 0-.927 0L4.426 7.476a.88.88 0 0 0-.314.328L12 12.624l7.888-4.82Z"
       />
       <path
-        className="fill-white dark:fill-slate-800"
+        className="fill-white dark:fill-stone-800"
         d="M4.112 7.804a.889.889 0 0 0-.112.43v7.892c0 .31.161.597.426.758l7.11 4.346c.14.085.3.13.464.13v-8.736l-7.888-4.82Z"
       />
       <path
@@ -66,7 +66,7 @@ function NavGroup({ item, depth, pathname }: { item: NavItem; depth: number; pat
  * landing page.
  *
  * This replaces `<details>/<summary>`, which could only ever be one or the
- * other — a node with both an href and children silently dropped its href, so
+ * other â€” a node with both an href and children silently dropped its href, so
  * every landing page needed a synthetic `Overview` leaf to be reachable at all.
  * Seventeen of those leaves were retired when the hrefs moved onto their
  * containers (issue #56). A nested <a> inside <summary> would have fought
@@ -90,13 +90,13 @@ function NavBranch({ item, depth, pathname, active }: { item: NavItem; depth: nu
 
   const rowClasses = `flex items-center font-medium ${
     isTopLevel
-      ? 'font-[650] text-slate-800 p-1 dark:text-slate-200'
-      : 'text-slate-800 dark:text-slate-200'
+      ? 'font-[650] text-stone-800 p-1 dark:text-stone-200'
+      : 'text-stone-800 dark:text-stone-200'
   } ${active && isTopLevel ? 'relative before:absolute before:inset-0 before:rounded-sm before:bg-linear-to-tr before:from-[#f26622] before:to-[#f5854e] before:opacity-20 before:-z-10 before:pointer-events-none' : ''}`;
 
   const chevron = (
     <svg
-      className={`fill-slate-400 shrink-0 transition-transform ${open ? 'rotate-90' : ''}`}
+      className={`fill-stone-400 shrink-0 transition-transform ${open ? 'rotate-90' : ''}`}
       width="8"
       height="10"
       xmlns="http://www.w3.org/2000/svg"
@@ -138,7 +138,7 @@ function NavBranch({ item, depth, pathname, active }: { item: NavItem; depth: nu
       <ul
         id={panelId}
         hidden={!open}
-        className={`${isTopLevel ? 'mb-3 ml-4 pl-6' : 'ml-1 pl-4'} border-l border-slate-200 dark:border-slate-800`}
+        className={`${isTopLevel ? 'mb-3 ml-4 pl-6' : 'ml-1 pl-4'} border-l border-stone-200 dark:border-stone-800`}
       >
         {item.children!.map((child, i) => (
           <NavGroup key={i} item={child} depth={depth + 1} pathname={pathname} />
@@ -178,7 +178,7 @@ export default function SupportSidebar() {
     <div>
       {/* Backdrop */}
       <div
-        className={`md:hidden fixed inset-0 bg-slate-900/20 z-10 lg:hidden lg:z-auto transition-opacity duration-200 ${
+        className={`md:hidden fixed inset-0 bg-stone-900/20 z-10 lg:hidden lg:z-auto transition-opacity duration-200 ${
           sidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
         aria-hidden="true"
@@ -188,11 +188,11 @@ export default function SupportSidebar() {
       <aside
         ref={sidebar}
         id="sidebar"
-        className={`fixed left-0 top-0 bottom-0 w-64 h-screen border-r border-slate-200 md:left-auto md:shrink-0 z-10 dark:border-slate-800 dark:bg-slate-900 transform transition-transform ease-out duration-200 ${sidebarOpen ? "max-md:translate-x-0" : "max-md:-translate-x-full max-md:opacity-0"}`}
+        className={`fixed left-0 top-0 bottom-0 w-64 h-screen border-r border-stone-200 md:left-auto md:shrink-0 z-10 dark:border-stone-800 dark:bg-stone-950 transform transition-transform ease-out duration-200 ${sidebarOpen ? "max-md:translate-x-0" : "max-md:-translate-x-full max-md:opacity-0"}`}
       >
         {/* Gradient bg displaying on light layout only */}
         <div
-          className="absolute inset-0 -left-[9999px] bg-linear-to-b from-slate-50 to-white pointer-events-none -z-10 dark:hidden"
+          className="absolute inset-0 -left-[9999px] bg-linear-to-b from-stone-50 to-white pointer-events-none -z-10 dark:hidden"
           aria-hidden="true"
         ></div>
 

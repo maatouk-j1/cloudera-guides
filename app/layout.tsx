@@ -52,7 +52,7 @@ export default function RootLayout({
     <html lang="en" className="scroll-smooth" suppressHydrationWarning>
       {/* suppressHydrationWarning: https://github.com/vercel/next.js/issues/44343 */}
       <body
-        className={`${aspekta.variable} font-aspekta antialiased text-slate-800 font-[350] bg-white dark:bg-slate-900 dark:text-slate-200`}
+        className={`${aspekta.variable} font-aspekta antialiased text-stone-800 font-[350] bg-white dark:bg-stone-950 dark:text-stone-200`}
       >
         <Theme>
           <AppProvider>

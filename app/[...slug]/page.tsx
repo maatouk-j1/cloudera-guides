@@ -63,12 +63,12 @@ export default async function DocPage(
             {/* Breadcrumbs */}
             <div className="flex items-center text-sm whitespace-nowrap min-w-0 ml-3">
               {page.metadata.topicTitle && (
-                <span className="text-slate-600 dark:text-slate-400">{page.metadata.topicTitle}</span>
+                <span className="text-stone-600 dark:text-stone-400">{page.metadata.topicTitle}</span>
               )}
-              <svg className="fill-slate-400 shrink-0 mx-2 dark:fill-slate-500" width="8" height="10" xmlns="http://www.w3.org/2000/svg">
+              <svg className="fill-stone-400 shrink-0 mx-2 dark:fill-stone-500" width="8" height="10" xmlns="http://www.w3.org/2000/svg">
                 <path d="M1 2 2.414.586 6.828 5 2.414 9.414 1 8l3-3z" />
               </svg>
-              <span className="text-slate-800 font-medium truncate dark:text-slate-200">{page.metadata.title}</span>
+              <span className="text-stone-800 font-medium truncate dark:text-stone-200">{page.metadata.title}</span>
             </div>
 
           </div>
@@ -76,9 +76,9 @@ export default async function DocPage(
           {/* Article content */}
           <div>
             <header className="mb-6">
-              <h1 className="h2 text-slate-800 mb-4 dark:text-slate-200">{page.metadata.title}</h1>
+              <h1 className="h2 text-stone-800 mb-4 dark:text-stone-200">{page.metadata.title}</h1>
             </header>
-            <article className="prose text-slate-600 dark:text-slate-400 max-w-none prose-p:leading-normal prose-headings:text-slate-800 dark:prose-headings:text-slate-200 prose-a:font-medium prose-a:text-[#f26622] prose-a:no-underline prose-a:hover:underline prose-strong:text-slate-800 dark:prose-strong:text-slate-100 prose-code:text-slate-800 prose-code:bg-transparent dark:prose-code:bg-slate-800 dark:prose-code:text-slate-100 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:before:content-[''] prose-code:after:content-[''] prose-pre:bg-slate-800 prose-pre:border prose-pre:border-slate-700 prose-headings:scroll-mt-24 prose-img:rounded-lg prose-img:border prose-img:border-slate-200 dark:prose-img:border-slate-700">
+            <article className="prose text-stone-600 dark:text-stone-400 max-w-none prose-p:leading-normal prose-headings:text-stone-800 dark:prose-headings:text-stone-200 prose-a:font-medium prose-a:text-[#f26622] prose-a:no-underline prose-a:hover:underline prose-strong:text-stone-800 dark:prose-strong:text-stone-100 prose-code:text-stone-800 prose-code:bg-transparent dark:prose-code:bg-stone-900 dark:prose-code:text-stone-100 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:before:content-[''] prose-code:after:content-[''] prose-pre:bg-stone-800 prose-pre:border prose-pre:border-stone-700 prose-headings:scroll-mt-24 prose-img:rounded-lg prose-img:border prose-img:border-stone-200 dark:prose-img:border-stone-700">
               <CustomMDX source={page.content} />
             </article>
           </div>

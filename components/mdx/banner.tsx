@@ -29,7 +29,7 @@ export default function PostBanner({ type, ...props }: PostBannerProps) {
   }
 
   return (
-    <div className="text-sm p-4 bg-slate-50 border border-slate-200 rounded-sm dark:bg-slate-800 dark:border-slate-700">
+    <div className="text-sm p-4 bg-stone-50 border border-stone-200 rounded-sm dark:bg-stone-900 dark:border-stone-700">
       <div className="flex items-center">
         {typeIcon(type)}
         <div>

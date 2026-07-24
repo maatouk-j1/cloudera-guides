@@ -38,7 +38,7 @@
 
 /* Scrollspy links */
 [data-scrollspy-link] {
-    @apply font-normal text-slate-600 dark:text-slate-400;
+    @apply font-normal text-stone-600 dark:text-stone-400;
 }
 
 [data-scrollspy-link].scrollspy-active {

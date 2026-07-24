@@ -13,7 +13,7 @@ export default function Logo() {
   return (
     <Link className="inline-flex items-center mb-2 md:mb-0" href="/" aria-label="Cloudera CDP Guide">
       <LogoMark />
-      <span className="ml-2 text-lg font-[650] text-slate-800 dark:text-slate-200">CDP Guide</span>
+      <span className="ml-2 text-lg font-[650] text-stone-800 dark:text-stone-200">CDP Guide</span>
     </Link>
   )
 }

@@ -18,7 +18,7 @@ export function TableHeadRow({ children }: {
   children: React.ReactNode
 }) {
   return (
-    <tr className="text-left text-slate-800 dark:text-slate-200 whitespace-nowrap">{children}</tr>
+    <tr className="text-left text-stone-800 dark:text-stone-200 whitespace-nowrap">{children}</tr>
   )
 }
 
@@ -26,7 +26,7 @@ export function TableBodyRow({ children }: {
   children: React.ReactNode
 }) {
   return (
-    <tr className="border-t border-slate-200 dark:border-slate-800 whitespace-nowrap">{children}</tr>
+    <tr className="border-t border-stone-200 dark:border-stone-800 whitespace-nowrap">{children}</tr>
   )
 }
 
@@ -51,7 +51,7 @@ export default function PostTable({ children }: {
 }) {
   return (
     <div className="overflow-x-auto">
-      <table className="text-base table-auto w-full my-2 border-b border-slate-200 dark:border-slate-800">
+      <table className="text-base table-auto w-full my-2 border-b border-stone-200 dark:border-stone-800">
         {children}
       </table>
     </div>
