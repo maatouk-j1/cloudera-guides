@@ -321,6 +321,6 @@ before retrying — see [Error Handling](/installations/cdp-7-3-2/error-handling
 
 Not fixed by this template; listed so you don't mistake existing content for the standard.
 
-- **173 bold-lead steps across 15 files** (all `cdp-7-3-2`) predate the numbered-list rule.
+- **38 bold-lead steps across 6 files** (all `cdp-7-3-2`) predate the numbered-list rule.
 - **`lvm.mdx` and `dask.mdx`** (7.1.7) contain unfenced shell transcripts whose `#` lines render as
   page-width `h1` headings — 13 occurrences.
