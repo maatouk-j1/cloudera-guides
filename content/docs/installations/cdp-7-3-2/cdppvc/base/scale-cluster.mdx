@@ -9,13 +9,17 @@ nextTitle: Enable High Availability (Optional)
 nextSlug: /installations/cdp-7-3-2/cdppvc/base/high-availability
 ---
 
-> **Optional - skip this step.** The source marks this section *"Optional - Skip this step"*. It is guidance on sizing, not a procedure to run: nothing here changes the cluster you built in [Data Lake Creation](/installations/cdp-7-3-2/cdppvc/base/data-lake).
+<Banner type="warning">
+**Optional - skip this step.** The source marks this section *"Optional - Skip this step"*. It is guidance on sizing, not a procedure to run: nothing here changes the cluster you built in [Data Lake Creation](/installations/cdp-7-3-2/cdppvc/base/data-lake).
+</Banner>
 
 ## How the role assignment scales
 
 The role assignment recommendation above is for clusters with at least 64 servers and in High Availability. For smaller clusters running without High Availability the recommendation is to dedicate one server for Name Node and a second server for secondary name node and YARN Resource Manager. For larger clusters larger than 16 nodes the recommendation is to dedicate one server each for name node, YARN Resource Manager and one more for running both Name Node (High Availability) and Resource Manager (High Availability) as in the table (no Secondary Name Node when in High Availability).
 
-> **Note:** For production clusters, it is recommended to set up Name Node and Resource manager in High Availability mode.
+<Banner type="important">
+**Note:** For production clusters, it is recommended to set up Name Node and Resource manager in High Availability mode.
+</Banner>
 
 This implies that there will be at least 3 master nodes, running the Name Node, YARN Resource manager, the failover counterpart being designated to run on another node and a third node that would have similar capacity as the other two nodes.
 

@@ -14,7 +14,9 @@ This section outlines the steps needed to set up a 6 node Cloudera on premises B
 - [CDP Private Cloud Base Installation](https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/cdp-private-cloud-base-installation/topics/cdpdc-installation.html)
 - [Production Installation](https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/cdp-private-cloud-base-installation/topics/cdpdc-prod-installation.html)
 
-> **Ensure to verify compatibility matrix of Cloudera-Manager, Cloudera RunTime, DataServices/ECS, JDK, Python, PostgreSQL etc. all together:** [https://supportmatrix.cloudera.com/](https://supportmatrix.cloudera.com/)
+<Banner type="important">
+**Ensure to verify compatibility matrix of Cloudera-Manager, Cloudera RunTime, DataServices/ECS, JDK, Python, PostgreSQL etc. all together:** [https://supportmatrix.cloudera.com/](https://supportmatrix.cloudera.com/)
+</Banner>
 
 All the repositories and parcels below are hosted from the local `httpd` instance installed on the `cldr-mngr` node in the [preliminary work](/installations/cdp-7-3-2/post-os-work).
 
@@ -22,7 +24,9 @@ All the repositories and parcels below are hosted from the local `httpd` instanc
 
 ## 1. Setup Cloudera Manager Repository
 
-> **Note:** These steps require a Cloudera username and password to access: [https://archive.cloudera.com/p/cm7/](https://archive.cloudera.com/p/cm7/)
+<Banner type="important">
+**Note:** These steps require a Cloudera username and password to access: [https://archive.cloudera.com/p/cm7/](https://archive.cloudera.com/p/cm7/)
+</Banner>
 
 **Step 1.** From a host connected to the Internet, download the Cloudera's repositories as shown below and transfer it to the `cldr-mngr` node. We will directly login to `cldr-mngr` and perform below steps:
 
@@ -196,7 +200,9 @@ total 1862092
 /var/www/html/cloudera-repos/cloudera-manager/
 ```
 
-> **Note:** In a web browser please check and verify cloudera manager repository created by entering baseurl `http://13.251.65.11/cloudera-repos/cloudera-manager/`
+<Banner type="important">
+**Note:** In a web browser please check and verify cloudera manager repository created by entering baseurl `http://13.251.65.11/cloudera-repos/cloudera-manager/`
+</Banner>
 
 **Step 6.** Copy `cloudera-manager.repo` file to `/etc/yum.repos.d/` on all nodes to enable it to find the packages that are locally hosted on the admin node.
 
@@ -299,15 +305,21 @@ total 8453728
 [root@cldr-mngr ~]#
 ```
 
-> **Note:** In a web browser please check and verify cloudera manager repository created by entering baseurl: `http://13.251.65.11/cloudera-repos/cdh7.3.2/` (IP is of Cloudera-Manager)
+<Banner type="important">
+**Note:** In a web browser please check and verify cloudera manager repository created by entering baseurl: `http://13.251.65.11/cloudera-repos/cdh7.3.2/` (IP is of Cloudera-Manager)
+</Banner>
 
 ## 3. Set Up the Local Parcels for CDS 3.3 powered by Apache Spark
 
-> **Note:** This section could be skipped, as Spark3 is now bundled with the Cloudera RunTime parcel itself. (applicable for Spark 3.5 `<`)
+<Banner type="warning">
+**Note:** This section could be skipped, as Spark3 is now bundled with the Cloudera RunTime parcel itself. (applicable for Spark 3.5 `<`)
+</Banner>
 
 **Step 1.** From a host connected the internet, download CDS 3.3 Powered by Apache Spark parcels for RHEL9 from the URL: [https://archive.cloudera.com/p/spark3/3.3.7191000.4/parcels/](https://archive.cloudera.com/p/spark3/3.3.7191000.4/parcels/)
 
-> **Note:** Although Spark 2 and Spark 3 can coexist in the same Cloudera on premises Base cluster, you cannot use multiple Spark 3 versions simultaneously. All clusters managed by the same Cloudera Manager Server must use exactly the same version of CDS 3.3 Powered by Apache Spark.
+<Banner type="important">
+**Note:** Although Spark 2 and Spark 3 can coexist in the same Cloudera on premises Base cluster, you cannot use multiple Spark 3 versions simultaneously. All clusters managed by the same Cloudera Manager Server must use exactly the same version of CDS 3.3 Powered by Apache Spark.
+</Banner>
 
 **Step 2.** Create a directory and download CDS parcels as shown below:
 

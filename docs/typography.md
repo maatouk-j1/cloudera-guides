@@ -321,10 +321,6 @@ before retrying — see [Error Handling](/installations/cdp-7-3-2/error-handling
 
 Not fixed by this template; listed so you don't mistake existing content for the standard.
 
-- **124 blockquotes across 26 files** predate the `<Banner>` rule and are unreadable in dark mode.
-  Convert any you touch; don't add more.
 - **318 bold-lead steps across 19 files** (all `cdp-7-3-2`) predate the numbered-list rule.
-- **6 headings in `error-handling.mdx`** contain inline code and currently render `[object Object]`
-  in both their text and their anchor id.
 - **`lvm.mdx` and `dask.mdx`** (7.1.7) contain unfenced shell transcripts whose `#` lines render as
   page-width `h1` headings — 13 occurrences.

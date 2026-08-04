@@ -13,7 +13,9 @@ These steps are **optional** - the guide marks the whole section *"Optional, Ski
 
 ## Patch the GPU feature discovery pods
 
-> **Note:** If `nvgfd-gpu-feature-discovery-xxxx` pods remain in crashlookbackoff, apply this patch to fix the issue.
+<Banner type="important">
+**Note:** If `nvgfd-gpu-feature-discovery-xxxx` pods remain in crashlookbackoff, apply this patch to fix the issue.
+</Banner>
 
 ```bash
 [root@pvcecs-master ~]# kubectl patch clusterrolebinding gpu-feature-discovery -p '{"subjects":[{"kind":"ServiceAccount","name":"gpu-feature-discovery","namespace":"kube-system"}]}'
@@ -39,4 +41,6 @@ To reserve a GPU node in Cloudera on premises Data Services ECS cluster, assign 
 
 **Step 4.** Click on **Add** and click **Save Changes**.
 
-> **Note:** These captures are recycled from different lab builds and their hostnames do not agree. The **All Hosts** capture shows `pvcecs-master.cldrsetup.local` and `pvcecs-worker[1-10]` on `172.31.x`, while the **Add Host Overrides** dialog shows `cdp-ecs[1-4].cdip.cisco.local` on `10.29.148.x`. Read them for the procedure, not for the specific host names.
+<Banner type="important">
+**Note:** These captures are recycled from different lab builds and their hostnames do not agree. The **All Hosts** capture shows `pvcecs-master.cldrsetup.local` and `pvcecs-worker[1-10]` on `172.31.x`, while the **Add Host Overrides** dialog shows `cdp-ecs[1-4].cdip.cisco.local` on `10.29.148.x`. Read them for the procedure, not for the specific host names.
+</Banner>

@@ -13,7 +13,7 @@ The Base cluster is installed and healthy at the end of [Data Lake Creation](/in
 
 ## 1. Common Data Lake service URLs
 
-> **Note:** Common Data Lake Services' URLs:
+**Note:** Common Data Lake Services' URLs:
 
 ```text
 CM-UI:
@@ -117,7 +117,9 @@ DataNode Data Transfer Protection (dfs.data.transfer.protection) – Authenticat
 
 **7.** Atlas is having dependencies on some additional services i.e. HBase, SOLR and Kafka
 
-> **Note on Step 32 of the previous page:** the DataNode ports the Configure Kerberos stage set were **1004** and **1006** - both below 1024, which is configuration (2) in the warning above. Item 3 here moves them to **9866** and **9864** and sets Data Transfer Protection to `Authentication`, which is configuration (1). Apply one or the other, not a mix.
+<Banner type="warning">
+**Note on Step 32 of the previous page:** the DataNode ports the Configure Kerberos stage set were **1004** and **1006** - both below 1024, which is configuration (2) in the warning above. Item 3 here moves them to **9866** and **9864** and sets Data Transfer Protection to `Authentication`, which is configuration (1). Apply one or the other, not a mix.
+</Banner>
 
 ## 4. Host-file entries for the Base cluster
 

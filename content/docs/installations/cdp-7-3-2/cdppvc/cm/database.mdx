@@ -15,9 +15,13 @@ Please review Database Requirement for Cloudera on premises Base.
 
 This procedure highlights the installation and configuration steps with PostgreSQL. Please review Install and Configure Databases for Cloudera on premises Base for more details: [https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/cdp-private-cloud-base-installation/topics/cdpdc-install-config-postgresql-for-cdp.html](https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/cdp-private-cloud-base-installation/topics/cdpdc-install-config-postgresql-for-cdp.html)
 
-> **Note:** If you already have a PostgreSQL database set up, you can skip to the section Configuring and Starting the PostgreSQL Server to verify that your PostgreSQL configurations meet the requirements for Cloudera Manager.
+<Banner type="warning">
+**Note:** If you already have a PostgreSQL database set up, you can skip to the section Configuring and Starting the PostgreSQL Server to verify that your PostgreSQL configurations meet the requirements for Cloudera Manager.
+</Banner>
 
-> **Note:** We will be installing the external PostgreSQL DB server on the `cldr-mngr` host.
+<Banner type="important">
+**Note:** We will be installing the external PostgreSQL DB server on the `cldr-mngr` host.
+</Banner>
 
 ---
 
@@ -70,13 +74,19 @@ ipaserver.cldrsetup.local | CHANGED | rc=0 >>
 
 **Step 4.** Make sure that the data directory, which by default is `/var/lib/pgsql/17/data/`, is on a partition that has sufficient free space.
 
-> **Note:** Cloudera Manager supports the use of a custom schema name for the Cloudera Manager Server database. By default, PostgreSQL only accepts connections on the loopback interface. You must reconfigure PostgreSQL to accept connections from external hosts.
+<Banner type="important">
+**Note:** Cloudera Manager supports the use of a custom schema name for the Cloudera Manager Server database. By default, PostgreSQL only accepts connections on the loopback interface. You must reconfigure PostgreSQL to accept connections from external hosts.
+</Banner>
 
-> **The guide numbers this procedure 1, 2, 4, 5, … - there is no Step 3.** The `ansible` block above is printed under Step 2 without a heading of its own, which is most likely where Step 3 was meant to sit. The numbering is transcribed as published so it matches the source PDF.
+<Banner type="important">
+**The guide numbers this procedure 1, 2, 4, 5, … - there is no Step 3.** The `ansible` block above is printed under Step 2 without a heading of its own, which is most likely where Step 3 was meant to sit. The numbering is transcribed as published so it matches the source PDF.
+</Banner>
 
 **Step 5.** Installing the psycopg2 Python package for PostgreSQL-backed Hue. *(Skip this, as we already performed it in prior steps)*
 
-> **Note:** If you are installing Runtime 7 and using PostgreSQL as a backend database for Hue, then you must install the 2.9.3 version (or greater) of the psycopg2 package on all Hue hosts. The psycopg2 package is automatically installed as a dependency of Cloudera Manager Agent, but the version installed is often lower than 2.9.3
+<Banner type="important">
+**Note:** If you are installing Runtime 7 and using PostgreSQL as a backend database for Hue, then you must install the 2.9.3 version (or greater) of the psycopg2 package on all Hue hosts. The psycopg2 package is automatically installed as a dependency of Cloudera Manager Agent, but the version installed is often lower than 2.9.3
+</Banner>
 
 **Step 6.** Make sure the psycopg2 package dependencies for RHEL 9 is installed on all required hosts, by running the following commands:
 
@@ -164,7 +174,9 @@ jit = off
 [root@cldr-mngr ~]# cp ~/postgresql.conf /var/lib/pgsql/17/data/postgresql.conf
 ```
 
-> **Note:** Settings vary based on cluster size and resources.
+<Banner type="important">
+**Note:** Settings vary based on cluster size and resources.
+</Banner>
 
 **Step 11.** Start the PostgreSQL Server and configure it to start at boot.
 
@@ -484,9 +496,13 @@ postgres=# \q
 - [https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/cdp-private-cloud-base-installation/topics/cdpdc-required-databases.html](https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/cdp-private-cloud-base-installation/topics/cdpdc-required-databases.html)
 - [https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/cdp-private-cloud-base-installation/topics/cdpdc-configuring-starting-postgresql-server.html](https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/cdp-private-cloud-base-installation/topics/cdpdc-configuring-starting-postgresql-server.html)
 
-> **Note:** The databases must be configured to support the PostgreSQL UTF8 character set encoding.
+<Banner type="important">
+**Note:** The databases must be configured to support the PostgreSQL UTF8 character set encoding.
+</Banner>
 
-> **Note:** Record the values you enter for database names, usernames, and passwords. The Cloudera Manager installation wizard requires this information to correctly connect to these databases.
+<Banner type="important">
+**Note:** Record the values you enter for database names, usernames, and passwords. The Cloudera Manager installation wizard requires this information to correctly connect to these databases.
+</Banner>
 
 ```sql
 ##### Create CM DB and USERS
@@ -567,11 +583,17 @@ SHOW ssl;
 --- GRANT ALL PRIVILEGES ON DATABASE "registry" to registry;
 ```
 
-> **Note:** If you plan to use Apache Ranger, please visit Configuring a PostgreSQL Database for Ranger or Ranger KMS for instructions on creating and configuring the Ranger database. **included above- install JDBC driver, create DB for ranger etc.**
+<Banner type="important">
+**Note:** If you plan to use Apache Ranger, please visit Configuring a PostgreSQL Database for Ranger or Ranger KMS for instructions on creating and configuring the Ranger database. **included above- install JDBC driver, create DB for ranger etc.**
+</Banner>
 
-> **Note:** If you plan to use Schema Registry or Streams Messaging Manager, please visit Configuring the Database for Streaming Components for instructions on configuring the database. included above- create smm and registry db etc.
+<Banner type="important">
+**Note:** If you plan to use Schema Registry or Streams Messaging Manager, please visit Configuring the Database for Streaming Components for instructions on configuring the database. included above- create smm and registry db etc.
+</Banner>
 
-> **Every password above is the role name.** The guide's lab build uses `scm/scm`, `hive/hive`, `ranger/rangeradmin` and so on throughout. Substitute real credentials before running any of this outside a disposable lab, and record them - the Cloudera Manager installation wizard asks for them later.
+<Banner type="warning">
+**Every password above is the role name.** The guide's lab build uses `scm/scm`, `hive/hive`, `ranger/rangeradmin` and so on throughout. Substitute real credentials before running any of this outside a disposable lab, and record them - the Cloudera Manager installation wizard asks for them later.
+</Banner>
 
 ## What comes next
 

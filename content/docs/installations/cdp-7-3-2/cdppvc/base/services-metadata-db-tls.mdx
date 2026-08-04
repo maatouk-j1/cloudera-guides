@@ -15,11 +15,13 @@ The Cloudera Manager metadata database was created with TLS enabled back in [Set
 
 Login to Cloudera Manager Web Console. Go to **Ranger > Configuration**.
 
-> **Note**: Make sure that:
->
-> - The database and database user for Ranger service are created in the required postgreSQL.
-> - A database server certificate is issued by a trusted certificate authority.
-> - The server host name matches the host name in the database server certificate.
+<Banner type="important">
+**Note**: Make sure that:
+
+- The database and database user for Ranger service are created in the required postgreSQL.
+- A database server certificate is issued by a trusted certificate authority.
+- The server host name matches the host name in the database server certificate.
+</Banner>
 
 From CDPDC-7.1.5 onwards, Ranger service requires postgres JDBC driver **version >= 42.2.5**. The Ranger code also constructs the JDBC connection string to have `sslmode=verify-full`, if Ranger Database SSL configurations are set in case of postgresql database type.
 
@@ -76,9 +78,13 @@ jdbc:postgresql://cldr-mngr.cldrsetup.local:5432/hive?ssl=true&sslmode=verify-fu
 
 ![Hive Metastore Database JDBC URL Override set service-wide to the postgresql JDBC URL with ssl=true, sslmode=verify-full and sslrootcert pointing at /var/lib/hive/root.crt](/images/cdp-7-3-2/cdppvc/base/services-metadata-db-tls/hive-metastore-jdbc-url-override.png)
 
-> **Note:** Restart required for Hive Metastore Server and HiveServer2 after updating Hive configuration.
+<Banner type="important">
+**Note:** Restart required for Hive Metastore Server and HiveServer2 after updating Hive configuration.
+</Banner>
 
-> **Note:** Click on **Actions -> Restart** under **Hive** and **Hive-on-Tez** Services.
+<Banner type="important">
+**Note:** Click on **Actions -> Restart** under **Hive** and **Hive-on-Tez** Services.
+</Banner>
 
 ## Version strings in this section
 

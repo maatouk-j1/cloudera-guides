@@ -43,7 +43,9 @@ Choose one of the nodes of the cluster or a separate node as the Ansible Admin/C
 
 Python 3 can be installed manually on the bare minimum (`ipaserver` / Ansible admin) and can later be installed using Ansible on the rest of the nodes, if you do not want to install it on each individual node.
 
-> **Note:** By default, running `dnf update` on RHEL may upgrade the system to the latest minor release (for example, 9.6). If you want to stay on RHEL 9.5 and receive only security and bug-fix updates, lock the system to your current minor version.
+<Banner type="warning">
+**Note:** By default, running `dnf update` on RHEL may upgrade the system to the latest minor release (for example, 9.6). If you want to stay on RHEL 9.5 and receive only security and bug-fix updates, lock the system to your current minor version.
+</Banner>
 
 Solution 1 - Lock to your current minor version (RHEL 9.5). Run the following:
 
@@ -199,7 +201,9 @@ EDT 2024 x86_64 x86_64 x86_64 GNU/Linux
 
 Set up the `ipaserver`, which includes the private DNS server, MIT Kerberos KDC, Directory Server, Chrony, Dogtag certificate system and SSSD.
 
-> **Note:** You can skip this procedure if you are going with an existing AD server instead of FreeIPA.
+<Banner type="warning">
+**Note:** You can skip this procedure if you are going with an existing AD server instead of FreeIPA.
+</Banner>
 
 In this step, a private DNS server and other services such as KDC and Directory Service are configured on the `ipaserver`. Note that the hostnames used in this installation can be modified as per your requirements. Follow the on-screen instructions and provide the inputs for the parameters as per the table below.
 
@@ -472,7 +476,9 @@ Enable password-less login across all the nodes when Red Hat Linux is installed 
 
 **Step 3.** Run the following commands from the Ansible controller / `ipaserver` node to copy the public key `id_rsa.pub` to all the nodes of the cluster. `ssh-copy-id` appends the keys to the remote hosts' `.ssh/authorized_keys`.
 
-> Not applicable on AWS EC2 - this needs to be done manually, as password-based authentication for non-root users is disabled there.
+<Banner type="warning">
+Not applicable on AWS EC2 - this needs to be done manually, as password-based authentication for non-root users is disabled there.
+</Banner>
 
 ```bash
 [root@ipaserver ~]# for i in {1}; do echo "copying ipaserver.cldrsetup.local"; ssh-copy-id -i
@@ -622,7 +628,9 @@ pvcbase-worker1.cldrsetup.local | SUCCESS => {
 
 Open the file `/etc/resolv.conf` in edit mode and add the following. Make sure the new entry is added above any other `nameserver` entry. The contents of the file must look similar to the below.
 
-> **Note:** Make sure that the `/etc/resolv.conf` file on the ECS hosts contains a maximum of 2 active search domains. See [Known issues in ECS environments](https://docs.cloudera.com/data-warehouse/1.5.5/release-notes/topics/dw-private-cloud-known-issues-ecs-environments.html).
+<Banner type="important">
+**Note:** Make sure that the `/etc/resolv.conf` file on the ECS hosts contains a maximum of 2 active search domains. See [Known issues in ECS environments](https://docs.cloudera.com/data-warehouse/1.5.5/release-notes/topics/dw-private-cloud-known-issues-ecs-environments.html).
+</Banner>
 
 ```bash
 [root@jump ~]# cp /etc/resolv.conf /etc/resolv.conf.orig
@@ -680,7 +688,9 @@ done < /tmp/dns_entries.txt
 
 **Step 6.** Set up the reverse DNS zone on the `ipaserver` / AD server. `--name-from-ip` is the VPC CIDR. In this step we set up a reverse DNS zone on the FreeIPA server for reverse lookup.
 
-> **Note:** In case of an AD server, this would already be created/present. No need to perform the below steps - jump to Step 8.
+<Banner type="warning">
+**Note:** In case of an AD server, this would already be created/present. No need to perform the below steps - jump to Step 8.
+</Banner>
 
 ```bash
 ##### Take the CIDR block of the network in which the instances are created and create a reverse DNS zone by
@@ -733,7 +743,9 @@ below.
 
 **Step 8.** Prepare the commands for adding DNS records and configuring reverse lookup.
 
-> **Note:** If you are using an AD server instead of FreeIPA, you must manually create the required PTR records in both the forward lookup zones and the reverse lookup zones on the AD server. If you check the option "Create associated pointer (PTR) record" while creating the records in forward lookup zones, records will automatically be created in reverse lookup zones. You need to do this for all the nodes.
+<Banner type="warning">
+**Note:** If you are using an AD server instead of FreeIPA, you must manually create the required PTR records in both the forward lookup zones and the reverse lookup zones on the AD server. If you check the option "Create associated pointer (PTR) record" while creating the records in forward lookup zones, records will automatically be created in reverse lookup zones. You need to do this for all the nodes.
+</Banner>
 
 ![Windows New Host dialog with a Name of cldr-mngr, an FQDN of cldr-mngr.ntnxlab.local, an IP address and the "Create associated pointer (PTR) record" checkbox ticked](/images/cdp-7-3-2/post-os-work/ad-new-host-dialog.png)
 
@@ -910,11 +922,17 @@ Configure the FreeIPA client on every other node so that it is managed by the `i
 
 **Step 1.** Install the FreeIPA client along with the other packages needed on all hosts except the `ipaserver`.
 
-> **Note:** Set up the `ipaserver` client and krb5 libs on each node before copying `resolv.conf`, as installation of `ipa-client` will override this. UDP port 123 and TCP port 389 need to be enabled for IPA services, NTP and timesync.
+<Banner type="important">
+**Note:** Set up the `ipaserver` client and krb5 libs on each node before copying `resolv.conf`, as installation of `ipa-client` will override this. UDP port 123 and TCP port 389 need to be enabled for IPA services, NTP and timesync.
+</Banner>
 
-> **Note:** Remove chrony from all hosts using Ansible, as it creates issues in installing and configuring IPA services successfully.
+<Banner type="important">
+**Note:** Remove chrony from all hosts using Ansible, as it creates issues in installing and configuring IPA services successfully.
+</Banner>
 
-> **Note:** Please review the Java requirement in the Cloudera on premises Base Requirements and Supported Versions sections. We installed OpenJDK 11 for this solution validation; `ipa-client` will also require and auto-install Java 11 on all hosts if it is not present or a different version, for example Java 17, is installed. See [Java requirements](https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/cdp-private-cloud-base-installation/topics/cdpdc-java-requirements.html).
+<Banner type="important">
+**Note:** Please review the Java requirement in the Cloudera on premises Base Requirements and Supported Versions sections. We installed OpenJDK 11 for this solution validation; `ipa-client` will also require and auto-install Java 11 on all hosts if it is not present or a different version, for example Java 17, is installed. See [Java requirements](https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/cdp-private-cloud-base-installation/topics/cdpdc-java-requirements.html).
+</Banner>
 
 ```bash
 [root@jump ~]# ansible all -m shell -a "sudo subscription-manager repos
@@ -1058,7 +1076,9 @@ Verify the KDC setup: check that Kerberos ticket generation is working fine by g
 
 Open the file `/etc/resolv.conf` in edit mode and verify the following. Make sure the new entry is added above any other `nameserver` entry. The contents of the file must look similar to the below.
 
-> **Note:** Make sure that the `/etc/resolv.conf` file on the ECS hosts contains a maximum of 2 active search domains. See [Known issues in ECS environments](https://docs.cloudera.com/data-warehouse/1.5.5/release-notes/topics/dw-private-cloud-known-issues-ecs-environments.html).
+<Banner type="important">
+**Note:** Make sure that the `/etc/resolv.conf` file on the ECS hosts contains a maximum of 2 active search domains. See [Known issues in ECS environments](https://docs.cloudera.com/data-warehouse/1.5.5/release-notes/topics/dw-private-cloud-known-issues-ecs-environments.html).
+</Banner>
 
 ```bash
 [root@jump ~]# cp /etc/resolv.conf /etc/resolv.conf.orig
@@ -1106,7 +1126,9 @@ NOZEROCONF=yes
 
 **Step 9.** Log in to the `pvcbase-master` node and verify that forward and reverse DNS lookup is working fine from each machine.
 
-> **Note:** In case of an AD server, you can verify on any client machine such as `pvcbase-master`.
+<Banner type="warning">
+**Note:** In case of an AD server, you can verify on any client machine such as `pvcbase-master`.
+</Banner>
 
 ```bash
 [root@pvcbase-master ~]# nslookup cldr-mngr.cldrsetup.local
@@ -1149,7 +1171,9 @@ pvcbase-master.ntnxlab.local. 3600 IN                               A     10.8.1
 
 **Step 10.** Log in to the `ipaserver`, then configure and validate that the wildcard DNS record is working fine and resolvable. This is required later for the ECS Data Services cluster - if it is not set properly, there is a good chance the ECS installation gets corrupted.
 
-> **Note:** In case of an AD server, you need to create the wildcard DNS record on the AD DNS server manually in the forward and reverse lookup zones, and then you can verify by running the command `nslookup console-cdp.apps.cldrsetup.local` on the `pvcecs-master` node.
+<Banner type="warning">
+**Note:** In case of an AD server, you need to create the wildcard DNS record on the AD DNS server manually in the forward and reverse lookup zones, and then you can verify by running the command `nslookup console-cdp.apps.cldrsetup.local` on the `pvcecs-master` node.
+</Banner>
 
 ![Windows DNS Manager showing an apps sub-zone under the forward lookup zone containing a wildcard Host (A) record pointing at the ECS master](/images/cdp-7-3-2/post-os-work/ad-dns-manager-wildcard-apps.png)
 
@@ -1208,7 +1232,9 @@ dest=/usr/share/java/postgresql-connector-java.jar"
 
 Ignore the errors if the firewall is not installed.
 
-> **Note:** The default Linux firewall settings are too restrictive for any Hadoop deployment. Since the Cloudera on premises deployment will be in its own isolated network in the on-premises environment, there is no need for that additional firewall. Not applicable on AWS EC2.
+<Banner type="warning">
+**Note:** The default Linux firewall settings are too restrictive for any Hadoop deployment. Since the Cloudera on premises deployment will be in its own isolated network in the on-premises environment, there is no need for that additional firewall. Not applicable on AWS EC2.
+</Banner>
 
 ```bash
 ##### Either disable the firewall or update the rules: (ON ALL HOSTS)
@@ -1221,7 +1247,9 @@ systemctl status firewalld | grep -e disabled -e inactive"
 
 ## 8. Disable SELinux
 
-> **Note:** SELinux must be disabled during the install procedure and cluster setup. SELinux can be enabled after installation and while the cluster is running.
+<Banner type="important">
+**Note:** SELinux must be disabled during the install procedure and cluster setup. SELinux can be enabled after installation and while the cluster is running.
+</Banner>
 
 **Step 1.** SELinux can be disabled by editing `/etc/selinux/config` (on some systems it would be `/etc/sysconfig/selinux`). To disable SELinux, change `SELINUX=enforcing` to `SELINUX=disabled` or `SELINUX=permissive`. Follow these steps:
 
@@ -1232,9 +1260,13 @@ systemctl status firewalld | grep -e disabled -e inactive"
 [root@jump ~]# ansible all -m shell -a "getenforce"
 ```
 
-> **Note:** This command may fail if SELinux is already disabled. This requires a reboot to take effect.
+<Banner type="important">
+**Note:** This command may fail if SELinux is already disabled. This requires a reboot to take effect.
+</Banner>
 
-> **Note:** While the suggested configuration is to disable SELinux as shown below, if for any reason SELinux needs to be enabled on the cluster, run the following command to make sure that httpd can read the Yum profiles.
+<Banner type="warning">
+**Note:** While the suggested configuration is to disable SELinux as shown below, if for any reason SELinux needs to be enabled on the cluster, run the following command to make sure that httpd can read the Yum profiles.
+</Banner>
 
 ```bash
 [root@jump ~]# chcon -R -t httpd_sys_content_t /var/www/html/
@@ -1298,13 +1330,17 @@ session          optional        pam_xauth.so
 [root@jump ~]# ansible all -m copy -a "src=/etc/pam.d/su dest=/etc/pam.d/su"
 ```
 
-> **Note:** The ulimit values are applied on a new shell; running the command on a node on an earlier instance of a shell will show old values.
+<Banner type="important">
+**Note:** The ulimit values are applied on a new shell; running the command on a node on an earlier instance of a shell will show old values.
+</Banner>
 
 ## 11. Set TCP retries
 
 Adjusting the `tcp_retries` parameter for the system network enables faster detection of failed nodes. Given the advanced networking features of UCS, this is a safe and recommended change - failures observed at the operating system layer are most likely serious rather than transitory.
 
-> **Note:** On each node, setting the number of TCP retries to 5 can help detect unreachable nodes with less latency.
+<Banner type="important">
+**Note:** On each node, setting the number of TCP retries to 5 can help detect unreachable nodes with less latency.
+</Banner>
 
 **Step 1.** Edit the file `/etc/sysctl.conf` on the `ipaserver` node and add the following lines.
 
@@ -1471,7 +1507,9 @@ This applies to the network interface of all ECS nodes, both master and worker, 
 
 The default CNI (Canal) that comes with ECS (RKE2 from SUSE) does not support VMs. Customers have reported escalations with the default CNI when they use VMware. Customers may experience network connectivity issues or degraded performance when deploying ECS clusters on VMware environments with the default CNI, so they use a workaround by turning off TCP checksum offload on the interface.
 
-> **Note:** Disabling TCP checksum offload may have implications on network performance or security. Evaluate the impact of this workaround in the specific environment and consider reverting the changes once a permanent solution or alternative workaround is available. Additionally, consult with the VMware documentation or support resources for guidance on network configuration and optimization in VMware environments.
+<Banner type="warning">
+**Note:** Disabling TCP checksum offload may have implications on network performance or security. Evaluate the impact of this workaround in the specific environment and consider reverting the changes once a permanent solution or alternative workaround is available. Additionally, consult with the VMware documentation or support resources for guidance on network configuration and optimization in VMware environments.
+</Banner>
 
 **Step 1.** Identify the network interface.
 
@@ -1622,7 +1660,9 @@ Install httpd on the Cloudera Manager node - `cldr-mngr` - to host a local parce
 
 **Step 1.** Install httpd on the Cloudera Manager node (`cldr-mngr`) to host the repositories.
 
-> **Note:** The Red Hat repository is hosted using HTTP on the admin node; this machine is accessible by all the hosts in the cluster.
+<Banner type="important">
+**Note:** The Red Hat repository is hosted using HTTP on the admin node; this machine is accessible by all the hosts in the cluster.
+</Banner>
 
 ```bash
 [root@cldr-mngr ~]# dnf install -y httpd mod_ssl createrepo_c

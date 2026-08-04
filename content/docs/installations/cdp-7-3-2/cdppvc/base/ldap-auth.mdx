@@ -9,7 +9,9 @@ nextTitle: Optimize Log Collection
 nextSlug: /installations/cdp-7-3-2/cdppvc/base/optimize-log-collection
 ---
 
-> **Optional - skip this step.** All four procedures on this page are marked *"Optional - Skip this Step"* in the source. Without them the services fall back to their existing authentication: Ranger to UNIX, Atlas to the local OS users on the host where the Atlas server runs.
+<Banner type="warning">
+**Optional - skip this step.** All four procedures on this page are marked *"Optional - Skip this Step"* in the source. Without them the services fall back to their existing authentication: Ranger to UNIX, Atlas to the local OS users on the host where the Atlas server runs.
+</Banner>
 
 This page configures **service** authentication against the directory. It is a different page from [Configure CM for external authentication using LDAP](/installations/cdp-7-3-2/cdppvc/cm/ldap-auth), which does the same job for Cloudera Manager itself. The directory is the FreeIPA server stood up in [Post OS Installation - Preliminary Work](/installations/cdp-7-3-2/post-os-work), and the bind password is the KDC admin password configured there.
 

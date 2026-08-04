@@ -9,17 +9,23 @@ nextTitle: Configure Services authentication for LDAP (Optional)
 nextSlug: /installations/cdp-7-3-2/cdppvc/base/ldap-auth
 ---
 
-> **Optional - skip this step.** The source marks the High Availability section *"Optional - Skip this step"*. The two sections that follow it on the same source page - browser configuration for Kerberos and the Base checklist - are not marked optional and close out the Base cluster build.
+<Banner type="warning">
+**Optional - skip this step.** The source marks the High Availability section *"Optional - Skip this step"*. The two sections that follow it on the same source page - browser configuration for Kerberos and the Base checklist - are not marked optional and close out the Base cluster build.
+</Banner>
 
 ## 1. Enable High Availability
 
-> **Note:** Setting up High Availability is done after the Cloudera Installation is completed.
+<Banner type="important">
+**Note:** Setting up High Availability is done after the Cloudera Installation is completed.
+</Banner>
 
 The guide hands off to the Cloudera Manager documentation rather than restating the procedure: `https://docs.cloudera.com/cloudera-manager/7.13.2/cloudera-manager-managing-clusters/topics/cm-high-availability.html`
 
 ## 2. Configure Browsers for Kerberos Authentication
 
-> **Note:** To enable specific web browsers to use SPNEGO to negotiate Kerberos authentication, please visit: `https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/security-how-to-guides/topics/cm-security-browser-access-kerberos-protected-url.html`
+<Banner type="important">
+**Note:** To enable specific web browsers to use SPNEGO to negotiate Kerberos authentication, please visit: `https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/security-how-to-guides/topics/cm-security-browser-access-kerberos-protected-url.html`
+</Banner>
 
 This is the counterpart to the de-Kerberisation shortcut in [Additional Requirements and Details](/installations/cdp-7-3-2/cdppvc/base/additional-requirements): configure SPNEGO in the browser instead, and the service Web UIs stay Kerberos-protected.
 
