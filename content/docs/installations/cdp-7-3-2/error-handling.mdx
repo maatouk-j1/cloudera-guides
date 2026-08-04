@@ -45,7 +45,7 @@ com.cloudera.headlamp.db.host=<DB-HOST>:<DB-PORT>
 com.cloudera.headlamp.db.name=<DB_NAME>
 ```
 
-### Agent heartbeat fails: certificate does not match `localhost`
+### Agent heartbeat fails: certificate does not match localhost
 
 The agent is configured to reach the server at `localhost`, but Auto-TLS issued the server certificate for its DNS name — so the hostname check fails and heartbeats never land.
 
@@ -90,7 +90,7 @@ change hostname to dnsname in place of localhost and restart all agents (heartbe
 grep -v -e '^[[:space:]]*$' -e '^#' /etc/cloudera-scm-agent/config.ini
 ```
 
-### `Failed during cleanup : null` in the state synchronizer
+### Failed during cleanup : null in the state synchronizer
 
 ```text
 2024-03-16 03:04:54,710 ERROR pool-7-thread-1:com.cloudera.server.cmf.components.CmServerStateSynchronizer: Failed during cleanup : null
@@ -372,7 +372,7 @@ The guide's references for this section:
 - [https://docs.cloudera.com/documentation/other/reference-architecture/PDF/cloudera_ref_arch_cdp_dc.pdf](https://docs.cloudera.com/documentation/other/reference-architecture/PDF/cloudera_ref_arch_cdp_dc.pdf)
 - [https://docs.cloudera.com/cdp-private-cloud-data-services/1.5.5/upgrade-ocp/topics/cdppvc-installation-update-pvc-ds.html](https://docs.cloudera.com/cdp-private-cloud-data-services/1.5.5/upgrade-ocp/topics/cdppvc-installation-update-pvc-ds.html)
 
-### `kubectl` cannot reach the API server
+### kubectl cannot reach the API server
 
 ```text
 Could not get current server API group list: Get "http://localhost:8080/api?timeout=32s": dial tcp 127.0.0.1:8080: connect: connection refused
@@ -412,7 +412,7 @@ kubectl -n kubernetes-dashboard get secret/admin-user-secret  -o 'jsonpath={.met
 (working)
 ```
 
-### Dashboard token: `base64decode` template error
+### Dashboard token: base64decode template error
 
 Without naming the secret, the template runs against a list and `base64decode` gets a non-string:
 
@@ -429,7 +429,7 @@ error: error executing template "{{.data.token | base64decode}}": template: outp
 kubectl get secret -n kubernetes-dashboard admin-user-secret -o 'go-template={{.data.token | base64decode}}' (working command)
 ```
 
-### `INSTALLATION FAILED: cannot re-use a name that is still in use`
+### INSTALLATION FAILED: cannot re-use a name that is still in use
 
 The Helm release for the Kubernetes dashboard already exists from a previous attempt:
 
@@ -470,7 +470,7 @@ The first `delete pod` fails because the pod name carries the ReplicaSet hash �
 - Bootstrap error with `kubectl` — remove the `/var/lib/rancher` directory.
 - The kubelet log lives at `/var/lib/rancher/rke2/agent/logs/kubelet.log`.
 
-### `x509: certificate signed by unknown authority`
+### x509: certificate signed by unknown authority
 
 ```text
 [root@pvcecsmaster ~]# kubectl get pods
