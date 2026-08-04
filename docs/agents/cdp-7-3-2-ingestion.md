@@ -100,14 +100,15 @@ nextTitle: <...>
 
 ## 4. MDX authoring
 
-- **Body starts at `h2`** — the page shell already renders `title` as the `h1`.
-- Headings `h1`–`h4` are auto-anchored. The anchor id lowercases, replaces spaces with `-` and
-  strips non-word characters (`components/mdx/mdx.tsx:14-24`), so avoid duplicate headings on a page
-  if you intend to link to them.
-- GFM tables and syntax-highlighted code fences are available. **Always tag a code fence with a
-  language** (`bash`, `sql`, `yaml`, `ini`, `text`) — untagged fences lose highlighting.
-- Custom components: `Banner`, `Accordion`, `Tag`, `Table`/`THead`/`TBody`/`ThRow`/`TbRow`/`Th`/`Td`,
-  `Image`, `Link`, `ModalVideo`.
+**`docs/typography.md` is authoritative for all MDX formatting.** Read it before writing any
+page. The essentials it covers, in brief:
+
+- **Body starts at `h2`** — the page shell already renders `title` as the `h1`. `h5` and deeper are
+  unmapped; headings must be plain text (inline code in a heading renders `[object Object]`).
+- **GFM tables only**, and **always tag a code fence with a language**.
+- **`<Banner type="warning">` / `type="important">` is the only sanctioned component.** Blockquotes
+  are banned (unreadable in dark mode); `Accordion`, `Tag`, `Table`, `Image` and `ModalVideo` are not
+  used — the last two are technically unusable from string-rendered MDX.
 - Match the tone and density of the existing 7.1.7 pages (`content/docs/cdppvc/`, moving to
   `content/docs/installations/cdp-7-1-7/cdppvc/` under P2): numbered procedure steps, with code
   fences and images indented four spaces under their step so they stay inside the list item.

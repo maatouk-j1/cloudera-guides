@@ -10,6 +10,12 @@ Issues are tracked as GitHub Issues on `maatouk-j1/cloudera-guides` via the `gh`
 
 Default canonical labels (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`). See `docs/agents/triage-labels.md`.
 
+### Typography
+
+Adding or editing any `content/**/*.mdx` page? Follow `docs/typography.md` — the authoritative
+format for headings, steps, tables, code, callouts, images and links, and the dark-mode rules that
+constrain them.
+
 ### CDP 7.3.2 ingestion
 
 Ingesting the Cloudera 7.3.2 ECS deployment guide? Follow `docs/agents/cdp-7-3-2-ingestion.md` — the authoritative phase index, PDF toolchain rules, and MDX conventions.
