@@ -4,8 +4,10 @@ The authoritative format for every piece of content in `content/**/*.mdx`. Read 
 page or editing an existing one. Every rule cites the code that enforces it, so you can verify any
 claim here in one read — and so a future retheme that breaks a rule is findable.
 
-Section 8 is a copy-paste kitchen sink. Lift blocks from it verbatim rather than reconstructing
-syntax from the prose above it.
+Two sections are shortcuts. **Section 8** is a copy-paste kitchen sink — lift blocks from it verbatim
+rather than reconstructing syntax from the prose above it. **Section 10** is the style sheet: the
+font, size, weight and colour every construct actually renders as, in both themes. Read 10 when you
+need to know what a page will look like; read 1-7 when you need to know what to type.
 
 ---
 
@@ -38,16 +40,19 @@ The page `h1` is **not** written in the body. The shell renders frontmatter `tit
 
 ```yaml
 ---
-title: VM Creation
-topicTitle: CDP 7.3.2
-topicSlug: cdp-7-3-2
+title: This Page's Title
+topicTitle: Display name of the topic this page belongs to
+topicSlug: topic-slug
 summary: One line describing the page, used in search results.
-prevTitle: CDP 7.3.2
-prevSlug: /installations/cdp-7-3-2
-nextTitle: Solution Summary
-nextSlug: /installations/cdp-7-3-2/summary
+prevTitle: Title of the previous page in reading order
+prevSlug: /installations/<topic-slug>/<previous-page>
+nextTitle: Title of the next page in reading order
+nextSlug: /installations/<topic-slug>/<next-page>
 ---
 ```
+
+`topicSlug` and the `prev`/`next` slugs must match the tree in `lib/navigation.ts`. Copy the
+neighbouring pages' values from a sibling file in the same directory rather than inventing them.
 
 **Frontmatter is not parsed as YAML.** `components/mdx/utils.ts:17-36` splits each line on the first
 `": "` and strips one pair of surrounding quotes. So: exactly one line per key, no block scalars, no
@@ -99,16 +104,16 @@ Use a **real numbered list**. Nest code fences, images and sub-lists by indentin
 spaces** so they sit inside the step.
 
 ```md
-1. Log in to the Prism Central Dashboard.
+1. Log in to the management console.
 
 2. Navigate to `Compute` > `Images`, then click `Add Image`.
 
-    ![Prism Central Images page with the Add Image button in the toolbar](/images/cdp-7-3-2/vm/prism-images-list.png)
+    ![Images page with the Add Image button in the toolbar](/images/<topic-slug>/<section>/images-list.png)
 
 3. Run the following on every node:
 
     ```bash
-    sudo hostnamectl set-hostname --static pvcbase-master.cldrsetup.local
+    sudo hostnamectl set-hostname --static <hostname>
     ```
 ```
 
@@ -130,8 +135,8 @@ Use `-` bullets for unordered sets — prerequisites, option lists, things to ch
 ```md
 | Component | Version |
 |:--|:--|
-| Cloudera Manager | `7.13.2.0` |
-| OS | RHEL 9.5 |
+| Server | `<x.y.z>` |
+| OS | `<distro x.y>` |
 ```
 
 Cells wrap, so tables carrying paragraph-length text (glossaries, checklists) read correctly. For a
@@ -164,25 +169,59 @@ Release: 9.5
 ```
 ````
 
+**Tag the fence for what is actually in it, and never mix two kinds in one fence.** `bash` is correct
+only when every line is a command to run. A file's contents are not bash, so they get their own fence
+in their own language — `ini` for `/etc/hosts` and key-value `.conf` files, `yaml`, `xml` or `sql`
+where those apply, `text` otherwise — split from the command that opened the file:
+
+````md
+```bash
+sudo vi /etc/hosts
+```
+
+```ini
+127.0.0.1   localhost localhost.localdomain localhost4
+10.0.0.10   master.example.local master
+```
+````
+
+Tagging pasted file contents `bash` does not merely fail to highlight them — it highlights them
+*wrongly*. Shiki reads the first word of each line as a command name, so in a `bash`-tagged hosts
+file `127.0.0.1` renders blue as `entity.name.function` and the hostnames after it render green as
+string arguments, while `::1` splits into a cyan `:` and a green `:1`. The reader sees emphasis where
+there is no meaning.
+
+The inverse case is harmless but worth knowing: in a prompt transcript, `#` opens a shell comment, so
+everything after `[root@host ~]#` is one unhighlighted token. A transcript therefore renders
+identically under `bash` and `text`.
+
 **Always fence shell content.** An unfenced line beginning with `#` — common when pasting a root
 prompt or a shell comment — is parsed as a markdown heading and renders as enormous page-width text.
 
-### Why fences are the same colour in both themes
+**Long lines wrap; they do not scroll.** Fences are `prose-pre:whitespace-pre-wrap
+prose-pre:break-words` (`page.tsx:81`), so a command wider than the column soft-wraps rather than
+hiding behind a horizontal scrollbar. `rehype-pretty-code` sets `display:grid` inline on every
+`<code>`, whose single implicit column is sized to the longest line, so the container also pins that
+column with `prose-pre:[&>code]:grid-cols-[minmax(0,1fr)]` — without it a block wraps but still
+overflows its box by a few pixels. Never hand-wrap a command with backslashes to make it fit —
+paste it exactly as transcribed and let it wrap.
 
-A fence is a dark box in **both** themes — `prose-pre:bg-stone-800` is unpaired on purpose
-(`page.tsx:81`) — so its text must not follow the theme. Shiki writes a `style="color:…"` on every
-token it can tokenise, and inline styles win, so a `bash` or `yaml` fence colours itself. A `text`
-fence has no grammar, so shiki emits no colours at all and the text falls through to CSS.
+**A fence keeps its colours in both themes, and that takes explicit rules.** A fence is a dark box in
+light mode too — `prose-pre:bg-stone-800` is unpaired on purpose — so its text must not follow the
+theme. Shiki writes a `style="color:…"` on every token it can tokenise, and inline styles win, so a
+`bash` or `yaml` fence colours itself. A `text` fence has no grammar, so shiki emits no colours at
+all and the text falls through to CSS.
 
-That fall-through is what the `prose-pre:[&_code]:*` rules on the container catch. They pin code
+That fall-through is what the `prose-pre:[&_code]:*` rules catch (`page.tsx:81`). They pin code
 inside a fence to `#abb2bf` — one-dark-pro's own plain-token colour, so an uncoloured `text` fence
 matches the plain runs of a `bash` fence beside it — and cancel the `prose-code:*` background and
 padding, which are meant for *inline* code and would otherwise paint a second box inside the fence.
 
-Those five rules are load-bearing, not decorative. Without them a `text` fence inherits
+Those rules are load-bearing, not decorative. Without them a `text` fence inherits
 `prose-code:text-stone-800` — stone-800 text on a stone-800 background, invisible in light mode.
-Any retheme that touches `prose-code:` or `prose-pre:` must keep a fence's text pinned independently
-of the theme; check a `text` fence in light mode, not just a `bash` one.
+Any retheme touching `prose-code:` or `prose-pre:` must keep fence text pinned independently of the
+theme, and **must be checked against a `text` fence in light mode**. A `bash` fence colours itself
+and looks correct either way, so it proves nothing.
 
 Use **inline code** for anything the reader types, clicks or reads literally: paths, hostnames,
 config keys, values, UI menu items, filenames, commands named mid-sentence. Inline code is
@@ -226,10 +265,10 @@ on a near-black background. Use `<Banner>`, which pairs `bg-stone-50 dark:bg-sto
 Raw markdown only, absolute path, meaningful alt text describing what the screenshot actually shows:
 
 ```md
-![Add Image wizard on the Select Image step, with Image Source set to Image File](/images/cdp-7-3-2/vm/add-image-source.png)
+![Add Image wizard on the Select Image step, with Image Source set to Image File](/images/<topic-slug>/<section>/add-image-source.png)
 ```
 
-PNG, stored under `public/images/<version>/<section>/`. The prose container rounds and borders every
+PNG, stored under `public/images/<topic-slug>/<section>/`. The prose container rounds and borders every
 image in both themes (`prose-img:border-stone-200 dark:prose-img:border-stone-700`).
 
 The `<Image>` component is **unusable** — it types `src` as `StaticImageData`
@@ -239,104 +278,187 @@ reason (`components/mdx/modal-video.tsx:9`).
 
 ### Links
 
-Raw markdown `[text](/installations/cdp-7-3-2/summary)` for internal links, `[text](https://…)` for
+Raw markdown `[text](/installations/<topic-slug>/<page>)` for internal links, `[text](https://…)` for
 external. Both are Cloudera orange and underline on hover (`prose-a:text-[#f26622]`). Internal paths
 start with `/` and are prefixed with `basePath` automatically — never write `/cloudera-guides`.
 
 ### Horizontal rules
 
 `---` on its own line separates major movements within a page — typically after an opening `<Banner>`
-or intro paragraph, before the first `##`. Used in 84 files; keep it sparing, one per transition.
+or intro paragraph, before the first `##`. Keep it sparing — one per transition, not one per heading.
 
 ---
 
 ## 8. Kitchen sink
 
-A complete page exercising every sanctioned construct. Copy and delete what you don't need.
+A complete page exercising every sanctioned construct. Placeholders are in `<angle brackets>` —
+replace all of them. Copy and delete what you don't need.
 
 ````mdx
 ---
-title: Install Cloudera Manager Server
-topicTitle: CDP 7.3.2
-topicSlug: cdp-7-3-2
-summary: Install and start the Cloudera Manager server package on the designated master node.
-prevTitle: Setup Database for Cloudera Manager
-prevSlug: /installations/cdp-7-3-2/cdppvc/cm/database
-nextTitle: Enable Auto-TLS
-nextSlug: /installations/cdp-7-3-2/cdppvc/cm/auto-tls
+title: Install the Service
+topicTitle: <Topic Display Name>
+topicSlug: <topic-slug>
+summary: Install and start the service package on the designated master node.
+prevTitle: <Previous Page Title>
+prevSlug: /installations/<topic-slug>/<previous-page>
+nextTitle: <Next Page Title>
+nextSlug: /installations/<topic-slug>/<next-page>
 ---
 
 <Banner type="warning">
-**Note:** Run these steps on the Cloudera Manager host **only**. Running them on a worker node
-leaves the cluster in a state that requires a full reinstall.
+**Note:** Run these steps on the master host **only**. Running them on a worker node leaves the
+cluster in a state that requires a full reinstall.
 </Banner>
 
-This page installs the Cloudera Manager server package, initialises its schema and brings the
-service up on the master node.
+This page installs the service package, initialises its schema and brings the service up on the
+master node.
 
 ---
 
 ## Prerequisites
 
 - The metadata database from the previous page, reachable on port `5432`
-- Root or `sudo` access on `pvcbase-master`
-- The `cloudera-manager` repository configured in `/etc/yum.repos.d/`
+- Root or `sudo` access on the master node
+- The service repository configured in `/etc/yum.repos.d/`
 
 <Banner type="important">
-The database must be created **before** you run `scm_prepare_database.sh`. The script does not
-create it, and failure at this point leaves a partial schema behind.
+The database must be created **before** you run the schema script. The script does not create it,
+and failure at this point leaves a partial schema behind.
 </Banner>
 
 ## Version matrix
 
 | Component | Version | Notes |
 |:--|:--|:--|
-| Cloudera Manager | `7.13.2.0` | Repo paths use `7.13.2.400` |
-| Base Runtime | `7.3.2.0` | Use `7.3.1 SP3 CHF2` if Cloudera AI is in play |
-| OS | RHEL 9.5 | Lock the minor version before installing |
+| Server | `<x.y.z>` | Repo paths use a longer build number |
+| Runtime | `<x.y.z>` | Pin this to the release you tested |
+| OS | `<distro x.y>` | Lock the minor version before installing |
 
 ## Install the server package
 
-1. Install the package on `pvcbase-master`:
+1. Install the package on the master node:
 
     ```bash
-    sudo dnf -y install cloudera-manager-daemons cloudera-manager-agent cloudera-manager-server
+    sudo dnf -y install <package-name>
     ```
 
 2. Initialise the schema, substituting your own database password:
 
     ```bash
-    sudo /opt/cloudera/cm/schema/scm_prepare_database.sh postgresql scm scm
+    sudo <path-to-schema-script> postgresql <db> <user>
     ```
 
     Confirm the final line reads:
 
     ```text
-    All done, your SCM database is configured correctly!
+    All done, your database is configured correctly!
     ```
 
 3. Start the server and confirm it is listening:
 
     ```bash
-    sudo systemctl start cloudera-scm-server
-    sudo systemctl status cloudera-scm-server
+    sudo systemctl start <service-name>
+    sudo systemctl status <service-name>
     ```
 
-4. Open `https://pvcbase-master.cldrsetup.local:7180` and sign in with the default credentials.
+4. Open `https://<master-host>:<port>` and sign in with the default credentials.
 
-    ![Cloudera Manager sign-in page showing the username and password fields](/images/cdp-7-3-2/cm/cm-login.png)
+    ![Sign-in page showing the username and password fields](/images/<topic-slug>/<section>/sign-in.png)
 
 ### Troubleshooting a failed start
 
-If the service fails to start, check the log at `/var/log/cloudera-scm-server/cloudera-scm-server.log`
-before retrying — see [Error Handling](/installations/cdp-7-3-2/error-handling) for known causes.
+If the service fails to start, check the log at `/var/log/<service-name>/<service-name>.log` before
+retrying — see [Error Handling](/installations/<topic-slug>/error-handling) for known causes.
 ````
 
 ---
 
-## 9. Known debt
+## 9. Existing content predates this template
 
-Not fixed by this template; listed so you don't mistake existing content for the standard.
+Parts of `content/` were written before these rules and violate them. **Do not read existing content
+as the standard** — this file is the standard, and where the two disagree, this file wins.
 
-- **`lvm.mdx` and `dask.mdx`** (7.1.7) contain unfenced shell transcripts whose `#` lines render as
-  page-width `h1` headings — 13 occurrences.
+Known violations are tracked as GitHub issues, not listed here: a census embedded in a spec goes
+stale the moment someone fixes half of it. To see what is outstanding:
+
+```bash
+gh issue list --state open --label documentation
+```
+
+If you find a violation with no issue, open one rather than adding a bullet here. Fix violations on
+pages you are already editing; don't sweep unrelated files in the same change.
+
+---
+
+## 10. Rendered values
+
+What each construct actually looks like once rendered. **This section is descriptive, not
+instructional** — you never set any of these values. You write the construct in the left column and
+the prose container supplies the rest (§1). Use this to know what you are going to get, to check a
+rendered page against what it should be, and to notice when a retheme has broken something.
+
+Measured from a rendered page at a ≥768px viewport. Colours are Tailwind `stone` tokens with their
+resolved hex.
+
+### Text
+
+| You write | Renders as | Size | Weight | Line-height | Light | Dark |
+|:--|:--|:--|:--|:--|:--|:--|
+| frontmatter `title` | page title `h1` | 48px (36px below `md`) | 650 | 48px | `stone-800` `#292524` | `stone-200` `#e7e5e4` |
+| `##` | section heading | 24px | 700 | 32px | `stone-800` `#292524` | `stone-200` `#e7e5e4` |
+| `###` | subsection heading | 20px | 600 | 32px | `stone-800` `#292524` | `stone-200` `#e7e5e4` |
+| plain paragraph | body copy | 16px | 350 | 24px | `stone-600` `#57534d` | `stone-400` `#a6a09b` |
+| `**bold**` | emphasis | 16px | 600 | 24px | `stone-800` `#292524` | `stone-100` `#f5f5f4` |
+| `[text](/path)` | link | inherits | 500 | inherits | `#f26622` | `#f26622` |
+
+All body text is **Aspekta** (`--font-aspekta`, `app/css/style.css:19`), loaded as a local font in
+four weights only — 350, 400, 500 and 650 (`app/layout.tsx:15-34`). Weights 600 and 700 in the table
+above are what the prose plugin asks for; the browser synthesises them from the nearest real weight.
+
+Headings are `stone-800` / `stone-200` and body copy is `stone-600` / `stone-400`, so **a heading is
+always darker than the paragraph under it**. Links are the same orange in both themes — the one
+colour in the system that does not flip.
+
+`####` is mapped (`mdx.tsx:47`) but no page in `content/` renders one, so its appearance is
+unverified. `#####` and deeper are not mapped at all and fall through to browser defaults.
+
+### Code
+
+| You write | Renders as | Size | Weight | Light | Dark |
+|:--|:--|:--|:--|:--|:--|
+| `` `inline` `` | inline code | 0.875em of its context — 14px in a paragraph, 12.25px in a table cell | 600 | `stone-800` on transparent | `stone-100` on `stone-900` `#1c1917` |
+| fenced block | code block | 14px | 400 | `#abb2bf` on `stone-800` `#292524` | identical |
+
+**Code blocks do not flip with the theme.** `prose-pre:bg-stone-800` and
+`prose-pre:border-stone-700` are declared once with no `dark:` variant (`page.tsx:81`), so a fence is
+dark-on-dark in both modes — correct, and deliberate. Inline code is the opposite: it *is* paired,
+transparent on light and `stone-900` on dark.
+
+Both use the browser's `ui-monospace` stack, not the `--font-pt-mono` defined in
+`app/css/style.css:20` — that variable is unused by content. Syntax colours come from `one-dark-pro`
+via `rehype-pretty-code` (`mdx.tsx:72`); `#abb2bf` above is that theme's plain foreground.
+
+An unhighlighted token gets `#abb2bf` only because the container pins it there (§6). A token shiki
+*can* colour carries an inline style and is unaffected, so this value is what you see on a whole
+`text` fence and on the plain runs of a highlighted one.
+
+Long lines wrap rather than scroll (§6), so a code block has no maximum width to design around.
+
+### Blocks
+
+| Construct | Rendered |
+|:--|:--|
+| table header cell | 14px, weight 600, `stone-800` / `stone-200` |
+| table body cell | 14px, weight 350, `stone-600` / `stone-400` |
+| image | 8px corner radius, 1px border `stone-200` / `stone-700` |
+| `<Banner>` | `stone-50` / `stone-900` fill, `stone-200` / `stone-700` border (`banner.tsx:32`) |
+
+Table cells are a step smaller than body copy (14px vs 16px); images and banners are the only
+constructs that carry a visible border.
+
+### If a value here looks wrong
+
+The rendered page is the source of truth, not this table. A mismatch means either the prose container
+changed (`app/[...slug]/page.tsx:81`) or a component did — fix the code or fix this table, and say
+which in the commit.
