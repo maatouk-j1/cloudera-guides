@@ -1062,10 +1062,10 @@ Configure the FreeIPA client on every other node so that it is managed by the `i
 If you are using an AD server as Kerberos instead of FreeIPA, run the following command on all the client machines and skip the `ipa-client-install` steps.
 
 ```bash
-    [root@pvcbase-master ~]# realm join --user=administrator ntnxlab.local
+[root@pvcbase-master ~]# realm join --user=administrator ntnxlab.local
 
-    # Non-interactive command
-    [root@pvcbase-master ~]# echo '<password>' | realm join --user=administrator ntnxlab.local
+# Non-interactive command
+[root@pvcbase-master ~]# echo '<password>' | realm join --user=administrator ntnxlab.local
 ```
 
 Verify the KDC setup: check that Kerberos ticket generation is working fine by generating a ticket for the `administrator` user from all individual hosts.
@@ -1237,12 +1237,12 @@ Ignore the errors if the firewall is not installed.
 </Banner>
 
 ```bash
-    ##### Either disable the firewall or update the rules: (ON ALL HOSTS)
-    [root@jump ~]# ansible all -m command -a "firewall-cmd --zone=public --add-port=80/tcp --permanent"
-    [root@jump ~]# ansible all -m command -a "firewall-cmd --zone=public --add-port=443/tcp --permanent"
-    [root@jump ~]# ansible all -m command -a "firewall-cmd --reload"
-    [root@jump ~]# ansible all -m command -a "systemctl disable firewalld && systemctl stop firewalld &&
-    systemctl status firewalld | grep -e disabled -e inactive"
+##### Either disable the firewall or update the rules: (ON ALL HOSTS)
+[root@jump ~]# ansible all -m command -a "firewall-cmd --zone=public --add-port=80/tcp --permanent"
+[root@jump ~]# ansible all -m command -a "firewall-cmd --zone=public --add-port=443/tcp --permanent"
+[root@jump ~]# ansible all -m command -a "firewall-cmd --reload"
+[root@jump ~]# ansible all -m command -a "systemctl disable firewalld && systemctl stop firewalld &&
+systemctl status firewalld | grep -e disabled -e inactive"
 ```
 
 ## 8. Disable SELinux

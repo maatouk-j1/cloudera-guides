@@ -156,38 +156,38 @@ This page continues the procedure begun on [Install CDP PvC Base using the CM We
 ### Zookeeper SASL error
 
 ```text
-    Solution:resolved by regenerate key tab
+Solution:resolved by regenerate key tab
 ```
 
 ### Kafka error
 
 ```text
-    Solution:
-    Update clusterid and broker id from Role logs in meta.properties
-    rm -vf /var/local/kafka/data/meta.properties
-    rm -vf /tmp/kafka-logs/*
+Solution:
+Update clusterid and broker id from Role logs in meta.properties
+rm -vf /var/local/kafka/data/meta.properties
+rm -vf /tmp/kafka-logs/*
 ```
 
 See [this write-up on the KafkaServer startup failure](https://gautambangalore.medium.com/resolved-error-fatal-error-during-kafkaserver-startup-37f638c2c00c).
 
 ```bash
-    ansible datanodes -m shell -a "sed -i 's#aHRUaTqoQzOpGf8qA5bXlQ#rxsV4DwNRvWtIcl5ejG-IA#g'
+ansible datanodes -m shell -a "sed -i 's#aHRUaTqoQzOpGf8qA5bXlQ#rxsV4DwNRvWtIcl5ejG-IA#g'
 ```
 
 ### Service NodeManager failed in state INITED
 
 ```text
-    org.apache.hadoop.yarn.exceptions.YarnRuntimeException: Failed NodeManager login
-          at org.apache.hadoop.yarn.server.nodemanager.NodeManager.serviceInit(NodeManager.java:511)
-          at org.apache.hadoop.service.AbstractService.init(AbstractService.java:164)
-          at
-    org.apache.hadoop.yarn.server.nodemanager.NodeManager.initAndStartNodeManager(NodeManager.java:974)
-          at org.apache.hadoop.yarn.server.nodemanager.NodeManager.main(NodeManager.java:1054)
-    Caused by: org.apache.hadoop.security.KerberosAuthException: failure to login: for principal:
-    yarn/pvcbase-worker3.cldrsetup.local@CLDRSETUP.LOCAL from keytab yarn.keytab
-    javax.security.auth.login.LoginException: Client not found in Kerberos database (6) - CLIENT_NOT_FOUND
-    Solution:
-    Regenerate kerberos creds from administration>security for yarn
+org.apache.hadoop.yarn.exceptions.YarnRuntimeException: Failed NodeManager login
+      at org.apache.hadoop.yarn.server.nodemanager.NodeManager.serviceInit(NodeManager.java:511)
+      at org.apache.hadoop.service.AbstractService.init(AbstractService.java:164)
+      at
+org.apache.hadoop.yarn.server.nodemanager.NodeManager.initAndStartNodeManager(NodeManager.java:974)
+      at org.apache.hadoop.yarn.server.nodemanager.NodeManager.main(NodeManager.java:1054)
+Caused by: org.apache.hadoop.security.KerberosAuthException: failure to login: for principal:
+yarn/pvcbase-worker3.cldrsetup.local@CLDRSETUP.LOCAL from keytab yarn.keytab
+javax.security.auth.login.LoginException: Client not found in Kerberos database (6) - CLIENT_NOT_FOUND
+Solution:
+Regenerate kerberos creds from administration>security for yarn
 ```
 
 ### YARN issue
@@ -195,118 +195,118 @@ See [this write-up on the KafkaServer startup failure](https://gautambangalore.m
 Solution: see [Error CM Server guid updated CDH 5.9.0](https://community.cloudera.com/t5/Support-Questions/Error-CM-Server-guid-updated-CDH-5-9-0/m-p/47221) and [CDH 6.1 Installation Issues - Unable to obtain CM release](https://community.cloudera.com/t5/Support-Questions/CDH-6-1-Installation-Issues-Unable-to-obtain-CM-release/td-p/88238).
 
 ```text
-    Fixed it by deleting /var/lib/cloudera-scm-agent/cm_guid on each node.
+Fixed it by deleting /var/lib/cloudera-scm-agent/cm_guid on each node.
 ```
 
 ### Chrony issue on during ipaserver/ipaclient installation
 
 ```text
-    Solution:
-    Stop chrnoyd and remove chrony from all hosts, then install ipa-server and then ipa-client. It will work.
+Solution:
+Stop chrnoyd and remove chrony from all hosts, then install ipa-server and then ipa-client. It will work.
 ```
 
 ### Rman db error
 
 ```text
-    Exception while executing ddl scripts.
-    org.postgresql.util.PSQLException: ERROR: relation "rman_usergrouphistory_seq" already exists
-          at org.postgresql.core.v3.QueryExecutorImpl.receiveErrorResponse(QueryExecutorImpl.java:2725)
-          at org.postgresql.core.v3.QueryExecutorImpl.processResults(QueryExecutorImpl.java:2412)
-    Solution:
-    drop and recreate db solved issues.
+Exception while executing ddl scripts.
+org.postgresql.util.PSQLException: ERROR: relation "rman_usergrouphistory_seq" already exists
+      at org.postgresql.core.v3.QueryExecutorImpl.receiveErrorResponse(QueryExecutorImpl.java:2725)
+      at org.postgresql.core.v3.QueryExecutorImpl.processResults(QueryExecutorImpl.java:2412)
+Solution:
+drop and recreate db solved issues.
 ```
 
 ### Ozone Error
 
 ```text
-    Found SOLR_SERVICE: ''
-    solution:
-    ozone install error
-    include solr in service dependency and restart services
+Found SOLR_SERVICE: ''
+solution:
+ozone install error
+include solr in service dependency and restart services
 ```
 
 ### Issue: IPASERVER failed to resolve DNS ipaservices not working
 
 ```text
-    Solution:
-    Port 53 was not open on AWS SecGrp: ipaserver was not working on aws due to it,
-    updated secgrp added 53 rule for dns fixed issue.
+Solution:
+Port 53 was not open on AWS SecGrp: ipaserver was not working on aws due to it,
+updated secgrp added 53 rule for dns fixed issue.
 ```
 
 ### Ranger Error
 
 ```text
-    Repo cm_kafka already exists ->
-    Solution:
-    delete cm_kafka from ranger
+Repo cm_kafka already exists ->
+Solution:
+delete cm_kafka from ranger
 ```
 
 ### CM Not able to login
 
 ```text
-    2024-05-14 04:41:02,375 INFO CommandPusher-1:com.cloudera.server.cmf.CommandPusherThread: Acquired lease
-    lock on DbCommand:1546336335
-    2024-05-14 04:41:02,378 INFO CommandPusher-1:com.cloudera.cmf.service.AbstractOneOffHostCommand:
-    Unsuccessful 'RepMgrTestDatabaseConnection'
-    2024-05-14 04:41:02,379 INFO CommandPusher-1:com.cloudera.cmf.service.AbstractDbConnectionTestCommand:
-    Command exited with code: 1
-    2024-05-14 04:41:02,379 INFO CommandPusher-1:com.cloudera.cmf.service.AbstractDbConnectionTestCommand: +
-    MGMT_JAVA_OPTS='-Djava.net.preferIPv4Stack=true '
-    + exec /usr/lib/jvm/java-17-openjdk-17.0.11.0.9-2.el9.x86_64/bin/java -Djava.net.preferIPv4Stack=true
-    -Djava.security.egd=file:///dev/urandom -cp
-    '/run/cloudera-scm-agent/process/1546336334-MGMT.REPORTSMANAGER-test-db-connection:/usr/share/java/mysql-c
-    onnector-java.jar:/usr/share/java/postgresql-connector-java.jar:/usr/share/java/oracle-connector-java.jar:
-    /opt/cloudera/cm/lib/*' com.cloudera.enterprise.dbutil.DbCommandExecutor db.properties
-    Exception in thread "main" java.lang.NoClassDefFoundError:
-    com/ongres/scram/common/stringprep/StringPreparation
-            at org.postgresql.core.v3.ConnectionFactoryImpl.doAuthentication(ConnectionFactoryImpl.java:759)
-            at org.postgresql.core.v3.ConnectionFactoryImpl.tryConnect(ConnectionFactoryImpl.java:161)
-            at org.postgresql.core.v3.ConnectionFactoryImpl.openConnectionImpl(ConnectionFactoryImpl.java:213)
-            at org.postgresql.core.ConnectionFactory.openConnection(ConnectionFactory.java:51)
-            at org.postgresql.jdbc.PgConnection.<init>(PgConnection.java:225)
-            at org.postgresql.Driver.makeConnection(Driver.java:465)
-            at org.postgresql.Driver.connect(Driver.java:264)
-            at java.sql/java.sql.DriverManager.getConnection(DriverManager.java:681)
-            at java.sql/java.sql.DriverManager.getConnection(DriverManager.java:229)
-            at com.cloudera.enterprise.dbutil.DbCommandExecutor.testDbConnection(DbCommandExecutor.java:265)
-            at com.cloudera.enterprise.dbutil.DbCommandExecutor.main(DbCommandExecutor.java:140)
-    Caused by: java.lang.ClassNotFoundException: com.ongres.scram.common.stringprep.StringPreparation
-            at java.base/jdk.internal.loader.BuiltinClassLoader.loadClass(BuiltinClassLoader.java:641)
-            at java.base/jdk.internal.loader.ClassLoaders$AppClassLoader.loadClass(ClassLoaders.java:188)
-            at java.base/java.lang.ClassLoader.loadClass(ClassLoader.java:525)
-            ... 11 more
-    2024-05-14 04:41:02,379 ERROR CommandPusher-1:com.cloudera.cmf.model.DbCommand: Command
-    1546336335(RepMgrTestDatabaseConnection) has completed. finalstate:FINISHED, success:false, msg:Unexpected
-    error. Unable to verify database connection.
-    Caused by: java.lang.ClassNotFoundException: com.ongres.scram.common.stringprep.StringPreparation
-            at java.base/jdk.internal.loader.BuiltinClassLoader.loadClass(BuiltinClassLoader.java:641)
-            at java.base/jdk.internal.loader.ClassLoaders$AppClassLoader.loadClass(ClassLoaders.java:188)
-            at java.base/java.lang.ClassLoader.loadClass(ClassLoader.java:525)
-            ... 11 more
-    2024-05-14 04:50:38,519 ERROR CommandPusher-1:com.cloudera.cmf.model.DbCommand: Command
-    1546336734(OozieTestDatabaseConnection) has completed. finalstate:FINISHED, success:false, msg:Unexpected
-    error. Unable to verify database connection.
-    2024-05-14 04:50:38,519 INFO CommandPusher-1:com.cloudera.cmf.command.components.CommandStorage: Invoked
-    delete temp files for command:DbCommand{id=1546336734, name=OozieTestDatabaseConnection,
-    host=pvcbase-master.cldrsetup.local} at dir:/var/lib/cloudera-scm-server/temp/commands/1546336734
-    Solution:
-    Caused after change in hostssl parameter for Postgres (suspected)
-    Delete scm db and recreated db and restart scm server fixed the issue. This lead to reinstall entire base
-    and ecs clusters as metadata deleted from scm db
+2024-05-14 04:41:02,375 INFO CommandPusher-1:com.cloudera.server.cmf.CommandPusherThread: Acquired lease
+lock on DbCommand:1546336335
+2024-05-14 04:41:02,378 INFO CommandPusher-1:com.cloudera.cmf.service.AbstractOneOffHostCommand:
+Unsuccessful 'RepMgrTestDatabaseConnection'
+2024-05-14 04:41:02,379 INFO CommandPusher-1:com.cloudera.cmf.service.AbstractDbConnectionTestCommand:
+Command exited with code: 1
+2024-05-14 04:41:02,379 INFO CommandPusher-1:com.cloudera.cmf.service.AbstractDbConnectionTestCommand: +
+MGMT_JAVA_OPTS='-Djava.net.preferIPv4Stack=true '
++ exec /usr/lib/jvm/java-17-openjdk-17.0.11.0.9-2.el9.x86_64/bin/java -Djava.net.preferIPv4Stack=true
+-Djava.security.egd=file:///dev/urandom -cp
+'/run/cloudera-scm-agent/process/1546336334-MGMT.REPORTSMANAGER-test-db-connection:/usr/share/java/mysql-c
+onnector-java.jar:/usr/share/java/postgresql-connector-java.jar:/usr/share/java/oracle-connector-java.jar:
+/opt/cloudera/cm/lib/*' com.cloudera.enterprise.dbutil.DbCommandExecutor db.properties
+Exception in thread "main" java.lang.NoClassDefFoundError:
+com/ongres/scram/common/stringprep/StringPreparation
+        at org.postgresql.core.v3.ConnectionFactoryImpl.doAuthentication(ConnectionFactoryImpl.java:759)
+        at org.postgresql.core.v3.ConnectionFactoryImpl.tryConnect(ConnectionFactoryImpl.java:161)
+        at org.postgresql.core.v3.ConnectionFactoryImpl.openConnectionImpl(ConnectionFactoryImpl.java:213)
+        at org.postgresql.core.ConnectionFactory.openConnection(ConnectionFactory.java:51)
+        at org.postgresql.jdbc.PgConnection.<init>(PgConnection.java:225)
+        at org.postgresql.Driver.makeConnection(Driver.java:465)
+        at org.postgresql.Driver.connect(Driver.java:264)
+        at java.sql/java.sql.DriverManager.getConnection(DriverManager.java:681)
+        at java.sql/java.sql.DriverManager.getConnection(DriverManager.java:229)
+        at com.cloudera.enterprise.dbutil.DbCommandExecutor.testDbConnection(DbCommandExecutor.java:265)
+        at com.cloudera.enterprise.dbutil.DbCommandExecutor.main(DbCommandExecutor.java:140)
+Caused by: java.lang.ClassNotFoundException: com.ongres.scram.common.stringprep.StringPreparation
+        at java.base/jdk.internal.loader.BuiltinClassLoader.loadClass(BuiltinClassLoader.java:641)
+        at java.base/jdk.internal.loader.ClassLoaders$AppClassLoader.loadClass(ClassLoaders.java:188)
+        at java.base/java.lang.ClassLoader.loadClass(ClassLoader.java:525)
+        ... 11 more
+2024-05-14 04:41:02,379 ERROR CommandPusher-1:com.cloudera.cmf.model.DbCommand: Command
+1546336335(RepMgrTestDatabaseConnection) has completed. finalstate:FINISHED, success:false, msg:Unexpected
+error. Unable to verify database connection.
+Caused by: java.lang.ClassNotFoundException: com.ongres.scram.common.stringprep.StringPreparation
+        at java.base/jdk.internal.loader.BuiltinClassLoader.loadClass(BuiltinClassLoader.java:641)
+        at java.base/jdk.internal.loader.ClassLoaders$AppClassLoader.loadClass(ClassLoaders.java:188)
+        at java.base/java.lang.ClassLoader.loadClass(ClassLoader.java:525)
+        ... 11 more
+2024-05-14 04:50:38,519 ERROR CommandPusher-1:com.cloudera.cmf.model.DbCommand: Command
+1546336734(OozieTestDatabaseConnection) has completed. finalstate:FINISHED, success:false, msg:Unexpected
+error. Unable to verify database connection.
+2024-05-14 04:50:38,519 INFO CommandPusher-1:com.cloudera.cmf.command.components.CommandStorage: Invoked
+delete temp files for command:DbCommand{id=1546336734, name=OozieTestDatabaseConnection,
+host=pvcbase-master.cldrsetup.local} at dir:/var/lib/cloudera-scm-server/temp/commands/1546336734
+Solution:
+Caused after change in hostssl parameter for Postgres (suspected)
+Delete scm db and recreated db and restart scm server fixed the issue. This lead to reinstall entire base
+and ecs clusters as metadata deleted from scm db
 ```
 
 ### Other
 
 ```text
-    Configure Ozone with other data services before env creation, else it will lead to CDE installation error
-    Configure thrift server role in hbase for hue
-    Knox and Atlas works with local Linux Users and Password credentials i.e. PAM
-    For accessing the WebUI and fixing issues for web based authentication is not working for some of the
-    services including Knox, Atlas, HDFS (Namenode UI), Yarn (History server UI) etc.Disable Kerberos
-    Authentication for WebUI under each service configuration section which are showing 403 or 401 error.
-    In case of Cleanup and re-installation (end-to-end), make sure cleanup steps are performed properly and no
-    control plane services left user and groups created in /etc/passwd and /etc/group on all nodes of the cluster
-    include cldr-mngr.
+Configure Ozone with other data services before env creation, else it will lead to CDE installation error
+Configure thrift server role in hbase for hue
+Knox and Atlas works with local Linux Users and Password credentials i.e. PAM
+For accessing the WebUI and fixing issues for web based authentication is not working for some of the
+services including Knox, Atlas, HDFS (Namenode UI), Yarn (History server UI) etc.Disable Kerberos
+Authentication for WebUI under each service configuration section which are showing 403 or 401 error.
+In case of Cleanup and re-installation (end-to-end), make sure cleanup steps are performed properly and no
+control plane services left user and groups created in /etc/passwd and /etc/group on all nodes of the cluster
+include cldr-mngr.
 ```
 
 ## 8. Finish and verify
