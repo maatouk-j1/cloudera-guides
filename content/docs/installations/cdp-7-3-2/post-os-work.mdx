@@ -631,7 +631,7 @@ We will be using the Bastion host as the Ansible controller/admin node.
 
     Open the file `/etc/resolv.conf` in edit mode and add the following. Make sure the new entry is added above any other `nameserver` entry. The contents of the file must look similar to the below.
 
-    <Banner type="important">
+    <Banner type="warning">
     **Note:** Make sure that the `/etc/resolv.conf` file on the ECS hosts contains a maximum of 2 active search domains. See [Known issues in ECS environments](https://docs.cloudera.com/data-warehouse/1.5.5/release-notes/topics/dw-private-cloud-known-issues-ecs-environments.html).
     </Banner>
 
@@ -925,15 +925,15 @@ Configure the FreeIPA client on every other node so that it is managed by the `i
 
 1. Install the FreeIPA client along with the other packages needed on all hosts except the `ipaserver`.
 
-    <Banner type="important">
+    <Banner type="warning">
     **Note:** Set up the `ipaserver` client and krb5 libs on each node before copying `resolv.conf`, as installation of `ipa-client` will override this. UDP port 123 and TCP port 389 need to be enabled for IPA services, NTP and timesync.
     </Banner>
 
-    <Banner type="important">
+    <Banner type="warning">
     **Note:** Remove chrony from all hosts using Ansible, as it creates issues in installing and configuring IPA services successfully.
     </Banner>
 
-    <Banner type="important">
+    <Banner type="warning">
     **Note:** Please review the Java requirement in the Cloudera on premises Base Requirements and Supported Versions sections. We installed OpenJDK 11 for this solution validation; `ipa-client` will also require and auto-install Java 11 on all hosts if it is not present or a different version, for example Java 17, is installed. See [Java requirements](https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/cdp-private-cloud-base-installation/topics/cdpdc-java-requirements.html).
     </Banner>
 
@@ -1079,7 +1079,7 @@ Verify the KDC setup: check that Kerberos ticket generation is working fine by g
 
     Open the file `/etc/resolv.conf` in edit mode and verify the following. Make sure the new entry is added above any other `nameserver` entry. The contents of the file must look similar to the below.
 
-    <Banner type="important">
+    <Banner type="warning">
     **Note:** Make sure that the `/etc/resolv.conf` file on the ECS hosts contains a maximum of 2 active search domains. See [Known issues in ECS environments](https://docs.cloudera.com/data-warehouse/1.5.5/release-notes/topics/dw-private-cloud-known-issues-ecs-environments.html).
     </Banner>
 
@@ -1129,7 +1129,7 @@ Verify the KDC setup: check that Kerberos ticket generation is working fine by g
 
 9. Log in to the `pvcbase-master` node and verify that forward and reverse DNS lookup is working fine from each machine.
 
-    <Banner type="warning">
+    <Banner type="info">
     **Note:** In case of an AD server, you can verify on any client machine such as `pvcbase-master`.
     </Banner>
 
@@ -1250,7 +1250,7 @@ systemctl status firewalld | grep -e disabled -e inactive"
 
 ## 8. Disable SELinux
 
-<Banner type="important">
+<Banner type="warning">
 **Note:** SELinux must be disabled during the install procedure and cluster setup. SELinux can be enabled after installation and while the cluster is running.
 </Banner>
 
@@ -1263,7 +1263,7 @@ systemctl status firewalld | grep -e disabled -e inactive"
     [root@jump ~]# ansible all -m shell -a "getenforce"
     ```
 
-    <Banner type="important">
+    <Banner type="info">
     **Note:** This command may fail if SELinux is already disabled. This requires a reboot to take effect.
     </Banner>
 
@@ -1336,7 +1336,7 @@ On each node, `ulimit -n` specifies the number of inodes that can be opened simu
     [root@jump ~]# ansible all -m copy -a "src=/etc/pam.d/su dest=/etc/pam.d/su"
     ```
 
-    <Banner type="important">
+    <Banner type="info">
     **Note:** The ulimit values are applied on a new shell; running the command on a node on an earlier instance of a shell will show old values.
     </Banner>
 
@@ -1344,7 +1344,7 @@ On each node, `ulimit -n` specifies the number of inodes that can be opened simu
 
 Adjusting the `tcp_retries` parameter for the system network enables faster detection of failed nodes. Given the advanced networking features of UCS, this is a safe and recommended change - failures observed at the operating system layer are most likely serious rather than transitory.
 
-<Banner type="important">
+<Banner type="info">
 **Note:** On each node, setting the number of TCP retries to 5 can help detect unreachable nodes with less latency.
 </Banner>
 
@@ -1672,7 +1672,7 @@ Install httpd on the Cloudera Manager node - `cldr-mngr` - to host a local parce
 
 1. Install httpd on the Cloudera Manager node (`cldr-mngr`) to host the repositories.
 
-    <Banner type="important">
+    <Banner type="info">
     **Note:** The Red Hat repository is hosted using HTTP on the admin node; this machine is accessible by all the hosts in the cluster.
     </Banner>
 

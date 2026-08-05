@@ -11,7 +11,7 @@ nextSlug: /installations/cdp-7-3-2/error-handling
 
 Use this section when an installation has failed and you cannot resolve the issue in place — the fastest route forward is usually a clean slate. Cleanup is also a prerequisite for several of the fixes in [Error Handling](/installations/cdp-7-3-2/error-handling): a surprising number of ECS bootstrap failures trace back to a *partial* teardown, where stale RKE2 state or leftover etcd tokens survive into the next install.
 
-<Banner type="warning">
+<Banner type="important">
 Every command on this page is destructive and irreversible. Run them only on hosts you intend to rebuild, and read each block before pasting it — several lines in the source are deliberately commented out because they are *not* meant to run in this topology.
 </Banner>
 

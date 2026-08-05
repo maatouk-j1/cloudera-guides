@@ -15,7 +15,7 @@ The Cloudera Manager metadata database was created with TLS enabled back in [Set
 
 Login to Cloudera Manager Web Console. Go to **Ranger > Configuration**.
 
-<Banner type="important">
+<Banner type="warning">
 **Note**: Make sure that:
 
 - The database and database user for Ranger service are created in the required postgreSQL.
@@ -78,11 +78,11 @@ In the Cloudera Manager Web console; go to **Hive > Configuration > Hive Metasto
 
     ![Hive Metastore Database JDBC URL Override set service-wide to the postgresql JDBC URL with ssl=true, sslmode=verify-full and sslrootcert pointing at /var/lib/hive/root.crt](/images/cdp-7-3-2/cdppvc/base/services-metadata-db-tls/hive-metastore-jdbc-url-override.png)
 
-<Banner type="important">
+<Banner type="info">
 **Note:** Restart required for Hive Metastore Server and HiveServer2 after updating Hive configuration.
 </Banner>
 
-<Banner type="important">
+<Banner type="info">
 **Note:** Click on **Actions -> Restart** under **Hive** and **Hive-on-Tez** Services.
 </Banner>
 

@@ -27,7 +27,7 @@ The guide reproduces that checklist in full on the [next page](/installations/cd
 
     ![Cloudera Manager Check Prerequisites wizard step showing Host Prerequisites failed with two errors - a minimum of 16 cores required for hosts in a Private Cloud Containerized Cluster, and a minimum of 300 GiB of storage required in the /var/lib directory and 300 GiB in the /ecs/docker directory, with /var/lib/longhorn not permitted to be a symbolic link](/images/cdp-7-3-2/ds/ecs-requirements/check-prerequisites-errors.png)
 
-    <Banner type="important">
+    <Banner type="warning">
     This is what the installer's own prerequisites checker reports when the hosts are not ready. It is an **enforcing** check - the install will not proceed past it - so every item on this page is worth doing before you reach that wizard step.
     </Banner>
 
@@ -193,7 +193,7 @@ nm-cloud-setup.timer && systemctl stop nm-cloud-setup.service nm-cloud-setup.tim
 If you disabled the nm-cloud-setup.service and nm-cloud-setup.timer services, reboot the added hosts.
 ```
 
-<Banner type="important">
+<Banner type="warning">
 Both `nm-cloud-setup` commands are transcribed verbatim, including the source's use of the Ansible **`copy`** module where `shell` is what would actually run `systemctl`. Correct the module before running them.
 </Banner>
 

@@ -72,7 +72,7 @@ When you **enable CDE service**, by default a new **Virtual cluster with Spark2.
 
     This will take approximately 20 minutes.
 
-<Banner type="important">
+<Banner type="warning">
 **Contradiction in the source:** the step text offers **Spark2.4** and **Spark3.7**, but the **Spark Version** dropdown in its own capture lists only **Spark 2.4.7** and **Spark 3.2.1** - there is no Spark 3.7. Pick the Spark 3.x version your CDE build actually offers in the dropdown.
 </Banner>
 
@@ -214,7 +214,7 @@ This step is required to submit the jobs to CDE from the LDAP users.
 
 9. Repeat these steps for all users that need to submit jobs to the virtual cluster.
 
-<Banner type="important">
+<Banner type="warning">
 **Contradiction in the source:** the keytab procedure mixes two usernames. The prose says *"we will consider admin as the username"* and every file is named `admin.*`, but the principal written into `admin.principal` is `cdpuser@CLDRSETUP.LOCAL`, while `ktutil` adds entries for `admin@CLDRSETUP.LOCAL` and the final `init-user-in-virtual-cluster` example passes `-u cdpuser -p cdpuser.principal -k cdpuser.keytab`. Pick one username and use it consistently across the principal file, the `ktutil` entries, the keytab filename and the `-u` argument - otherwise `kinit` will succeed against a principal the virtual cluster never receives.
 </Banner>
 

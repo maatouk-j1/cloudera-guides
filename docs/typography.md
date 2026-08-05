@@ -243,22 +243,33 @@ dark:prose-strong:text-stone-100`).
 </Banner>
 ```
 
-Exactly two types are valid:
+Three types are valid, and the icon colour is the whole signal — a reader scanning a page reads the
+colour before the words, so the type must match what the note actually costs them:
 
 | Type | Renders | Use for |
 |:--|:--|:--|
-| `warning` | Amber triangle | Destructive or irreversible actions; platform-specific gates the reader must skip if it doesn't apply |
-| `important` | Purple circle-i | Prerequisites and constraints that cause failure later if missed |
+| `info` | Blue circle, lowercase **i** | Plain notes: context, pointers to other docs, defaults, timings, clarifications, discrepancies in the source guide that risk nothing |
+| `warning` | Yellow triangle, **!** | Get this wrong and it breaks later: prerequisites, platform gates the reader must skip if it doesn't apply, optional sections, workarounds, constraints |
+| `important` | Red octagon, **!** | Critical or dangerous: destructive and irreversible commands, data loss, hard blockers, and failures that cost a full reinstall |
 
-Do not use `type="info"` or omit `type`. Anything other than the two values above falls through to a
-default branch that renders an **orange checkmark** (`components/mdx/banner.tsx:22-27`) — which reads
-as "done / success", not as a note.
+**Shape carries the severity, not just colour.** Circle → triangle → octagon is the same escalation
+road signs use, so the three are told apart at 16px in a glance, in either theme, and by a reader who
+cannot distinguish red from yellow. It also matches GitHub's own alert set (`> [!NOTE]`,
+`> [!WARNING]`, `> [!CAUTION]`), which most readers of this guide already have an eye for. Keep the
+shapes paired to the levels — a fourth banner type would need a fourth shape, not a fourth colour.
+
+Pick by consequence, not by how the source guide labelled it — most lines that open **Note:** in the
+source PDF are `info`, and a handful marked *"Note"* are genuinely red. Keep `important` rare: it is
+the only one that should make someone stop, and it stops meaning that if every third banner is red.
+
+Omitting `type`, or passing anything other than the three values above, falls through to the `info`
+branch (`components/mdx/banner.tsx:22-28`) — safe, but write the type explicitly.
 
 **Blockquotes (`>`) are banned.** The prose container has no `dark:prose-invert` and no
 blockquote override, so blockquote text takes the plugin default `--tw-prose-quotes` = `gray-900`,
 and `blockquote strong` inherits it. In dark mode the whole callout — label included — is near-black
 on a near-black background. Use `<Banner>`, which pairs `bg-stone-50 dark:bg-stone-900` and
-`border-stone-200 dark:border-stone-700` explicitly (`banner.tsx:32`).
+`border-stone-200 dark:border-stone-700` explicitly (`banner.tsx:33`).
 
 ### Images
 
@@ -306,7 +317,7 @@ nextTitle: <Next Page Title>
 nextSlug: /installations/<topic-slug>/<next-page>
 ---
 
-<Banner type="warning">
+<Banner type="important">
 **Note:** Run these steps on the master host **only**. Running them on a worker node leaves the
 cluster in a state that requires a full reinstall.
 </Banner>
@@ -322,9 +333,13 @@ master node.
 - Root or `sudo` access on the master node
 - The service repository configured in `/etc/yum.repos.d/`
 
-<Banner type="important">
+<Banner type="warning">
 The database must be created **before** you run the schema script. The script does not create it,
 and failure at this point leaves a partial schema behind.
+</Banner>
+
+<Banner type="info">
+**Note:** The schema script prints its progress to stdout and takes a few minutes on a first run.
 </Banner>
 
 ## Version matrix
@@ -452,10 +467,28 @@ Long lines wrap rather than scroll (§6), so a code block has no maximum width t
 | table header cell | 14px, weight 600, `stone-800` / `stone-200` |
 | table body cell | 14px, weight 350, `stone-600` / `stone-400` |
 | image | 8px corner radius, 1px border `stone-200` / `stone-700` |
-| `<Banner>` | `stone-50` / `stone-900` fill, `stone-200` / `stone-700` border (`banner.tsx:32`) |
+| `<Banner>` | `stone-50` / `stone-900` fill, `stone-200` / `stone-700` border (`banner.tsx:33`) |
+| `<Banner type="info">` | 16px blue circle with an **i**, `blue-500` `#2b7fff` |
+| `<Banner type="warning">` | 16px yellow triangle with a **!**, `yellow-500` `#f0b100` |
+| `<Banner type="important">` | 16px red octagon with a **!**, `red-500` `#fb2c36` |
 
 Table cells are a step smaller than body copy (14px vs 16px); images and banners are the only
 constructs that carry a visible border.
+
+Banner icons are the one place a colour carries meaning rather than theme. All three are unpaired —
+the same hue in light and dark — because they sit on the banner's own `stone-50` / `stone-900` fill,
+which is light enough and dark enough for each to hold contrast without a `dark:` variant.
+
+Those hexes are Tailwind **v4** values, which the project resolves through `oklch()`, so
+`getComputedStyle` reports them as `lab(…)` rather than the hex — they are the sRGB result, sampled
+from a rendered page. They are *not* the v3 hexes for the same token names (`blue-500` was `#3b82f6`
+in v3), so don't copy a value here out of older Tailwind documentation.
+
+Each icon is a single filled `<path>` with its glyph knocked out by winding direction: the outer
+shape is drawn counter-clockwise and the **i** or **!** clockwise, so the default `nonzero` fill rule
+leaves the glyph transparent and the banner's own background shows through. The triangle is the one
+exception — it sets `fillRule="evenodd"` and gets the same result. Anyone drawing a fourth icon must
+match one of those two schemes, or the glyph fills solid and the icon renders as a blank shape.
 
 ### If a value here looks wrong
 

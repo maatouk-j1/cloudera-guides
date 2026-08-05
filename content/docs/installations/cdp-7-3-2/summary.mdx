@@ -138,7 +138,7 @@ Administrator access to virtual machines.
 
 The table below summarizes the machines used for this POC. This is a minimum requirement: one can increase the number of machines to achieve High Availability and Fault Tolerance. If this cluster is not meant to perform any benchmarking or performance test, one can proceed ahead with this infrastructure.
 
-<Banner type="important">
+<Banner type="warning">
   The cluster configurations used in this guide are designed and decided considering the installation, configuration and management of all 3 data services (CAI, CDW, CDE) with minimalistic workloads on a single ECS data services cluster for PoC purposes. The hardware specs should be redetermined and recalculated for clusters set up for a different purpose.
 </Banner>
 
@@ -197,7 +197,7 @@ In case we are not going with FreeIPA, an external Kerberos/KDC is required.
 | cldr-mngr, postgres db, bits | `cldr-mngr` | 32 | 64GB | 800GB | root partition, `/var`=600GB, `/opt`=600GB |
 | Bastion server | `jump` | 8 | 16GB | 200GB | root partition |
 
-<Banner type="important">
+<Banner type="warning">
   Each of the nodes in the configurations below requires a dedicated minimum allocation of 450GB each for `/docker` and `/var`, important to consider if dedicated mounts (disks) are used.
 </Banner>
 
@@ -272,7 +272,7 @@ The versions it is built and validated against are listed in the software requir
 
 ## Software Requirements
 
-<Banner type="important">
+<Banner type="info">
   This guide is written for the versions specified below, and the commands to be executed are specific to those versions. If you plan to use different versions, commands may need to be updated separately.
 </Banner>
 

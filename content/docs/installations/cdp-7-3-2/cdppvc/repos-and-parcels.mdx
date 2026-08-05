@@ -14,7 +14,7 @@ This section outlines the steps needed to set up a 6 node Cloudera on premises B
 - [CDP Private Cloud Base Installation](https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/cdp-private-cloud-base-installation/topics/cdpdc-installation.html)
 - [Production Installation](https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/cdp-private-cloud-base-installation/topics/cdpdc-prod-installation.html)
 
-<Banner type="important">
+<Banner type="info">
 **Ensure to verify compatibility matrix of Cloudera-Manager, Cloudera RunTime, DataServices/ECS, JDK, Python, PostgreSQL etc. all together:** [https://supportmatrix.cloudera.com/](https://supportmatrix.cloudera.com/)
 </Banner>
 
@@ -24,7 +24,7 @@ All the repositories and parcels below are hosted from the local `httpd` instanc
 
 ## 1. Setup Cloudera Manager Repository
 
-<Banner type="important">
+<Banner type="info">
 **Note:** These steps require a Cloudera username and password to access: [https://archive.cloudera.com/p/cm7/](https://archive.cloudera.com/p/cm7/)
 </Banner>
 
@@ -200,7 +200,7 @@ All the repositories and parcels below are hosted from the local `httpd` instanc
     /var/www/html/cloudera-repos/cloudera-manager/
     ```
 
-    <Banner type="important">
+    <Banner type="info">
     **Note:** In a web browser please check and verify cloudera manager repository created by entering baseurl `http://13.251.65.11/cloudera-repos/cloudera-manager/`
     </Banner>
 
@@ -305,7 +305,7 @@ From a host connected the internet, download Cloudera on premises Base 7.3.2 par
     [root@cldr-mngr ~]#
     ```
 
-    <Banner type="important">
+    <Banner type="info">
     **Note:** In a web browser please check and verify cloudera manager repository created by entering baseurl: `http://13.251.65.11/cloudera-repos/cdh7.3.2/` (IP is of Cloudera-Manager)
     </Banner>
 
@@ -317,7 +317,7 @@ From a host connected the internet, download Cloudera on premises Base 7.3.2 par
 
 1. From a host connected the internet, download CDS 3.3 Powered by Apache Spark parcels for RHEL9 from the URL: [https://archive.cloudera.com/p/spark3/3.3.7191000.4/parcels/](https://archive.cloudera.com/p/spark3/3.3.7191000.4/parcels/)
 
-    <Banner type="important">
+    <Banner type="warning">
     **Note:** Although Spark 2 and Spark 3 can coexist in the same Cloudera on premises Base cluster, you cannot use multiple Spark 3 versions simultaneously. All clusters managed by the same Cloudera Manager Server must use exactly the same version of CDS 3.3 Powered by Apache Spark.
     </Banner>
 

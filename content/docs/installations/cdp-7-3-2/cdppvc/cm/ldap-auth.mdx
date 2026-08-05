@@ -14,7 +14,7 @@ An LDAP-compliant identity/directory service, such as OpenLDAP/FreeIPA/AD, provi
 - Use a single Distinguished Name (DN) as a base for matching usernames in the directory, or
 - Search filter options let you search for a particular user based on somewhat broader search criteria – for example Cloudera Manager users could be members of different groups or organizational units (OUs), so a single pattern does not find all those users. Search filter options also let you find all the groups to which a user belongs, to help determine if that user should have login or admin access.
 
-<Banner type="important">
+<Banner type="warning">
 **Note:** The **LDAP Distinguished Name Pattern** property is deprecated. Leave this field empty while configuring authentication using LDAP in Cloudera Manager.
 </Banner>
 
@@ -76,7 +76,7 @@ An LDAP-compliant identity/directory service, such as OpenLDAP/FreeIPA/AD, provi
     | LDAP Group Search Base: | `cn=groups,cn=accounts,dc=cldrsetup,dc=local` |
     | LDAP DistName Pattern: | `uid=admin,cn=users,cn=accounts,dc=cldrsetup,dc=local` |
 
-    <Banner type="important">
+    <Banner type="warning">
     **Note:** The last row contradicts the note at the top of this page, which says the deprecated **LDAP Distinguished Name Pattern** must be left empty. The source guide carries both. Leave the field empty.
     </Banner>
 
