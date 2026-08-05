@@ -45,7 +45,7 @@ The guide reproduces that checklist in full on the [next page](/installations/cd
 
 11. Enable cgroup v1 in Red Hat Enterprise Linux 9. *(optional, skip this step)*
 
-    ```bash
+    ```text
     # In RHEL 9 cgroup-v2 is enabled by default, follow steps below to enable cgroup v1:
 
     # Check if the cgroup-v2 is mounted currently as default.
@@ -85,7 +85,7 @@ The guide reproduces that checklist in full on the [next page](/installations/cd
 
 14. If `iptables` is not working as expected or giving command not found error then remove the package on all ecs nodes and re-install.
 
-    ```bash
+    ```text
     [root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "dnf remove -y iptables && dnf install -y iptables &&
     iptables -L"
     ```
@@ -100,7 +100,7 @@ The guide reproduces that checklist in full on the [next page](/installations/cd
 
 17. You must install `nvidia-container-toolkit` *(if applicable)*. (`nvidia-container-runtime` is migrated to `nvidia-container-toolkit`, see Migration Notice.) The steps for this are shown in the [NVIDIA Installation Guide](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html#installing-with-yum-or-dnf). If using Red Hat Enterprise Linux (RHEL), use dnf to install the package. See Installing the [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/edge/latest/nvidia-gpu-with-device-edge.html#installing-the-nvidia-container-toolkit). *(skip this step)*
 
-    ```bash
+    ```text
     ##### Verify linux version:
     [root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "uname -m && cat /etc/*release"
     [root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "uname -a"
@@ -180,7 +180,7 @@ The guide reproduces that checklist in full on the [next page](/installations/cd
 
 *(Not Required for Cloud Based Servers, perform only on Datacenter/Bare-metal environments for RKE Based ECS clusters)*
 
-```bash
+```text
 ##### Run the following command to check to see if the nm-cloud-setup.service and nm-cloud-setup.timer
 services are enabled:
 [root@jump ~]# ansible ecsmasternodes,ecsnodes -m copy -a "systemctl status nm-cloud-setup.service

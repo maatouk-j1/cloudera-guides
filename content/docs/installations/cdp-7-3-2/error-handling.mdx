@@ -79,7 +79,7 @@ from host: Received fatal alert: internal_error
 
 **Solution.** Change the `server_host` in the agent config from `localhost` to the DNS name and restart all agents.
 
-```bash
+```text
 openssl s_client -connect pvcbasemaster.cldrsetup.local:7183
 
 [root@pvcbasemaster cloudera-scm-agent]# cat /etc/cloudera-scm-agent/config.ini|grep server

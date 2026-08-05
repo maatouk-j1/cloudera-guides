@@ -29,7 +29,7 @@ This procedure highlights the installation and configuration steps with PostgreS
 
 1. Login on **`cldr-mngr` server** and Install PostgreSQL as shown in the steps below.
 
-    ```bash
+    ```text
     ##### Install and configure POSTGRESQL DB on cldr-mngr server :
     **** When you restart any process in future, the configuration for each of the services is redeployed
     using information saved in the Cloudera Manager database. If this information is not available, your
@@ -57,7 +57,7 @@ This procedure highlights the installation and configuration steps with PostgreS
     [root@ipaserver ~]# mv -v postgresql-42.7.7.jar postgresql-connector-java.jar
     ```
 
-    ```bash
+    ```text
     [root@jump ~]# ansible all -m copy -a "src=postgresql-connector-java.jar
     dest=/usr/share/java/postgresql-connector-java.jar"
 
@@ -90,7 +90,7 @@ This procedure highlights the installation and configuration steps with PostgreS
 
 6. Make sure the psycopg2 package dependencies for RHEL 9 is installed on all required hosts, by running the following commands:
 
-    ```bash
+    ```text
     ##### Install the psycopg2-binary package as follows:
     [root@jump ~]# ansible all -m shell -a "pip3 install psycopg2-binary && pip3 list | grep psyc"
 
@@ -108,7 +108,7 @@ This procedure highlights the installation and configuration steps with PostgreS
 
 7. Initialize the database:
 
-    ```bash
+    ```text
     # Initialize the DB
     [root@cldr-mngr ~]# sudo /usr/pgsql-17/bin/postgresql-17-setup initdb
 
@@ -189,7 +189,7 @@ This procedure highlights the installation and configuration steps with PostgreS
 
 12. Create or verify login
 
-    ```bash
+    ```text
     [root@cldr-mngr ~]# sudo -u postgres psql
     could not change directory to "/root": Permission denied
     psql (17.13)
@@ -213,7 +213,7 @@ This procedure highlights the installation and configuration steps with PostgreS
 
     First, confirm TLS is *not* yet on:
 
-    ```bash
+    ```text
     ##### Verify TLS is enabled or not:
     [root@cldr-mngr ~]# sudo -u postgres psql
     could not change directory to "/root": Permission denied
@@ -237,7 +237,7 @@ This procedure highlights the installation and configuration steps with PostgreS
 
     Then generate the CA and the server certificate:
 
-    ```bash
+    ```text
     [root@cldr-mngr ~]# sudo dnf install -y mod_ssl
 
     ##### Stop Postgres DB service.
@@ -339,7 +339,7 @@ This procedure highlights the installation and configuration steps with PostgreS
 
     Verify the key and certificate are well-formed. Both outputs are abridged in the guide:
 
-    ```bash
+    ```text
     ##### Verify Key and Certs generated fine
     [root@cldr-mngr data]# openssl rsa -noout -text -in server.key
     Private-Key: (2048 bit, 2 primes)
@@ -379,7 +379,7 @@ This procedure highlights the installation and configuration steps with PostgreS
 
     Fix the permissions, switch SSL on in `postgresql.conf`, and restart:
 
-    ```bash
+    ```text
     # Correct permissions for the private key file
     [root@cldr-mngr data]# chmod 644 server.crt root.crt
     [root@cldr-mngr data]# chmod 0600 /var/lib/pgsql/17/data/server.key
@@ -403,7 +403,7 @@ This procedure highlights the installation and configuration steps with PostgreS
 
     Confirm the connection is now encrypted:
 
-    ```bash
+    ```text
     [root@cldr-mngr data]# psql -h cldr-mngr.cldrsetup.local -d postgres -U postgres
     Password for user postgres: <postgres>
     psql (17.13)
@@ -448,7 +448,7 @@ This procedure highlights the installation and configuration steps with PostgreS
 
     Distribute the CA certificate to every host, so clients can verify the server:
 
-    ```bash
+    ```text
     ##### Copy /var/lib/pgsql/17/data/root.crt to /root/.postgresql/root.crt
     [root@cldr-mngr data]# mkdir -p /root/.postgresql/
     [root@cldr-mngr data]# cp /var/lib/pgsql/17/data/root.crt /root/.postgresql/root.crt
@@ -468,7 +468,7 @@ This procedure highlights the installation and configuration steps with PostgreS
 
     Finally, prove that both strict SSL modes work:
 
-    ```bash
+    ```text
     [root@cldr-mngr data]# psql -h cldr-mngr.cldrsetup.local -p 5432 -U postgres "dbname=postgres
     sslmode=verify-full"
     Password for user postgres:

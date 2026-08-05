@@ -94,7 +94,7 @@ An LDAP-compliant identity/directory service, such as OpenLDAP/FreeIPA/AD, provi
 
 8. Click **Save**. Once you click on the Save button, it will tell you to restart the CM Server, in order to bring the changes in effect. When you restart the CM Server from Backend. You will see the below entries in the logs.
 
-    ```bash
+    ```text
     [root@cldr-mngr ~]# systemctl restart cloudera-scm-server
     [root@cldr-mngr ~]# systemctl status cloudera-scm-server -l
 
@@ -134,7 +134,7 @@ An LDAP-compliant identity/directory service, such as OpenLDAP/FreeIPA/AD, provi
 
 13. Login to the `cldr-mngr` server at backend and restart the Cloudera Manager Server.
 
-    ```bash
+    ```text
     [root@cldr-mngr ~]# systemctl restart cloudera-scm-server
     [root@cldr-mngr ~]# systemctl status cloudera-scm-server -l
     [root@cldr-mngr ~]# sudo tail -f /var/log/cloudera-scm-server/cloudera-scm-server.log

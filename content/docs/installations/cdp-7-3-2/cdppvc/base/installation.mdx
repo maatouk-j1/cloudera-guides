@@ -132,7 +132,7 @@ The wizard runs in eight stages - Cluster Basics, Specify Hosts, Select Reposito
 
 15. Stop at this stage. On base cluster nodes (for handling of a bug associated with p1000). Once Parcels are activated, follow below steps: **(Failed to execute command Install YARN MapReduce Framework JARs on service YARN)**
 
-    ```bash
+    ```text
     [root@jump ~]# ansible namenodes,datanodes -m shell -a "chown hdfs:hadoop /var/lib/hadoop-hdfs"
     [root@jump ~]# ansible namenodes,datanodes -m shell -a "ls -lart /var/lib/hadoop-hdfs"
 
@@ -152,7 +152,7 @@ The wizard runs in eight stages - Cluster Basics, Specify Hosts, Select Reposito
 
     If links are not working fine, deactivate and activate the parcel from CM Parcel Manager. Then Perform Below steps:
 
-    ```bash
+    ```text
     [root@cldr-mngr ~]# ansible namenodes,datanodes -m shell -a "unlink
     /etc/alternatives/ozone-filesystem-hadoop3.jar; unlink
     /var/lib/hadoop-hdfs/ozone-filesystem-hadoop3.jar"
@@ -195,14 +195,14 @@ The issue can also be found in the Ozone Known issues documentation.
 
 Create the alternatives link manually for CDP binaries. This step would have failed during the activation of the CDP parcel due to the missing folder.
 
-```bash
+```text
 $ alternatives --install /var/lib/hadoop-hdfs/ozone-filesystem-hadoop3.jar ozone-filesystem-hadoop3.jar
 /opt/cloudera/parcels/CDH-<path_to_active_parcel>/lib/hadoop-ozone/ozone-filesystem-hadoop3.jar 5
 ```
 
 If an Ozone parcel is installed, create the symbolic links for the Ozone parcel.
 
-```bash
+```text
 $ alternatives --install /var/lib/hadoop-hdfs/ozone-filesystem-hadoop3.jar
 ozone-filesystem-hadoop3.jar /opt/cloudera/parcels/OZONE-<path_to_activated
 Ozone_parcel>/lib/hadoop-ozone/ozone-filesystem-hadoop3.jar 10

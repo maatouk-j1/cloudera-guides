@@ -96,7 +96,7 @@ All the repositories and parcels below are hosted from the local `httpd` instanc
     ls -lah
     ```
 
-    ```bash
+    ```text
     [root@cldr-mngr cloudera-manager]# pwd
     /var/www/html/cloudera-repos/cloudera-manager
 
@@ -181,7 +181,7 @@ All the repositories and parcels below are hosted from the local `httpd` instanc
     ls -alh
     ```
 
-    ```bash
+    ```text
     [root@cldr-mngr x86_64]# pwd
     /var/www/html/cloudera-repos/cloudera-manager/cm7.13.2/redhat9/yum/RPMS/x86_64
     [root@cldr-mngr x86_64]# ll
@@ -195,7 +195,7 @@ All the repositories and parcels below are hosted from the local `httpd` instanc
 
 5. Run `createrepo` command to create a local repository.
 
-    ```bash
+    ```text
     [root@cldr-mngr ~]# createrepo --baseurl http://$(hostname -i)/cloudera-repos/cloudera-manager/
     /var/www/html/cloudera-repos/cloudera-manager/
     ```
@@ -206,7 +206,7 @@ All the repositories and parcels below are hosted from the local `httpd` instanc
 
 6. Copy `cloudera-manager.repo` file to `/etc/yum.repos.d/` on all nodes to enable it to find the packages that are locally hosted on the admin node.
 
-    ```bash
+    ```text
     [root@cldr-mngr ~]# cp /var/www/html/cloudera-repos/cloudera-manager/cloudera-manager.repo
     /etc/yum.repos.d/cloudera-manager.repo
     ```
@@ -226,7 +226,7 @@ All the repositories and parcels below are hosted from the local `httpd` instanc
 
 8. From the ansible control node copy the repo files to `/etc/yum.repos.d/` of all the nodes of the cluster:
 
-    ```bash
+    ```text
     [root@ipaserver ~]# ansible all -m copy -a "src=/etc/yum.repos.d/cloudera-manager.repo
     dest=/etc/yum.repos.d/cloudera-manager.repo"
     ```
@@ -294,7 +294,7 @@ From a host connected the internet, download Cloudera on premises Base 7.3.2 par
     ls -lah "${TARGET_DIR}"
     ```
 
-    ```bash
+    ```text
     [root@cldr-mngr ~]# ll /var/www/html/cloudera-repos/cdh7/7.3.2.0/
     total 8453728
     -rw-r--r--. 1 root root 8656532124 Aug 21 15:12 CDH-7.3.2-1.cdh7.3.2.p0.67986116-el9.parcel
@@ -366,7 +366,7 @@ From a host connected the internet, download Cloudera on premises Base 7.3.2 par
     ls -lh /var/www/html/cloudera-repos/spark3/${SPARK_VERSION}
     ```
 
-    ```bash
+    ```text
     [root@cldr-mngr ~]# ll /var/www/html/cloudera-repos/spark3/3.5.7191000.0/
     total 1999000
     -rw-r--r--. 1 root root 2046842555 Aug 21 15:20 SPARK3-3.5.4.3.5.7191000.0-30-1.p0.68499982-el9.parcel
