@@ -64,17 +64,17 @@ An LDAP-compliant identity/directory service, such as OpenLDAP/FreeIPA/AD, provi
     | Authentication Backend Order: | Database then EXTERNAL |
     | Authorization Backend Order: | Database and EXTERNAL |
     | External Authentication Type: | LDAP |
-    | LDAP URL: | `ldap://ipaserver.cldrsetup.local:389` |
-    | LDAP Bind User Distinguished Name: | `uid=admin,cn=users,cn=accounts,dc=cldrsetup,dc=local` |
+    | LDAP URL: | ldap://ipaserver.cldrsetup.local:389 |
+    | LDAP Bind User Distinguished Name: | uid=admin,cn=users,cn=accounts,dc=cldrsetup,dc=local |
     | LDAP Bind Password: | `<cloudera123>` (password for KDC admin, configured earlier) |
     | Active Directory Domain: (For AD Based LDAP) | `<AD DOMAIN>` (e.g CLDRSETUP.LOCAL) |
     | LDAP User Search filter: (For Open LDAP Based) | `(&(uid={0})(objectClass=person))` |
     | LDAP User Search filter: (For AD Based) | `sAMAccountName={0}` |
-    | LDAP User Search Base: | `cn=users,cn=accounts,dc=cldrsetup,dc=local` |
+    | LDAP User Search Base: | cn=users,cn=accounts,dc=cldrsetup,dc=local |
     | LDAP Group Search filter: (For Open LDAP Based) | `(&(member={1})(objectClass=posixgroup))` |
     | LDAP Group Search filter: (For AD Based) | `member={0}` |
-    | LDAP Group Search Base: | `cn=groups,cn=accounts,dc=cldrsetup,dc=local` |
-    | LDAP DistName Pattern: | `uid=admin,cn=users,cn=accounts,dc=cldrsetup,dc=local` |
+    | LDAP Group Search Base: | cn=groups,cn=accounts,dc=cldrsetup,dc=local |
+    | LDAP DistName Pattern: | uid=admin,cn=users,cn=accounts,dc=cldrsetup,dc=local |
 
     <Banner type="warning">
     **Note:** The last row contradicts the note at the top of this page, which says the deprecated **LDAP Distinguished Name Pattern** must be left empty. The source guide carries both. Leave the field empty.
@@ -166,10 +166,10 @@ Every screenshot on this page is recycled from an older lab build - it is a brow
 
 | Where | What the guide shows | What this build actually is |
 |:--|:--|:--|
-| LDAP settings screenshots in Step 7 | `ldap://ipaserver.cdppvcds.com:389`, `...dc=cdppvcds,dc=com` | the `cldrsetup.local` values in Table 7 |
-| Second Step 7 screenshot, LDAP URL field | `ipaserver.cdppvcds.com` - no `ldap://` scheme, no port | `ldap://ipaserver.cldrsetup.local:389` |
-| AD parameters screenshot | `cdip.cisco.local`, `OU=cloudera,DC=cdip,DC=cisco,DC=local` | placeholders from an unrelated lab; substitute your own AD domain |
-| Browser chrome in every screenshot | Cloudera Manager `7.11.3` on an `elb.amazonaws.com` host | Cloudera Manager **7.13.2.0** on `cldr-mngr.cldrsetup.local` |
+| LDAP settings screenshots in Step 7 | ldap://ipaserver.cdppvcds.com:389, ...dc=cdppvcds,dc=com | the cldrsetup.local values in Table 7 |
+| Second Step 7 screenshot, LDAP URL field | ipaserver.cdppvcds.com - no ldap:// scheme, no port | ldap://ipaserver.cldrsetup.local:389 |
+| AD parameters screenshot | cdip.cisco.local, OU=cloudera,DC=cdip,DC=cisco,DC=local | placeholders from an unrelated lab; substitute your own AD domain |
+| Browser chrome in every screenshot | Cloudera Manager 7.11.3 on an elb.amazonaws.com host | Cloudera Manager **7.13.2.0** on cldr-mngr.cldrsetup.local |
 
 ## What comes next
 

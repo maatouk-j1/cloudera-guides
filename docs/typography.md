@@ -135,12 +135,41 @@ Use `-` bullets for unordered sets — prerequisites, option lists, things to ch
 ```md
 | Component | Version |
 |:--|:--|
-| Server | `<x.y.z>` |
-| OS | `<distro x.y>` |
+| Server | 7.3.2.0 |
+| OS | RHEL 9.5 |
 ```
 
 Cells wrap, so tables carrying paragraph-length text (glossaries, checklists) read correctly. For a
 genuine line break inside a cell, `<br />` is the one sanctioned piece of raw HTML.
+
+### No inline code in a table cell
+
+Backticks are for prose. Inside a table, write the literal as plain text — hostnames, paths, mount
+points, versions, config keys and values alike:
+
+```md
+| Role | HostName | Partitions |
+|:--|:--|:--|
+| Bastion server | jump | root partition |          <!-- correct -->
+| cldr-mngr | `cldr-mngr` | `/var`=600GB |          <!-- wrong -->
+```
+
+Inline code renders at weight 600 in `stone-800`; a table body cell is weight 350 in `stone-600`
+(§10) — the same jump a heading makes over the paragraph beneath it. In a paragraph that lifts one
+word out of a run of prose, which is the entire point of it. A cell is not a run of prose: it is two
+or three words, so a backticked cell is emphasised *in full*, and a column whose every cell is a
+literal — a `HostName` column, a `Partitions` column — renders as a column of bold. Emphasis that
+covers everything marks nothing. The table itself already says its contents are data.
+
+**The one exception is a literal MDX cannot take as text.** Anything containing `<`, `{` or `}` keeps
+its backticks, because outside a code span MDX parses `<fqdn>` as a JSX tag and fails the build, and
+reads `{0}` as a JavaScript expression. So `` `(&(uid={0})(objectClass=person))` `` and
+`` `<Password For Directory Manager>` `` stay fenced — for the parser, not for the look. A cell may
+end up mixing the two; that is the cost of the exception, not a licence to re-code the rest of it.
+
+That exception has a corollary for anything you write fresh: **a placeholder in a table cell cannot
+use `<angle brackets>`** the way the rest of this document does. Write a concrete example value
+instead, and let the surrounding prose say it is an example.
 
 The `<Table>` / `<THead>` / `<TBody>` / `<ThRow>` / `<TbRow>` / `<Th>` / `<Td>` components are
 **not** used in this repo — they apply `whitespace-nowrap` to every row
@@ -227,6 +256,9 @@ Use **inline code** for anything the reader types, clicks or reads literally: pa
 config keys, values, UI menu items, filenames, commands named mid-sentence. Inline code is
 explicitly dual-themed (`page.tsx:81`) — transparent on light, `stone-900` on dark.
 
+This applies to prose only. **Inside a table cell the same literals are written as plain text** —
+see §5, which also covers the one exception.
+
 Use **bold** for emphasis in prose and for UI element names inside a sentence where inline code would
 read as something to type. Bold is dual-themed (`prose-strong:text-stone-800
 dark:prose-strong:text-stone-100`).
@@ -303,7 +335,8 @@ or intro paragraph, before the first `##`. Keep it sparing — one per transitio
 ## 8. Kitchen sink
 
 A complete page exercising every sanctioned construct. Placeholders are in `<angle brackets>` —
-replace all of them. Copy and delete what you don't need.
+replace all of them. Copy and delete what you don't need. The version matrix is the exception: table
+cells carry concrete example values, because angle brackets inside a cell would not survive MDX (§5).
 
 ````mdx
 ---
@@ -346,9 +379,9 @@ and failure at this point leaves a partial schema behind.
 
 | Component | Version | Notes |
 |:--|:--|:--|
-| Server | `<x.y.z>` | Repo paths use a longer build number |
-| Runtime | `<x.y.z>` | Pin this to the release you tested |
-| OS | `<distro x.y>` | Lock the minor version before installing |
+| Server | 7.13.2.0 | Repo paths use a longer build number |
+| Runtime | 7.3.2.0 | Pin this to the release you tested |
+| OS | RHEL 9.5 | Lock the minor version before installing |
 
 ## Install the server package
 
@@ -444,6 +477,11 @@ unverified. `#####` and deeper are not mapped at all and fall through to browser
 |:--|:--|:--|:--|:--|:--|
 | `` `inline` `` | inline code | 0.875em of its context — 14px in a paragraph, 12.25px in a table cell | 600 | `stone-800` on transparent | `stone-100` on `stone-900` `#1c1917` |
 | fenced block | code block | 14px | 400 | `#abb2bf` on `stone-800` `#292524` | identical |
+
+The 12.25px table-cell figure is measured, not prescribed — inline code in a cell is banned except
+for MDX-hazardous literals (§5), so it is what those few exceptions render as. Weight 600 is the
+typography plugin's own default for `code`; the container overrides colour, background and padding
+on `prose-code:` (`page.tsx:81`) but never weight, which is why a backticked cell reads as bold.
 
 **Code blocks do not flip with the theme.** `prose-pre:bg-stone-800` and
 `prose-pre:border-stone-700` are declared once with no `dark:` variant (`page.tsx:81`), so a fence is

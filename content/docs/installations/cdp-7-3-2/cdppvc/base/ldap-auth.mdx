@@ -35,17 +35,17 @@ Follow steps below to configure Ranger for LDAP authentication.
 
     | Component | Value |
     |:--|:--|
-    | Admin LDAP/AD Auth URL: | `ldap://ipaserver.cldrsetup.local:389/` (Give LDAP or AD Server LDAP ADDR) |
-    | Admin LDAP/AD Auth Bind User/ Bind DN: | `uid=admin,cn=users,cn=accounts,dc=cldrsetup,dc=local` |
+    | Admin LDAP/AD Auth URL: | ldap://ipaserver.cldrsetup.local:389/ (Give LDAP or AD Server LDAP ADDR) |
+    | Admin LDAP/AD Auth Bind User/ Bind DN: | uid=admin,cn=users,cn=accounts,dc=cldrsetup,dc=local |
     | Admin LDAP/AD Auth Bind User Password: | `<cloudera123>` (password for KDC admin, configured earlier) |
-    | Admin LDAP/AD Auth User DN Pattern: | `uid=admin,cn=users,cn=accounts,dc=cldrsetup,dc=local` |
+    | Admin LDAP/AD Auth User DN Pattern: | uid=admin,cn=users,cn=accounts,dc=cldrsetup,dc=local |
     | Admin LDAP/AD Auth User Search Filter: | For AD: `(&(objectClass=user)(sAMAccountName={0}))` — For LDAP: `(&(objectClass=person)(uid={0}))` |
-    | Admin LDAP/AD Auth Group Search Base: | `cn=groups,cn=accounts,dc=cldrsetup,dc=local` |
+    | Admin LDAP/AD Auth Group Search Base: | cn=groups,cn=accounts,dc=cldrsetup,dc=local |
     | Admin LDAP/AD Auth Group Search Filter: | For AD: `(&(objectClass=group)(member={0}))` — For LDAP: `(&(objectClass=posixGroup)(memberUid={0}))` |
-    | Admin LDAP/AD Auth Group Role Attribute: | `cn` |
-    | Admin LDAP/AD Auth Base DN: | `dc=cldrsetup,dc=local` |
-    | Admin LDAP/AD Auth Referral: | `follow` |
-    | Admin AD Auth Domain Name: (For AD Setup) | `cldrsetup.local` |
+    | Admin LDAP/AD Auth Group Role Attribute: | cn |
+    | Admin LDAP/AD Auth Base DN: | dc=cldrsetup,dc=local |
+    | Admin LDAP/AD Auth Referral: | follow |
+    | Admin AD Auth Domain Name: (For AD Setup) | cldrsetup.local |
 
     Search under Configuration for `ranger.ldap`.
 
@@ -71,49 +71,49 @@ Follow steps below to configure Ranger for LDAP authentication.
 
     | Component | Value |
     |:--|:--|
-    | Source for Syncing User and Groups: | `org.apache.ranger.ldapusersync.process.LdapUserGroupBuilder` |
-    | Ranger Usersync Unix Backend: | `nss` |
-    | Usersync LDAP/AD URL: | `ldap://ipaserver.cldrsetup.local:389/` |
-    | Usersync Bind User: | `uid=admin,cn=users,cn=accounts,dc=cldrsetup,dc=local` |
+    | Source for Syncing User and Groups: | org.apache.ranger.ldapusersync.process.LdapUserGroupBuilder |
+    | Ranger Usersync Unix Backend: | nss |
+    | Usersync LDAP/AD URL: | ldap://ipaserver.cldrsetup.local:389/ |
+    | Usersync Bind User: | uid=admin,cn=users,cn=accounts,dc=cldrsetup,dc=local |
     | Usersync Bind User Password: | `<cloudera123>` (password for KDC admin, configured earlier) |
-    | Usersync User Search Base: | `cn=users,cn=accounts,dc=cldrsetup,dc=local` |
-    | Usersync User Search Scope: | `sub` |
-    | Usersync User Object Class: | `person` |
-    | Usersync User Search Filter: | `uid=*` |
-    | Usersync User Name Attribute: | `uid` |
-    | Usersync Referral: | `follow` |
-    | Usersync Username Case Conversion: | `none` |
-    | Usersync Groupname Case Conversion: | `none` |
+    | Usersync User Search Base: | cn=users,cn=accounts,dc=cldrsetup,dc=local |
+    | Usersync User Search Scope: | sub |
+    | Usersync User Object Class: | person |
+    | Usersync User Search Filter: | uid=* |
+    | Usersync User Name Attribute: | uid |
+    | Usersync Referral: | follow |
+    | Usersync Username Case Conversion: | none |
+    | Usersync Groupname Case Conversion: | none |
     | Usersync Enable User Search: | Ranger Usersync Default Group |
-    | Usersync Group Search Base: | `cn=groups,cn=accounts,dc=cldrsetup,dc=local` |
+    | Usersync Group Search Base: | cn=groups,cn=accounts,dc=cldrsetup,dc=local |
     | Usersync Group Search Filter: | For AD: `(&(objectClass=group)(member={0}))` — For LDAP: `(&(objectClass=posixGroup)(memberUid={0}))` |
-    | Usersync Group Search Scope: | `sub` |
-    | Usersync Group Object Class: | `ipausergroup` |
-    | Usersync Group Name Attribute: | `cn` |
-    | Usersync Group Member Attribute: | `member` |
+    | Usersync Group Search Scope: | sub |
+    | Usersync Group Object Class: | ipausergroup |
+    | Usersync Group Name Attribute: | cn |
+    | Usersync Group Member Attribute: | member |
 
     **Table 10. UserSync AD Integration**
 
     | Component | Value |
     |:--|:--|
-    | Source for Syncing User and Groups: | `org.apache.ranger.ldapusersync.process.LdapUserGroupBuilder` |
-    | Ranger Usersync Unix Backend: | `nss` |
-    | Usersync LDAP/AD URL: | `ldap://ipaserver.cldrsetup.local:389/` |
-    | Usersync Bind User: | `Administrator@cldrsetup.local` |
+    | Source for Syncing User and Groups: | org.apache.ranger.ldapusersync.process.LdapUserGroupBuilder |
+    | Ranger Usersync Unix Backend: | nss |
+    | Usersync LDAP/AD URL: | ldap://ipaserver.cldrsetup.local:389/ |
+    | Usersync Bind User: | Administrator@cldrsetup.local |
     | Usersync Bind User Password: | `<cloudera123>` (password for KDC admin, configured earlier) |
-    | Usersync User Search Base: | `OU=cloudera,DC=cldrsetup,DC=local` |
-    | Usersync User Search Scope: | `sub` |
-    | Usersync User Object Class: | `user` |
-    | Usersync User Search Filter: | `(sAMAccountName=*)` |
-    | Usersync User Name Attribute: | `sAMAccountName` |
-    | Usersync Referral: | `follow` |
-    | Usersync Username Case Conversion: | `none` |
-    | Usersync Groupname Case Conversion: | `none` |
+    | Usersync User Search Base: | OU=cloudera,DC=cldrsetup,DC=local |
+    | Usersync User Search Scope: | sub |
+    | Usersync User Object Class: | user |
+    | Usersync User Search Filter: | (sAMAccountName=*) |
+    | Usersync User Name Attribute: | sAMAccountName |
+    | Usersync Referral: | follow |
+    | Usersync Username Case Conversion: | none |
+    | Usersync Groupname Case Conversion: | none |
     | Usersync Enable User Search: | Ranger Usersync Default Group |
-    | Usersync Group Search Base: | `OU=cloudera,DC=cldrsetup,DC=local` — *An OU would need to be mentioned to configure ldap if you are using AD based setup* |
-    | Usersync Group Search Scope: | `sub` |
-    | Usersync Group Object Class: | `group` |
-    | Usersync Group Name Attribute: | `cn` |
+    | Usersync Group Search Base: | OU=cloudera,DC=cldrsetup,DC=local — *An OU would need to be mentioned to configure ldap if you are using AD based setup* |
+    | Usersync Group Search Scope: | sub |
+    | Usersync Group Object Class: | group |
+    | Usersync Group Name Attribute: | cn |
     | Usersync Group Member Attribute: | `(member={1})` |
 
 6. Click on save changes.
@@ -150,18 +150,18 @@ Configuring Hue for Lightweight Directory Access Protocol (LDAP) enables you to 
 
     | Component | Value |
     |:--|:--|
-    | LDAP URL: | `ldap://ipaserver.cldrsetup.local:389/` |
+    | LDAP URL: | ldap://ipaserver.cldrsetup.local:389/ |
     | LDAP Server CA Certificate (Optional): | Leave it blank |
     | Enable LDAP TLS (Hue): | True (Checked) |
-    | LDAP Search Base: | `cn=users,cn=accounts,dc=cldrsetup,dc=local` |
-    | LDAP Bind User Distinguished Name: | `uid=admin,cn=users,cn=accounts,dc=cldrsetup,dc=local` |
+    | LDAP Search Base: | cn=users,cn=accounts,dc=cldrsetup,dc=local |
+    | LDAP Bind User Distinguished Name: | uid=admin,cn=users,cn=accounts,dc=cldrsetup,dc=local |
     | LDAP Bind Password: | `<cloudera123>` (password for KDC admin, configured earlier) |
-    | LDAP Username for Test LDAP Config: | `admin` |
+    | LDAP Username for Test LDAP Config: | admin |
     | LDAP Group Name for Test LDAP Config: | Leave it blank |
     | LDAP User filter: | Leave it blank |
     | LDAP Group filter: | Leave it blank |
-    | LDAP Group Name Attribute: | `cn` |
-    | LDAP Group Membership Attribute: | `member` |
+    | LDAP Group Name Attribute: | cn |
+    | LDAP Group Membership Attribute: | member |
 
 4. Click on save changes.
 
@@ -198,20 +198,20 @@ Follow steps below to configure Atlas authentication for LDAP. If LDAP is not in
     | Component | Value |
     |:--|:--|
     | Enable LDAP Authentication (Atlas): | True (Checked) |
-    | LDAP Server URL: | `ldap://ipaserver.cldrsetup.local:389/` |
-    | User DN Pattern: | `uid=admin,cn=users,cn=accounts,dc=cldrsetup,dc=local` |
+    | LDAP Server URL: | ldap://ipaserver.cldrsetup.local:389/ |
+    | User DN Pattern: | uid=admin,cn=users,cn=accounts,dc=cldrsetup,dc=local |
     | LDAP Group Search filter: | `(&(member={1})(objectClass=posixgroup))` |
-    | LDAP Group Search Base: | `cn=groups,cn=accounts,dc=cldrsetup,dc=local` |
-    | LDAP Group-Role Attribute: | `cn` |
-    | LDAP DN: | `dc=cldrsetup,dc=local` |
-    | LDAP Bind DN Username: | `uid=admin,cn=users,cn=accounts,dc=cldrsetup,dc=local` |
+    | LDAP Group Search Base: | cn=groups,cn=accounts,dc=cldrsetup,dc=local |
+    | LDAP Group-Role Attribute: | cn |
+    | LDAP DN: | dc=cldrsetup,dc=local |
+    | LDAP Bind DN Username: | uid=admin,cn=users,cn=accounts,dc=cldrsetup,dc=local |
     | LDAP Bind DN Password: | `<cloudera123>` (password for KDC admin, configured earlier) |
-    | LDAP Referral: | `follow` |
+    | LDAP Referral: | follow |
     | LDAP User filter: | `(&(uid={0})(objectClass=person))` |
-    | LDAP Authentication Type: | `LDAP` |
-    | AD Referral: (Only for AD Setup) | `follow` |
+    | LDAP Authentication Type: | LDAP |
+    | AD Referral: (Only for AD Setup) | follow |
     | AD User Search Filter: (Only for AD Setup) | `(sAMAccountName={0})` |
-    | AD User Default Role: (Only for AD Setup) | `ROLE_USER` |
+    | AD User Default Role: (Only for AD Setup) | ROLE_USER |
 
 3. Click on save changes.
 
@@ -229,14 +229,14 @@ The source gives this section no numbered steps - only the capture and the prope
 
 | Component | Value |
 |:--|:--|
-| LDAP Username: | `admin` |
+| LDAP Username: | admin |
 | LDAP Password: | `<cloudera123>` (password for KDC admin, configured earlier) |
 | Enable LDAP Authentication for HiveS2: | True (Checked) |
-| LDAP URL: | `ldap://ipaserver.cldrsetup.local:389/` |
-| LDAP Base DN: | `dc=cldrsetup,dc=local` |
+| LDAP URL: | ldap://ipaserver.cldrsetup.local:389/ |
+| LDAP Base DN: | dc=cldrsetup,dc=local |
 | Enable LDAP Authentication for HMS: | True (Checked) |
-| LDAP URL: | `ldap://ipaserver.cldrsetup.local:389/` |
-| LDAP Base DN: | `dc=cldrsetup,dc=local` |
+| LDAP URL: | ldap://ipaserver.cldrsetup.local:389/ |
+| LDAP Base DN: | dc=cldrsetup,dc=local |
 
 ## Version strings and lab domains in this section
 
@@ -244,11 +244,11 @@ Every capture on this page comes from a different lab than the one this guide bu
 
 | Where | Tables say | Screenshots show |
 |:--|:--|:--|
-| Directory server | `ldap://ipaserver.cldrsetup.local:389/` | `ldaps://winjb-ucsg16.cdip.cisco.local:636` |
-| Base DN | `dc=cldrsetup,dc=local` | `DC=cdip,DC=cisco,DC=local` |
-| Bind user | `uid=admin,cn=users,cn=accounts,dc=cldrsetup,dc=local` | `CN=cdpbind,OU=cloudera,DC=cdip,DC=cisco,DC=local` |
-| AD domain (Hue, Hive) | `cldrsetup.local` | `cdip.cisco.local` |
-| Cluster name (Hue, HDFS captures) | `PvCBaseCluster1` | `cdip-cdp` |
+| Directory server | ldap://ipaserver.cldrsetup.local:389/ | ldaps://winjb-ucsg16.cdip.cisco.local:636 |
+| Base DN | dc=cldrsetup,dc=local | DC=cdip,DC=cisco,DC=local |
+| Bind user | uid=admin,cn=users,cn=accounts,dc=cldrsetup,dc=local | CN=cdpbind,OU=cloudera,DC=cdip,DC=cisco,DC=local |
+| AD domain (Hue, Hive) | cldrsetup.local | cdip.cisco.local |
+| Cluster name (Hue, HDFS captures) | PvCBaseCluster1 | cdip-cdp |
 
 Three further disagreements are internal to the source and are transcribed as printed rather than reconciled:
 

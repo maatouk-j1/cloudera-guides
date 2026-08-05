@@ -215,7 +215,7 @@ The source contradicts itself in three places on this page. All are transcribed 
 |:--|:--|:--|
 | Item 5 | `Python 3.8<` is required for Cloudera Manager **7.11.3.0** and higher | This build runs Cloudera Manager **7.13.2.0** |
 | Item 17, CUDA comment | *"documented with CUDA **12.3.2** for RHEL 9"* | The URL and every RPM name on the lines below are CUDA **12.2.2** |
-| Item 17, subscription block | `subscription-manager release --set=9.4` | The guide pins **RHEL 9.5** throughout |
+| Item 17, subscription block | subscription-manager release --set=9.4 | The guide pins **RHEL 9.5** throughout |
 
 The last one is the same quirk [Post OS Installation](/installations/cdp-7-3-2/post-os-work) recorded: prose says 9.5, sample commands and outputs say 9.4.
 
@@ -226,6 +226,6 @@ Two link annotations disagree with the words they sit behind, so those two are l
 | Displayed | Annotation actually points at | Handling |
 |:--|:--|:--|
 | Item 6, *"wildcard DNS entry"* | The Management Console **1.5.4** *No wildcard TLS* page - the opposite topic | Plain text |
-| Fourth Note, URL displaying `.../1.5.5/...cdppvc-installation-ds-checklist.html` | The same page under **1.5.4** | Plain text (code span) |
+| Fourth Note, URL displaying .../1.5.5/...cdppvc-installation-ds-checklist.html | The same page under **1.5.4** | Plain text (code span) |
 
 The first Note's *Known issues and limitations* resolves to the **RKE2** NetworkManager known issue, which is the right target for the `nm-cloud-setup` step above it, so it is linked.

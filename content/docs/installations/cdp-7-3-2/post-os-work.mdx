@@ -212,20 +212,20 @@ In this step, a private DNS server and other services such as KDC and Directory 
 
 | Parameter | Value |
 |:--|:--|
-| `Server host name [ipaserver.cldrsetup.local]:` | `ipaserver.cldrsetup.local` |
-| `Please confirm the domain name [cldrsetup.local]:` | `cldrsetup.local` |
-| `Please provide a realm name [CLDRSETUP.LOCAL]:` | `CLDRSETUP.LOCAL` |
-| `Directory Manager password:` | `<Password For Directory Manager>` (`cloudera123`) |
-| `Password (confirm):` | `<Confirm Password>` (`cloudera123`) |
-| `IPA admin password:` | `<Password For IPA Admin>` (`cloudera123`) |
-| `Password (confirm):` | `<Confirm Password>` (`cloudera123`) |
-| `Do you want to configure DNS forwarders? [yes]:` | `<ENTER>` |
-| `Do you want to search for missing reverse zones?[yes]:` | `no` |
-| `NetBIOS domain name [CLDRSETUP]:` | `CLDRSETUP` |
-| `Do you want to configure chrony with NTP server or pool address? [no]:` | `yes` |
-| `Enter NTP source server addresses separated by comma, or press Enter to skip:` | `<ENTER>` |
-| `Enter a NTP source pool address, or press Enter to skip:` | `<ENTER>` |
-| `Continue to configure the system with these values?[no]:` | `yes` |
+| Server host name [ipaserver.cldrsetup.local]: | ipaserver.cldrsetup.local |
+| Please confirm the domain name [cldrsetup.local]: | cldrsetup.local |
+| Please provide a realm name [CLDRSETUP.LOCAL]: | CLDRSETUP.LOCAL |
+| Directory Manager password: | `<Password For Directory Manager>` (cloudera123) |
+| Password (confirm): | `<Confirm Password>` (cloudera123) |
+| IPA admin password: | `<Password For IPA Admin>` (cloudera123) |
+| Password (confirm): | `<Confirm Password>` (cloudera123) |
+| Do you want to configure DNS forwarders? [yes]: | `<ENTER>` |
+| Do you want to search for missing reverse zones?[yes]: | no |
+| NetBIOS domain name [CLDRSETUP]: | CLDRSETUP |
+| Do you want to configure chrony with NTP server or pool address? [no]: | yes |
+| Enter NTP source server addresses separated by comma, or press Enter to skip: | `<ENTER>` |
+| Enter a NTP source pool address, or press Enter to skip: | `<ENTER>` |
+| Continue to configure the system with these values?[no]: | yes |
 
 Please keep the same password for both the Directory Manager and the IPA admin so that there is no confusion in future while using the same. Also, note down the password separately.
 
@@ -961,12 +961,12 @@ Configure the FreeIPA client on every other node so that it is managed by the `i
 
     | Parameter | Value |
     |:--|:--|
-    | `Do you want to configure chrony with NTP server or pool address? [no]:` | `yes` |
-    | `Enter NTP source server addresses separated by comma, or press Enter to skip:` | `<ENTER>` |
-    | `Enter a NTP source pool address, or press Enter to skip:` | `<ENTER>` |
-    | `Continue to configure the system with these values? [no]:` | `yes` |
-    | `User authorized to enroll computers:` | `admin` |
-    | `Password for admin@<Your_Domain>:` | `<Password created earlier>` (`cloudera123`) |
+    | Do you want to configure chrony with NTP server or pool address? [no]: | yes |
+    | Enter NTP source server addresses separated by comma, or press Enter to skip: | `<ENTER>` |
+    | Enter a NTP source pool address, or press Enter to skip: | `<ENTER>` |
+    | Continue to configure the system with these values? [no]: | yes |
+    | User authorized to enroll computers: | admin |
+    | `Password for admin@<Your_Domain>:` | `<Password created earlier>` (cloudera123) |
 
     ```text
     [root@pvcbase-master ~]# ipa-client-install --force-join

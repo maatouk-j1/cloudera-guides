@@ -29,8 +29,8 @@ CDP uses "out_webhdfs" Fluentd output plugin to write records into HDFS, in the 
 
     | Name | Value |
     |:--|:--|
-    | `dfs.support.append` | `true` |
-    | `dfs.support.broken.append` | `true` |
+    | dfs.support.append | true |
+    | dfs.support.broken.append | true |
 
     ![HDFS Service Advanced Configuration Snippet (Safety Valve) for hdfs-site.xml, hdfs_service_config_safety_valve, carrying two name/value pairs - dfs.support.append set to true and dfs.support.broken.append set to true - both with empty descriptions and Final unchecked](/images/cdp-7-3-2/cdppvc/base/optimize-log-collection/hdfs-site-safety-valve.png)
 
@@ -46,6 +46,6 @@ With the Base cluster restarted, the Base half of the deployment is complete. Th
 
 | Where | This guide builds | Screenshot shows |
 |:--|:--|:--|
-| Cluster name, both captures | `PvCBaseCluster1` | `cdip-cdp` |
+| Cluster name, both captures | PvCBaseCluster1 | cdip-cdp |
 
 Both captures are recycled from the same older lab as the LDAP screenshots on the previous page. The property names and values above come from the guide's own text and the capture's form fields, which agree.

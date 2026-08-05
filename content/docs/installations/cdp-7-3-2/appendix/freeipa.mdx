@@ -243,9 +243,9 @@ This section is visibly less finished than the rest of the guide — parts of it
 
 | What the source shows | The discrepancy |
 |:--|:--|
-| *"Log in to the IPA server"*, then a transcript prompted `[root@pvcbasemaster ~]#` | The worked example runs from the **base cluster master**, not from `ipaserver` — the host the instruction names. The `ldapsearch` example further down does run on `[root@ipaserver ~]#`. |
-| `ipa dnsrecord-find` listing **five** PTR records | The summary beneath it reads `Number of entries returned 12`. The listing is abridged; the zone holds twelve records. |
-| `krbExtraData:: AAK1j/Blcm9vdC9hZG1pbkBDRFBQVkNEUy5DT00A` | Base64-decodes to `root/admin@CDPPVCDS.COM` — a principal from the older `cdppvcds.com` lab build, in a directory whose every other attribute reads `cldrsetup.local`. Same recycled-lab quirk seen in the screenshots throughout the guide. |
-| `memberOf: cn=Replication Administrators,…,dc=cldrsetup,dc=c om` | Unfolds to `dc=cldrsetup,dc=com`, where all twelve sibling entries end `dc=cldrsetup,dc=local`. |
+| *"Log in to the IPA server"*, then a transcript prompted [root@pvcbasemaster ~]# | The worked example runs from the **base cluster master**, not from ipaserver — the host the instruction names. The ldapsearch example further down does run on [root@ipaserver ~]#. |
+| ipa dnsrecord-find listing **five** PTR records | The summary beneath it reads Number of entries returned 12. The listing is abridged; the zone holds twelve records. |
+| krbExtraData:: AAK1j/Blcm9vdC9hZG1pbkBDRFBQVkNEUy5DT00A | Base64-decodes to root/admin@CDPPVCDS.COM — a principal from the older cdppvcds.com lab build, in a directory whose every other attribute reads cldrsetup.local. Same recycled-lab quirk seen in the screenshots throughout the guide. |
+| memberOf: cn=Replication Administrators,…,dc=cldrsetup,dc=c om | Unfolds to dc=cldrsetup,dc=com, where all twelve sibling entries end dc=cldrsetup,dc=local. |
 
 The `ldapsearch` bind password `cloudera123` is the guide's lab value and is transcribed verbatim; it is not a credential to reuse.

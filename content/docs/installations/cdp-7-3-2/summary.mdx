@@ -193,9 +193,9 @@ In case we are not going with FreeIPA, an external Kerberos/KDC is required.
 
 | Role | HostName | CPU | RAM | Disk | Partitions (recommended but not mandatory) |
 |:--|:--|:--|:--|:--|:--|
-| ipaserver/AD +ansible-controller | `ipaserver` | 16 | 32GB | OS disk (250GB) | root partition |
-| cldr-mngr, postgres db, bits | `cldr-mngr` | 32 | 64GB | 800GB | root partition, `/var`=600GB, `/opt`=600GB |
-| Bastion server | `jump` | 8 | 16GB | 200GB | root partition |
+| ipaserver/AD +ansible-controller | ipaserver | 16 | 32GB | OS disk (250GB) | root partition |
+| cldr-mngr, postgres db, bits | cldr-mngr | 32 | 64GB | 800GB | root partition, /var=600GB, /opt=600GB |
+| Bastion server | jump | 8 | 16GB | 200GB | root partition |
 
 <Banner type="warning">
   Each of the nodes in the configurations below requires a dedicated minimum allocation of 450GB each for `/docker` and `/var`, important to consider if dedicated mounts (disks) are used.
@@ -207,10 +207,10 @@ The BaseMaster node also hosts the Gateway and Utility hosts' services as per th
 
 | Role | HostName | CPU | RAM | Disk | Partitions |
 |:--|:--|:--|:--|:--|:--|
-| Base-Master | `pvcbase-master` | 32 | 64GB | root partition (600GB) | `/hdfs` `/opt` `/var` `/yarn` |
-| Base-Worker | `pvcbase-worker1` | 32 | 64GB | root partition (600GB) | `/hdfs` `/opt` `/var` `/yarn` |
-| Base-Worker | `pvcbase-worker2` | 32 | 64GB | root partition (600GB) | `/hdfs` `/opt` `/var` `/yarn` |
-| Base-Worker | `pvcbase-worker3` | 32 | 64GB | root partition (600GB) | `/hdfs` `/opt` `/var` `/yarn` |
+| Base-Master | pvcbase-master | 32 | 64GB | root partition (600GB) | /hdfs /opt /var /yarn |
+| Base-Worker | pvcbase-worker1 | 32 | 64GB | root partition (600GB) | /hdfs /opt /var /yarn |
+| Base-Worker | pvcbase-worker2 | 32 | 64GB | root partition (600GB) | /hdfs /opt /var /yarn |
+| Base-Worker | pvcbase-worker3 | 32 | 64GB | root partition (600GB) | /hdfs /opt /var /yarn |
 
 ### PvC Data Service (ECS) Cluster with CDW: a 4-node cluster on VMs
 
@@ -218,10 +218,10 @@ Specs are upgraded for concurrent tests and higher data volume tests, and assume
 
 | Role | HostName | CPU | RAM | Disk | Partitions |
 |:--|:--|:--|:--|:--|:--|
-| ECS-Master | `pvcecs-master` | 32 | 128GB | root partition + 1.3 TB | `/cdwdata`, `/docker`, `/lhdata`, `/var` |
-| ECS-Worker | `pvcecs-worker1` | 32 | 256GB | root partition + 1.3 TB | `/cdwdata`, `/docker`, `/lhdata`, `/var` |
-| ECS-Worker | `pvcecs-worker2` | 32 | 256GB | root partition + 1.3 TB | `/cdwdata`, `/docker`, `/lhdata`, `/var` |
-| ECS-Worker | `pvcecs-worker3` | 32 | 256GB | root partition + 1.3 TB | `/cdwdata`, `/docker`, `/lhdata`, `/var` |
+| ECS-Master | pvcecs-master | 32 | 128GB | root partition + 1.3 TB | /cdwdata, /docker, /lhdata, /var |
+| ECS-Worker | pvcecs-worker1 | 32 | 256GB | root partition + 1.3 TB | /cdwdata, /docker, /lhdata, /var |
+| ECS-Worker | pvcecs-worker2 | 32 | 256GB | root partition + 1.3 TB | /cdwdata, /docker, /lhdata, /var |
+| ECS-Worker | pvcecs-worker3 | 32 | 256GB | root partition + 1.3 TB | /cdwdata, /docker, /lhdata, /var |
 
 ### PvC Data Service (ECS) Cluster with CAI: a 3-node cluster on VMs
 
@@ -229,9 +229,9 @@ Specs are upgraded for concurrent tests and higher data volume tests, and assume
 
 | Role | HostName | CPU | RAM | Disk | Partitions |
 |:--|:--|:--|:--|:--|:--|
-| ECS-Master | `pvcecs-master` | 32 | 128GB | root partition + 1.3 TB | `/docker`, `/lhdata`, `/var` |
-| ECS-Worker | `pvcecs-worker1` | 32 | 128GB | root partition + 1.3 TB | `/docker`, `/lhdata`, `/var` |
-| ECS-Worker | `pvcecs-worker2` | 32 | 128GB | root partition + 1.3 TB | `/docker`, `/lhdata`, `/var` |
+| ECS-Master | pvcecs-master | 32 | 128GB | root partition + 1.3 TB | /docker, /lhdata, /var |
+| ECS-Worker | pvcecs-worker1 | 32 | 128GB | root partition + 1.3 TB | /docker, /lhdata, /var |
+| ECS-Worker | pvcecs-worker2 | 32 | 128GB | root partition + 1.3 TB | /docker, /lhdata, /var |
 
 ### PvC Data Service (ECS) Cluster with CDE: a 6-node cluster on VMs
 
@@ -239,12 +239,12 @@ Specs are upgraded for concurrent tests and higher data volume tests, and assume
 
 | Role | HostName | CPU | RAM | Disk | Partitions |
 |:--|:--|:--|:--|:--|:--|
-| ECS-Master | `pvcecs-master` | 32 | 128GB | root partition + 1.3 TB | `/docker`, `/lhdata`, `/var` |
-| ECS-Worker | `pvcecs-worker1` | 32 | 128GB | root partition + 1.3 TB | `/docker`, `/lhdata`, `/var` |
-| ECS-Worker | `pvcecs-worker2` | 32 | 128GB | root partition + 1.3 TB | `/docker`, `/lhdata`, `/var` |
-| ECS-Worker | `pvcecs-worker3` | 32 | 128GB | root partition + 1.3 TB | `/docker`, `/lhdata`, `/var` |
-| ECS-Worker | `pvcecs-worker4` | 32 | 128GB | root partition + 1.3 TB | `/docker`, `/lhdata`, `/var` |
-| ECS-Worker | `pvcecs-worker5` | 32 | 128GB | root partition + 1.3 TB | `/docker`, `/lhdata`, `/var` |
+| ECS-Master | pvcecs-master | 32 | 128GB | root partition + 1.3 TB | /docker, /lhdata, /var |
+| ECS-Worker | pvcecs-worker1 | 32 | 128GB | root partition + 1.3 TB | /docker, /lhdata, /var |
+| ECS-Worker | pvcecs-worker2 | 32 | 128GB | root partition + 1.3 TB | /docker, /lhdata, /var |
+| ECS-Worker | pvcecs-worker3 | 32 | 128GB | root partition + 1.3 TB | /docker, /lhdata, /var |
+| ECS-Worker | pvcecs-worker4 | 32 | 128GB | root partition + 1.3 TB | /docker, /lhdata, /var |
+| ECS-Worker | pvcecs-worker5 | 32 | 128GB | root partition + 1.3 TB | /docker, /lhdata, /var |
 
 ### PvC Data Service (ECS) Cluster with CDW+CDE+CAI: an 11-node cluster on VMs
 
@@ -252,17 +252,17 @@ Specs are upgraded for concurrent tests and higher data volume tests, and assume
 
 | Role | HostName | CPU | RAM | Disk | Partitions |
 |:--|:--|:--|:--|:--|:--|
-| ECS-Master | `pvcecs-master` | 32 | 128GB | root partition + 1.3 TB | `/cdwdata`, `/docker`, `/lhdata`, `/var` |
-| ECS-Worker | `pvcecs-worker1` | 32 | 128GB | root partition + 1.3 TB | `/cdwdata`, `/docker`, `/lhdata`, `/var` |
-| ECS-Worker | `pvcecs-worker2` | 32 | 128GB | root partition + 1.3 TB | `/cdwdata`, `/docker`, `/lhdata`, `/var` |
-| ECS-Worker | `pvcecs-worker3` | 32 | 128GB | root partition + 1.3 TB | `/cdwdata`, `/docker`, `/lhdata`, `/var` |
-| ECS-Worker | `pvcecs-worker4` | 32 | 128GB | root partition + 1.3 TB | `/cdwdata`, `/docker`, `/lhdata`, `/var` |
-| ECS-Worker | `pvcecs-worker5` | 32 | 128GB | root partition + 1.3 TB | `/cdwdata`, `/docker`, `/lhdata`, `/var` |
-| ECS-Worker | `pvcecs-worker6` | 32 | 128GB | root partition + 1.3 TB | `/cdwdata`, `/docker`, `/lhdata`, `/var` |
-| ECS-Worker | `pvcecs-worker7` | 32 | 128GB | root partition + 1.3 TB | `/cdwdata`, `/docker`, `/lhdata`, `/var` |
-| ECS-Worker | `pvcecs-worker8` | 32 | 128GB | root partition + 1.3 TB | `/cdwdata`, `/docker`, `/lhdata`, `/var` |
-| ECS-Worker | `pvcecs-worker9` | 32 | 128GB | root partition + 1.3 TB | `/cdwdata`, `/docker`, `/lhdata`, `/var` |
-| ECS-Worker | `pvcecs-worker10` | 32 | 128GB | root partition + 1.3 TB | `/cdwdata`, `/docker`, `/lhdata`, `/var` |
+| ECS-Master | pvcecs-master | 32 | 128GB | root partition + 1.3 TB | /cdwdata, /docker, /lhdata, /var |
+| ECS-Worker | pvcecs-worker1 | 32 | 128GB | root partition + 1.3 TB | /cdwdata, /docker, /lhdata, /var |
+| ECS-Worker | pvcecs-worker2 | 32 | 128GB | root partition + 1.3 TB | /cdwdata, /docker, /lhdata, /var |
+| ECS-Worker | pvcecs-worker3 | 32 | 128GB | root partition + 1.3 TB | /cdwdata, /docker, /lhdata, /var |
+| ECS-Worker | pvcecs-worker4 | 32 | 128GB | root partition + 1.3 TB | /cdwdata, /docker, /lhdata, /var |
+| ECS-Worker | pvcecs-worker5 | 32 | 128GB | root partition + 1.3 TB | /cdwdata, /docker, /lhdata, /var |
+| ECS-Worker | pvcecs-worker6 | 32 | 128GB | root partition + 1.3 TB | /cdwdata, /docker, /lhdata, /var |
+| ECS-Worker | pvcecs-worker7 | 32 | 128GB | root partition + 1.3 TB | /cdwdata, /docker, /lhdata, /var |
+| ECS-Worker | pvcecs-worker8 | 32 | 128GB | root partition + 1.3 TB | /cdwdata, /docker, /lhdata, /var |
+| ECS-Worker | pvcecs-worker9 | 32 | 128GB | root partition + 1.3 TB | /cdwdata, /docker, /lhdata, /var |
+| ECS-Worker | pvcecs-worker10 | 32 | 128GB | root partition + 1.3 TB | /cdwdata, /docker, /lhdata, /var |
 
 ## Reference Architecture
 
@@ -281,17 +281,17 @@ The table below lists the software components and versions required for a single
 | Software Component | Version or Release | Host to be Installed |
 |:--|:--|:--|
 | OS: Red Hat Enterprise Linux Server (RHEL) | 9.5 (Verify with SupportMatrix first) | All Servers |
-| OpenJDK | `17.0.14.0.7-1` >= | All Servers |
-| Python3 | `3.9.22` >= | All Servers |
+| OpenJDK | 17.0.14.0.7-1 >= | All Servers |
+| Python3 | 3.9.22 >= | All Servers |
 | PostgreSQL DB | 14 >= | Cldr-Mngr |
-| Psycopg2-binary | `2.9.11` >= | All Servers |
-| Postgres-JDBC-Connector | `42.7.7` >= | All Servers |
-| Cloudera Manager | 7.13.2.0 (`7.13.2.0-77091850`) | Cldr-Mngr |
-| Cloudera on premises Base (RunTime) | 7.3.2.0 (`7.3.2-1.cdh7.3.2.p0.77083870`). Install Base Runtime 7.3.2 **only if you are not planning to use CAI** (Data Service), otherwise install **7.3.1 SP3 CHF2** | PvC Base Cluster Nodes |
-| Cloudera on premises Data Services | 1.5.5 SP2 (`1.5.5-h2000-b238`) | PvC Data Service Cluster Nodes |
-| Hadoop (Includes YARN and HDFS) | `3.4.2.7.3.2.0-957` | PvC Base Cluster Nodes |
-| Spark3 | `3.5.4.7.3.2.0-957` | PvC Base Cluster Nodes |
-| Ozone | `2.0.0.7.3.2.0-957` | PvC Base Cluster Nodes |
+| Psycopg2-binary | 2.9.11 >= | All Servers |
+| Postgres-JDBC-Connector | 42.7.7 >= | All Servers |
+| Cloudera Manager | 7.13.2.0 (7.13.2.0-77091850) | Cldr-Mngr |
+| Cloudera on premises Base (RunTime) | 7.3.2.0 (7.3.2-1.cdh7.3.2.p0.77083870). Install Base Runtime 7.3.2 **only if you are not planning to use CAI** (Data Service), otherwise install **7.3.1 SP3 CHF2** | PvC Base Cluster Nodes |
+| Cloudera on premises Data Services | 1.5.5 SP2 (1.5.5-h2000-b238) | PvC Data Service Cluster Nodes |
+| Hadoop (Includes YARN and HDFS) | 3.4.2.7.3.2.0-957 | PvC Base Cluster Nodes |
+| Spark3 | 3.5.4.7.3.2.0-957 | PvC Base Cluster Nodes |
+| Ozone | 2.0.0.7.3.2.0-957 | PvC Base Cluster Nodes |
 | FreeIPA Server (Only if you are going with FreeIPA) | Latest: 4.13.0 | IPA server node |
 | FreeIPA Client (Only if you are going with FreeIPA) | Latest: 4.13.0 | All nodes except ipaserver |
 | NFS Utility Package | Latest: 2.8.3 | PvC Data Service Cluster Nodes |
@@ -319,12 +319,12 @@ The domain name and the hostnames mentioned here are for reference only. You may
 
 | NodeName | Details |
 |:--|:--|
-| `pvcbase-master` | Cloudera on premises Base Master |
-| `pvcbase-worker1` to `pvcbase-worker4` | CDP Base Cluster Worker Nodes |
-| `ipaserver` (OR Existing LDAP/AD + DNS + Kerberos + KDC) | FreeIPA / Existing AD Server |
-| `cldr-mngr` | Cloudera-Manager and PostgreSQL DB Server |
-| `pvcecs-master` | ECS Master Node |
-| `pvcecs-worker1` to `pvcecs-worker7` | ECS Worker Nodes |
-| `CLDRSETUP.LOCAL` (Replace with your ORG DOMAIN) | Dummy Domain For POC Purpose |
+| pvcbase-master | Cloudera on premises Base Master |
+| pvcbase-worker1 to pvcbase-worker4 | CDP Base Cluster Worker Nodes |
+| ipaserver (OR Existing LDAP/AD + DNS + Kerberos + KDC) | FreeIPA / Existing AD Server |
+| cldr-mngr | Cloudera-Manager and PostgreSQL DB Server |
+| pvcecs-master | ECS Master Node |
+| pvcecs-worker1 to pvcecs-worker7 | ECS Worker Nodes |
+| CLDRSETUP.LOCAL (Replace with your ORG DOMAIN) | Dummy Domain For POC Purpose |
 
 Once you are familiar with all the information above, you can start with the preliminary work for the CDP Base cluster setup.

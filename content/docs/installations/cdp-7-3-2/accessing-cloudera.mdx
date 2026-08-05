@@ -53,21 +53,21 @@ Once the Embedded Container Service (ECS) cluster is installed, you access Cloud
 
     | Component | Value |
     |:--|:--|
-    | Authentication Backend Order: | `Database then EXTERNAL` |
-    | Authorization Backend Order: | `Database and EXTERNAL` |
-    | External Authentication Type: | `LDAP` |
-    | LDAP URL: | `ldap://ipaserver.cldrsetup.local:389/` |
-    | LDAP Bind User Distinguished Name: | `uid=admin,cn=users,cn=accounts,dc=cldrsetup,dc=local` |
+    | Authentication Backend Order: | Database then EXTERNAL |
+    | Authorization Backend Order: | Database and EXTERNAL |
+    | External Authentication Type: | LDAP |
+    | LDAP URL: | ldap://ipaserver.cldrsetup.local:389/ |
+    | LDAP Bind User Distinguished Name: | uid=admin,cn=users,cn=accounts,dc=cldrsetup,dc=local |
     | LDAP Bind Password: | `<cloudera123>` (password for KDC admin, configured earlier) |
     | Active Directory Domain: (For AD Based LDAP) | `<AD DOMAIN>` |
     | LDAP User Search filter: | `(&(uid={0})(objectClass=person))` |
-    | LDAP User Search filter: (For AD Based LDAP) | `(sAMAccountName=*)` |
-    | LDAP User Search Base: | `cn=users,cn=accounts,dc=cldrsetup,dc=local` |
-    | LDAP User Search Base: (For AD Based LDAP) | `OU=cloudera,DC=cldrsetup,DC=local` |
+    | LDAP User Search filter: (For AD Based LDAP) | (sAMAccountName=*) |
+    | LDAP User Search Base: | cn=users,cn=accounts,dc=cldrsetup,dc=local |
+    | LDAP User Search Base: (For AD Based LDAP) | OU=cloudera,DC=cldrsetup,DC=local |
     | LDAP Group Search filter: | `(&(member={1})(objectClass=posixgroup))` |
-    | LDAP Group Search Base: | `cn=groups,cn=accounts,dc=cldrsetup,dc=local` |
-    | LDAP Group Search Base: (For AD Based LDAP) | `OU=cloudera,DC=cldrsetup,DC=local` |
-    | LDAP DistName Pattern: | `uid=admin,cn=users,cn=accounts,dc=cldrsetup,dc=local` |
+    | LDAP Group Search Base: | cn=groups,cn=accounts,dc=cldrsetup,dc=local |
+    | LDAP Group Search Base: (For AD Based LDAP) | OU=cloudera,DC=cldrsetup,DC=local |
+    | LDAP DistName Pattern: | uid=admin,cn=users,cn=accounts,dc=cldrsetup,dc=local |
 
     ![Management Console Administration LDAP settings form with Sync Groups on Login enabled, the LDAP URL, Bind Type set to Use Bind DN and Password, the Bind DN and Bind Password fields, and the User and Group search base and filter fields, ending in a Test LDAP Connection button](/images/cdp-7-3-2/accessing-cloudera/step7-ldap-settings-form.png)
 
@@ -127,6 +127,6 @@ Once the Embedded Container Service (ECS) cluster is installed, you access Cloud
 
 | Where | Screenshot shows | This install uses |
 |:--|:--|:--|
-| Welcome to CDP Private Cloud (Step 6) | `console-cdp.apps.a6448a33-cdpbase.openshiftpartnerlabs.com`, `ldap://ipaserver.cdppvcds.com:389/`, `dc=cdppvcds,dc=com`, `admin@cdp.example` | `ldap://ipaserver.cldrsetup.local:389/`, `dc=cldrsetup,dc=local` (Table 13) |
-| User Management (Step 10) | `admin@cdp.example`, `ldapuser1@cdplvm.cldr`, `hadipa@cdp.example` | LDAP accounts under `cldrsetup.local` |
-| Register Environment (Step 13) | Cloudera Manager `https://cm.cdplvm.cldr:7183`, environment `cdp-env-1` | the Base cluster's own Cloudera Manager on `cldrsetup.local` |
+| Welcome to CDP Private Cloud (Step 6) | console-cdp.apps.a6448a33-cdpbase.openshiftpartnerlabs.com, ldap://ipaserver.cdppvcds.com:389/, dc=cdppvcds,dc=com, admin@cdp.example | ldap://ipaserver.cldrsetup.local:389/, dc=cldrsetup,dc=local (Table 13) |
+| User Management (Step 10) | admin@cdp.example, ldapuser1@cdplvm.cldr, hadipa@cdp.example | LDAP accounts under cldrsetup.local |
+| Register Environment (Step 13) | Cloudera Manager https://cm.cdplvm.cldr:7183, environment cdp-env-1 | the Base cluster's own Cloudera Manager on cldrsetup.local |
