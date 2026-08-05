@@ -93,10 +93,11 @@ This is only applicable to CDP Private Cloud solution installed with ECS system.
     # lvcreate -n lv1 -l 100%FREE vg1
     Logical volume "lv1" created.   
     
+    ```
     ```bash
     # lvscan
     ACTIVE            '/dev/vg1/lv1' [<500.00 GiB] inherit
-    ```text
+    ```
     
     ```bash
     # lvdisplay vg1/lv1
@@ -116,34 +117,34 @@ This is only applicable to CDP Private Cloud solution installed with ECS system.
     Read ahead sectors     auto
     - currently set to     8192
     Block device           252:0
-    ```text
+    ```
 
  6. Format the logical volume.
 
     ```bash
     # mkfs.xfs /dev/vg1/lv1
-    ```sql
+    ```
 
  7. Create the specified directory and mount the logical volume.
  
     ```bash
     # mkdir /longhorn
-    ```text
+    ```
     
     ```bash
     # mount /dev/vg1/lv1 /longhorn
-    ```text
+    ```
     
     ```bash
     # df -kh | head -1; df -kh | grep longhorn
     Filesystem           Size  Used Avail Use% Mounted on
     /dev/mapper/vg1-lv1  500G   33M  500G   1% /longhorn
-    ```text
+    ```
     
  8. The mountpoint is now ready to be used.
  
     ```bash
     # ls -l /longhorn
     total 0
-    ```text
+    ```
 

@@ -202,21 +202,21 @@ Ensure that other available nodes have sufficient storage capacity to take over 
     # lvs
     LV   VG  Attr       LSize   Pool Origin Data%  Meta%  Move Log Cpy%Sync Convert
     lv1  vg1 -wi-ao---- 999.99g 
-    ```text
+    ```
 
 18. Umount `/longhorn` directory and format the logical volume disk using XFS filesystem.
 
     ```bash
     # umount /longhorn
     # mkfs.xfs /dev/vg1/lv1 -f
-    ```sql
+    ```
     
 19. Mount the `/longhorn` directory and create the `/longhorn/ecs/longhorn-storage` folder.
 
     ```bash
     # mount /longhorn
     # mkdir -p /longhorn/ecs/longhorn-storage
-    ```sql
+    ```
 
 20. At Longhorn dashboard, select ecsworker3.cdpkvm.cldr and click `Edit node and disks`.
 
@@ -244,7 +244,7 @@ Ensure that other available nodes have sufficient storage capacity to take over 
     ```bash
     # kubectl uncordon ecsworker3.cdpkvm.cldr 
     node/ecsworker3.cdpkvm.cldr uncordoned
-    ```sql
+    ```
     
 26. The Longhorn dashboard should now indicate that the ecsworker3.cdpkvm.cldr node is `Schedulable`.
 
@@ -287,4 +287,4 @@ Ensure that other available nodes have sufficient storage capacity to take over 
                     `-- volume.meta
 
     8 directories, 21 files
-    ```text
+    ```

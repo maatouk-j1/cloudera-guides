@@ -644,7 +644,7 @@ print(f"Total size: {result}")
     scheduler_url
     ```
    
-```  'tcp://10.254.0.98:8786' ```
+    'tcp://10.254.0.98:8786'
 
 
 - Open the terminal of the CML pod and start the dask-worker command connecting the above Dask scheduler.
@@ -657,7 +657,7 @@ print(f"Total size: {result}")
     from dask.distributed import Client
     client = Client(scheduler_url)
     client
-    ```xml
+    ```
 
 <div>
     <div style={{width: "24px", height: "24px", backgroundColor: "#e1e1e1", border: "3px solid #9D9D9D", borderRadius: "5px", position: "absolute"}}> </div>
@@ -848,7 +848,7 @@ print(f"Total size: {result}")
     arrayshape = (200000, 200000)
     x = da.ones(arrayshape)
     x
-    ```xml
+    ```
 
 <table>
     <tr>
@@ -953,7 +953,7 @@ print(f"Total size: {result}")
     big_calc = (x * x[::-1, ::-1]).sum()
     result = big_calc.compute()
     print(f"Total size: {result}")
-    ```sql
+    ```
     Total size: 40000000000.0
     CPU times: user 2.17 s, sys: 641 ms, total: 2.81 s
     Wall time: 9min 3s
@@ -980,7 +980,7 @@ print(f"Total size: {result}")
     chunksize = (10000, 10000)
     x = da.ones(arrayshape, chunks=chunksize)
     x
-    ```xml
+    ```
 
 
 <table>
@@ -1085,7 +1085,7 @@ print(f"Total size: {result}")
     big_calc = (x * x[::-1, ::-1]).sum()
     result = big_calc.compute()
     print(f"Total size: {result}")
-    ```text
+    ```
 
     Total size: 40000000000.0
     CPU times: user 685 ms, sys: 253 ms, total: 937 ms
@@ -1104,7 +1104,7 @@ print(f"Total size: {result}")
     # Assigning scheduler "single-threaded" doesn't trigger Dask-worker?
     %time big_calc = (x * x[::-1, ::-1]).sum().compute(scheduler='single-threaded')
     print(f"Total size: {big_calc}")
-    ```text
+    ```
 
     CPU times: user 1min 23s, sys: 1min 54s, total: 3min 18s
     Wall time: 3min 17s
@@ -1121,7 +1121,7 @@ print(f"Total size: {result}")
     %%time
     big_calc = (x * x[::-1, ::-1]).sum().compute(scheduler='threads')
     print(f"Total size: {big_calc}")
-    ```sql
+    ```
 
     Total size: 40000000000.0
     CPU times: user 3min 2s, sys: 2min 47s, total: 5min 50s
@@ -1151,12 +1151,12 @@ print(f"Total size: {result}")
     
     # Wait for the scheduler to start.
     time.sleep(10)
-    ```text
+    ```
 
 ```python
 # Obtain the Dask UI address.
 print("//".join(dask_scheduler[0]["app_url"].split("//")))
-```text
+```
 
     http://agfeuy4lgg17kf6f.ml-76cf996d-8f4.apps.apps.ocp4.cdpkvm.cldr/
 
@@ -1170,7 +1170,7 @@ scheduler_ip = [
 
 scheduler_url = f"tcp://{scheduler_ip}:8786"
 scheduler_url
-```sql
+```
 
     'tcp://10.254.0.116:8786'
 
@@ -1189,13 +1189,13 @@ scheduler_url
     
     # Wait for the workers to start.
     time.sleep(10)
-    ```text
+    ```
 
 ```python
 from dask.distributed import Client
 client = Client(scheduler_url)
 client
-```xml
+```
 
 
 <div>
@@ -1547,7 +1547,7 @@ client
     chunksize = (10000, 10000)
     x = da.ones(arrayshape, chunks=chunksize)
     x
-    ```xml
+    ```
 
 <table>
     <tr>
@@ -1650,7 +1650,7 @@ client
 big_calc = (x * x[::-1, ::-1]).sum()
 result = big_calc.compute()
 print(f"Total size: {result}")
-```bash
+```
 
     Total size: 40000000000.0
     CPU times: user 329 ms, sys: 113 ms, total: 443 ms
@@ -1671,7 +1671,7 @@ print(f"Total size: {result}")
     chunksize = (10000, 10000)
     y = dacupy.ones_like(cpcupy.array(()), shape=arrayshape, chunks=chunksize)
     y
-    ```xml
+    ```
 
 
 <table>
@@ -1773,15 +1773,11 @@ print(f"Total size: {result}")
 ```python
 %time array_sumcupy = dacupy.sum(y).compute()
 print(f"Total size: {array_sumcupy}")
-```text
+```
 
     CPU times: user 1.09 s, sys: 2.34 s, total: 3.43 s
     Wall time: 2.5 s
     Total size: 40000000000.0
-
-```python
-
-```yaml
 
 - The following graph displays the GPU utilization during the execution of the above tasks.
 
