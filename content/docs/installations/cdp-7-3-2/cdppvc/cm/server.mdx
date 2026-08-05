@@ -30,7 +30,7 @@ Cloudera Manager, an end-to-end management application, is used to install and c
 
 1. Install the Cloudera Manager Server packages by running following command:
 
-    ```bash
+    ```text
     [root@cldr-mngr data]# dnf install -y cloudera-manager-agent cloudera-manager-daemons cloudera-manager-server
 
     # Recommendation: Always install agents via CM-UI only. Never install manually as it generates agent
@@ -50,7 +50,7 @@ Cloudera Manager, an end-to-end management application, is used to install and c
 
 5. Go to the path where root certificates are stored. By default it is `/var/lib/pgsql/17/data/`.
 
-    ```bash
+    ```text
     ##### Configure CDP to use SSL Enabled DB
 
     # Create a new directory in the following path by running the following command:
@@ -88,7 +88,7 @@ Cloudera Manager, an end-to-end management application, is used to install and c
 
 6. Run the `scm_prepare_database.sh` script to check and generate database configuration file for cloudera-manager i.e. `db.properties` and test the database connection between cloudera-manager and database server:
 
-    ```bash
+    ```text
     # Run the script to configure PostgreSQL with TLS 1.2 enabled
     ###### sudo /opt/cloudera/cm/schema/scm_prepare_database.sh -h<DB HOSTNAME> --jdbc-url
     "jdbc:postgresql://db_server_host:db_port/db_name?ssl=true&sslmode=verify-ca&sslrootcert=<PATH_TO_DB_ROOT_
@@ -135,7 +135,7 @@ Cloudera Manager, an end-to-end management application, is used to install and c
 
 8. Start the Cloudera Manager Server:
 
-    ```bash
+    ```text
     [root@cldr-mngr ~]# systemctl start cloudera-scm-server cloudera-scm-agent
     [root@cldr-mngr ~]# systemctl enable cloudera-scm-server cloudera-scm-agent
     [root@cldr-mngr ~]# systemctl status cloudera-scm-server cloudera-scm-agent -l
@@ -168,7 +168,7 @@ Cloudera Manager, an end-to-end management application, is used to install and c
 
 14. As a prerequisite step to **enabling AutoTLS**, login to the cldr-mngr node as user root, and verify **cloudera-manager-agent** software is installed and running successfully. Verify the logs in below file:
 
-    ```bash
+    ```text
     [root@cldr-mngr ~]# tail -f /var/log/cloudera-scm-agent/cloudera-scm-agent.log
 
     ##### Verify the same by running the below command. This should return the output stating the service is

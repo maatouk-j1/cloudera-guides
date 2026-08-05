@@ -27,7 +27,7 @@ The guide's references for this section:
 
 The MovieLens 20M dataset ships as a ZIP of CSV files, each carrying a header row. `sed -i 1d *` strips those headers, because the Hive tables below are plain delimited text tables with no header-skipping property set.
 
-```bash
+```text
 [root@pvcbase-master ~]# dnf install -y wget unzip
 [root@pvcbase-master ~]# wget https://files.grouplens.org/datasets/movielens/ml-20m.zip
 [root@pvcbase-master ~]# unzip ml-20m.zip
@@ -52,7 +52,7 @@ org.apache.hadoop.security.AccessControlException: Client cannot authenticate vi
 
 Cloudera Manager regenerates service keytabs into each role's process directory, so the path carries a process id and changes on every restart. Find it rather than hardcoding it.
 
-```bash
+```text
 # Locate the HDFS keytab
 [root@pvcbase-master ml-20m]# find / -name hive.keytab
 /run/cloudera-scm-agent/process/1546340988-hive_on_tez-HIVESERVER2/hive.keytab

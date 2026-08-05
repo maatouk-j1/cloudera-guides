@@ -139,7 +139,7 @@ Every time a **new virtual cluster** is created, there are a few **manual steps*
 
     For the example host we used above, this command will be as below.
 
-    ```bash
+    ```text
     [root@pvcecs-master ~]# ./cdp-cde-utils.sh init-virtual-cluster -h
     dfdj6kgx.cde-2cdxw5x5.ecs-demo.example.com -a
     ```
@@ -166,12 +166,15 @@ This step is required to submit the jobs to CDE from the LDAP users.
 
     ```bash
     [root@pvcecs-master ~]# cat>> admin.principal
+    ```
+
+    ```text
     cdpuser@CLDRSETUP.LOCAL
     ```
 
 4. Generate a keytab named `<username>.keytab` for the user using `ktutil`:
 
-    ```bash
+    ```text
     [root@pvcecs-master ~]# cat>> admin.keytab
     [root@pvcecs-master ~]# sudo ktutil
     ktutil:  addent -password -p admin@CLDRSETUP.LOCAL -k 1 -e aes256-cts
@@ -197,14 +200,14 @@ This step is required to submit the jobs to CDE from the LDAP users.
 7. Make sure that the **keytab** is valid before continuing. If the `kinit` command fails, the user will not be able to run jobs in the **virtual cluster**. After verifying that the `kinit` command succeeds, you can **destroy** the Kerberos ticket by running `kdestroy`.
 8. Use the `cdp-cde-utils.sh` script to copy the user **keytab** to the virtual cluster hosts.
 
-    ```bash
+    ```text
     [root@pvcecs-master ~]# ./cdp-cde-utils.sh init-user-in-virtual-cluster -h <endpoint_host> -u <user> -p
     <principal_file> -k <keytab_file>
     ```
 
     For the above example, the command would be below.
 
-    ```bash
+    ```text
     [root@pvcecs-master ~]# ./cdp-cde-utils.sh init-user-in-virtual-cluster -h
     dfdj6kgx.cde-2cdxw5x5.ecs-demo.example.com -u cdpuser -p cdpuser.principal -k cdpuser.keytab
     ```

@@ -67,7 +67,7 @@ This is the longest single procedure in the guide - one wizard, **29 steps**, ru
 
     ![Getting Started page with Air Gapped selected, showing the four mirror steps - download everything under the archive URL with wget, modify http_url inside manifest.json, mirror the directory to a local http server, and add the local URL to Custom Repository](/images/cdp-7-3-2/ds/ecs/installation/10-getting-started-air-gapped.png)
 
-    ```bash
+    ```text
     [root@cldr-mngr ~]# mkdir -p /var/www/html/cloudera-repos/cdp-pvc-ds/
     [root@cldr-mngr ~]# cd /var/www/html/cloudera-repos/cdp-pvc-ds/
 
@@ -402,7 +402,7 @@ The copying operation may take 4 - 5 hours.
 
 24. While the other steps for installing data services cluster (ECS) is running, login to the `pvcecs-master` node and create kubeconfig file by copying the `rke2.yaml` file on ecs master node, in order to be able to run the `kubectl` commands from master node:
 
-    ```bash
+    ```text
     ##### Install K9s for troubleshooting purpose
     [root@pvcecs-master ~]# dnf install wget -y
     [root@pvcecs-master ~]# rm -rvf ~/.kube && mkdir -p ~/.kube && cp /etc/rancher/rke2/rke2.yaml
@@ -498,7 +498,7 @@ The copying operation may take 4 - 5 hours.
 
     The line that matters is `forward . 172.31.24.240` - the address of your FreeIPA or AD DNS server, replacing the default upstream resolver.
 
-    ```bash
+    ```text
     [root@pvcecs-master ~]# kubectl rollout restart deployment rke2-coredns-rke2-coredns -n kube-system
 
     ##### Verify the status that deployment of coredns is updated with configmap changes
@@ -581,7 +581,7 @@ rm -vf /var/lib/rancher/k3s/server/node-token
 
 Solution: [https://www.reddit.com/r/k3s/comments/p3rdap/lost_bootstrap_data_already_found_and_encrypted/](https://www.reddit.com/r/k3s/comments/p3rdap/lost_bootstrap_data_already_found_and_encrypted/)
 
-```bash
+```text
 [root@pvcecs-master bin]# rm -vf /var/lib/rancher/k3s/server/node-token
 rm -rvf /var/lib/rancher/ /etc/rancher
 ```

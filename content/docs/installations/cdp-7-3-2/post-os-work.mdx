@@ -72,7 +72,7 @@ Choose one of the nodes of the cluster or a separate node as the Ansible Admin/C
     [root@ipaserver ~]# sudo dnf -y install wget telnet net-tools bind-utils iproute traceroute nc
     ```
 
-    ```bash
+    ```text
     ##### Verify If Python3 and Pip3 are already installed.
     [root@ipaserver ~]# python3 --version
     [root@ipaserver ~]# pip3 --version
@@ -117,6 +117,9 @@ Choose one of the nodes of the cluster or a separate node as the Ansible Admin/C
 
     ```bash
     [root@ipaserver ~]# sudo vi /etc/hosts
+    ```
+
+    ```ini
     127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
     ::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
 
@@ -149,7 +152,7 @@ Choose one of the nodes of the cluster or a separate node as the Ansible Admin/C
 
 5. Perform the basic validation of the OS version and hostname/IP configuration.
 
-    ```bash
+    ```text
     ## Ensure that the OS version is RHEL 9.x.
     ## To verify the version, run the below command. It should return RedHat Linux version 9.x.
 
@@ -228,7 +231,7 @@ Please keep the same password for both the Directory Manager and the IPA admin s
 
 1. Log in to the `ipaserver` node and install the `ipa-server` packages.
 
-    ```bash
+    ```text
     # Install ipa server dependencies packages through dnf using the below command.
     [root@ipaserver ~]# sudo dnf install -y ipa-server bind bind-dyndb-ldap ipa-server-dns firewalld
 
@@ -414,7 +417,7 @@ Please keep the same password for both the Directory Manager and the IPA admin s
 
 2. Verify the KDC setup: check that the Kerberos ticket is working fine by generating a ticket for the `admin` user.
 
-    ```bash
+    ```text
     ##### Run the kinit admin command to authenticate as admin and enter the directory password provided during
     ipa server installation. The command should generate the ticket and should be listed by executing klist -e.
 
@@ -480,7 +483,7 @@ Enable password-less login across all the nodes when Red Hat Linux is installed 
     Not applicable on AWS EC2 - this needs to be done manually, as password-based authentication for non-root users is disabled there.
     </Banner>
 
-    ```bash
+    ```text
     [root@ipaserver ~]# for i in {1}; do echo "copying ipaserver.cldrsetup.local"; ssh-copy-id -i
     ~/.ssh/id_rsa.pub root@ipaserver.cldrsetup.local; done;
     [root@ipaserver ~]# for i in {1}; do echo "copying cldr-mngr.cldrsetup.local"; ssh-copy-id -i
@@ -517,7 +520,7 @@ We will be using the Bastion host as the Ansible controller/admin node.
 
 1. Log in to the Bastion node and install `ansible-core`.
 
-    ```bash
+    ```text
     [root@jump ~]# dnf install -y ansible-core
     [root@jump ~]# ansible --version
     ansible [core 2.14.14]
@@ -591,7 +594,7 @@ We will be using the Bastion host as the Ansible controller/admin node.
 
 3. Verify the host group by running the following command.
 
-    ```bash
+    ```text
     [root@jump ~]# ansible datanodes -m ping
     pvcbase-worker2.cldrsetup.local | SUCCESS => {
         "ansible_facts": {
@@ -632,7 +635,7 @@ We will be using the Bastion host as the Ansible controller/admin node.
     **Note:** Make sure that the `/etc/resolv.conf` file on the ECS hosts contains a maximum of 2 active search domains. See [Known issues in ECS environments](https://docs.cloudera.com/data-warehouse/1.5.5/release-notes/topics/dw-private-cloud-known-issues-ecs-environments.html).
     </Banner>
 
-    ```bash
+    ```text
     [root@jump ~]# cp /etc/resolv.conf /etc/resolv.conf.orig
     [root@jump ~]# cat /etc/resolv.conf
     search ap-southeast-1.compute.internal cldrsetup.local
@@ -646,7 +649,7 @@ We will be using the Bastion host as the Ansible controller/admin node.
 
     The changes to `/etc/resolv.conf` above are temporary and would get overwritten if the machine is rebooted. In order to keep the nameserver entry persistent, open the file `/etc/sysconfig/network` in edit mode and add the entries below.
 
-    ```bash
+    ```text
     [root@jump ~]# cp /etc/sysconfig/network /etc/sysconfig/network.orig
     [root@jump ~]# cat /etc/sysconfig/network
     NETWORKING=yes
@@ -672,7 +675,7 @@ We will be using the Bastion host as the Ansible controller/admin node.
 
 5. Update the network config to make sure DNS entries persist, even after reboot.
 
-    ```bash
+    ```text
     # Extract DNS entries
     [root@jump ~]# grep '^nameserver' /etc/resolv.conf | awk '{print "DNS" NR "=" $2}' > /tmp/dns_entries.txt
 
@@ -692,7 +695,7 @@ We will be using the Bastion host as the Ansible controller/admin node.
     **Note:** In case of an AD server, this would already be created/present. No need to perform the below steps - jump to Step 8.
     </Banner>
 
-    ```bash
+    ```text
     ##### Take the CIDR block of the network in which the instances are created and create a reverse DNS zone by
     executing the below command on the IPA Server machine.
     ##### ipa dnszone-add --name-from-ip=<YOUR_VPC_CIDR>
@@ -723,7 +726,7 @@ We will be using the Bastion host as the Ansible controller/admin node.
 
 7. Disable the krb5 ccache config and verify.
 
-    ```bash
+    ```text
     ##### OPEN /etc/krb5.conf on IPASERVER and comment ccache conf: (this step is not needed on any cluster node,
     as CDP will manage the krb5.conf in further steps config)
     #### After the setup is complete, we need to make a kerberos config change which gets enabled automatically
@@ -780,7 +783,7 @@ We will be using the Bastion host as the Ansible controller/admin node.
 
     ![Terminal running ipa dnsrecord-add for the base cluster node and returning its PTR record](/images/cdp-7-3-2/post-os-work/ipa-dnsrecord-add-ptr-2.png)
 
-    ```bash
+    ```text
     [root@ipaserver ~]# ipa dnsrecord-add 31.172.in-addr.arpa. 240.24   --ptr-rec ipaserver.cldrsetup.local.
       Record name: 240.24
       PTR record: ipaserver.cldrsetup.local.
@@ -852,7 +855,7 @@ We will be using the Bastion host as the Ansible controller/admin node.
 
 9. Verify that the DNS records have been added successfully.
 
-    ```bash
+    ```text
     [root@ipaserver ~]# ipa dnsrecord-find 31.172.in-addr.arpa.
       Record name: @
       NS record: ipaserver.cldrsetup.local.
@@ -934,7 +937,7 @@ Configure the FreeIPA client on every other node so that it is managed by the `i
     **Note:** Please review the Java requirement in the Cloudera on premises Base Requirements and Supported Versions sections. We installed OpenJDK 11 for this solution validation; `ipa-client` will also require and auto-install Java 11 on all hosts if it is not present or a different version, for example Java 17, is installed. See [Java requirements](https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/cdp-private-cloud-base-installation/topics/cdpdc-java-requirements.html).
     </Banner>
 
-    ```bash
+    ```text
     [root@jump ~]# ansible all -m shell -a "sudo subscription-manager repos
     --enable=rhel-9-for-x86_64-baseos-rpms && sudo subscription-manager repos
     --enable=rhel-9-for-x86_64-appstream-rpms && sudo dnf install -y java-17-openjdk java-17-openjdk-devel
@@ -965,7 +968,7 @@ Configure the FreeIPA client on every other node so that it is managed by the `i
     | `User authorized to enroll computers:` | `admin` |
     | `Password for admin@<Your_Domain>:` | `<Password created earlier>` (`cloudera123`) |
 
-    ```bash
+    ```text
     [root@pvcbase-master ~]# ipa-client-install --force-join
     This program will set up IPA client.
     Version 4.11.0
@@ -1017,7 +1020,7 @@ Configure the FreeIPA client on every other node so that it is managed by the `i
 
 3. Verify the KDC setup: check that Kerberos ticket generation is working fine by generating a ticket for the `admin` user from all individual hosts.
 
-    ```bash
+    ```text
     ##### Run the kinit admin command to authenticate as admin and enter the directory password provided during
     ipa server installation. The command should generate the ticket and should be listed by executing klist -e.
 
@@ -1080,7 +1083,7 @@ Verify the KDC setup: check that Kerberos ticket generation is working fine by g
     **Note:** Make sure that the `/etc/resolv.conf` file on the ECS hosts contains a maximum of 2 active search domains. See [Known issues in ECS environments](https://docs.cloudera.com/data-warehouse/1.5.5/release-notes/topics/dw-private-cloud-known-issues-ecs-environments.html).
     </Banner>
 
-    ```bash
+    ```text
     [root@jump ~]# cp /etc/resolv.conf /etc/resolv.conf.orig
     [root@jump ~]# cat /etc/resolv.conf
     search ap-southeast-1.compute.internal cldrsetup.local
@@ -1096,7 +1099,7 @@ Verify the KDC setup: check that Kerberos ticket generation is working fine by g
 
     The changes in `/etc/resolv.conf` above are temporary and would get overwritten if the machine is rebooted. In order to keep the nameserver entry persistent, open the file `/etc/sysconfig/network` in edit mode and verify the entries below.
 
-    ```bash
+    ```text
     [root@jump ~]# cp /etc/sysconfig/network /etc/sysconfig/network.orig
     [root@jump ~]# cat /etc/sysconfig/network
     NETWORKING=yes
@@ -1130,7 +1133,7 @@ Verify the KDC setup: check that Kerberos ticket generation is working fine by g
     **Note:** In case of an AD server, you can verify on any client machine such as `pvcbase-master`.
     </Banner>
 
-    ```bash
+    ```text
     [root@pvcbase-master ~]# nslookup cldr-mngr.cldrsetup.local
     Server:          172.31.24.240
     Address:         172.31.24.240#53
@@ -1181,7 +1184,7 @@ Verify the KDC setup: check that Kerberos ticket generation is working fine by g
 
     Skip the steps below if you are using an AD server - jump to Step 11.
 
-    ```bash
+    ```text
     [root@ipaserver ~]# ipa dnsrecord-add cldrsetup.local *.apps
     Please choose a type of DNS resource record to be added
     The most common types for this type of zone are: A, AAAA
@@ -1219,7 +1222,7 @@ Verify the KDC setup: check that Kerberos ticket generation is working fine by g
 
 11. Download and copy the PostgreSQL JDBC driver to all hosts.
 
-    ```bash
+    ```text
     [root@jump ~]# wget https://jdbc.postgresql.org/download/postgresql-42.7.7.jar
     [root@jump ~]# chmod 644 postgresql-42.7.7.jar
     [root@jump ~]# ansible all -m copy -a "src=postgresql-42.7.7.jar
@@ -1236,7 +1239,7 @@ Ignore the errors if the firewall is not installed.
 **Note:** The default Linux firewall settings are too restrictive for any Hadoop deployment. Since the Cloudera on premises deployment will be in its own isolated network in the on-premises environment, there is no need for that additional firewall. Not applicable on AWS EC2.
 </Banner>
 
-```bash
+```text
 ##### Either disable the firewall or update the rules: (ON ALL HOSTS)
 [root@jump ~]# ansible all -m command -a "firewall-cmd --zone=public --add-port=80/tcp --permanent"
 [root@jump ~]# ansible all -m command -a "firewall-cmd --zone=public --add-port=443/tcp --permanent"
@@ -1253,7 +1256,7 @@ systemctl status firewalld | grep -e disabled -e inactive"
 
 1. SELinux can be disabled by editing `/etc/selinux/config` (on some systems it would be `/etc/sysconfig/selinux`). To disable SELinux, change `SELINUX=enforcing` to `SELINUX=disabled` or `SELINUX=permissive`. Follow these steps:
 
-    ```bash
+    ```text
     [root@jump ~]# ansible all -m shell -a "sed -i 's/SELINUX=enforcing/SELINUX=disabled/g'
     /etc/selinux/config"
     [root@jump ~]# ansible all -m shell -a "setenforce 0"
@@ -1293,6 +1296,9 @@ On each node, `ulimit -n` specifies the number of inodes that can be opened simu
 
     ```bash
     [root@jump ~]# vi /etc/security/limits.conf
+    ```
+
+    ```text
     * soft nofile 1048576
     * hard nofile 1048576
     ```
@@ -1346,8 +1352,14 @@ Adjusting the `tcp_retries` parameter for the system network enables faster dete
 
     ```bash
     [root@jump ~]# vi /etc/sysctl.conf
+    ```
+
+    ```ini
     net.ipv4.tcp_retries2=5
     fs.inotify.max_user_instances=512
+    ```
+
+    ```bash
     sysctl -p
     ```
 
@@ -1361,7 +1373,7 @@ Adjusting the `tcp_retries` parameter for the system network enables faster dete
 
 1. Run the following commands.
 
-    ```bash
+    ```text
     [root@jump ~]# ansible all -m shell -a "echo 'net.ipv6.conf.all.disable_ipv6 = 1' >> /etc/sysctl.conf" -l
     'all:!ecsmasternodes:!ecsnodes'
     [root@jump ~]# ansible all -m shell -a "echo 'net.ipv6.conf.default.disable_ipv6 = 1' >> /etc/sysctl.conf"
@@ -1388,7 +1400,7 @@ Adjusting the `tcp_retries` parameter for the system network enables faster dete
 
 2. Load the settings from the default sysctl file `/etc/sysctl.conf` and verify the content of `sysctl.conf`.
 
-    ```bash
+    ```text
     [root@jump ~]# ansible all -m shell -a "sysctl -p"     ## Reload sysctl.conf
     [root@jump ~]# ansible all -m shell -a "cat /etc/sysctl.conf"
     net.ipv4.tcp_retries2=5
@@ -1426,7 +1438,7 @@ Disabling Transparent Huge Pages (THP) reduces elevated CPU usage caused by THP.
 
 3. Copy the file to each node to copy the commands to `/etc/rc.d/rc.local`, so they are executed automatically for every reboot.
 
-    ```bash
+    ```text
     [root@jump ~]# ansible all -m copy -a "src=/root/thp_disable dest=/root/thp_disable"
 
     ##### Append the content of file thp_disable to /etc/rc.d/rc.local:
@@ -1467,7 +1479,7 @@ For a Cloudera cluster with hosts running RHEL/CentOS 7.x, 8.x or 9.x, disable t
 
 3. Ensure that there are no active profiles.
 
-    ```bash
+    ```text
     [root@jump ~]# ansible all -m shell -a "tuned-adm list"
     # The output should contain the following line:
     # pvcecs-worker4.cldrsetup.local | CHANGED | rc=0 >>
@@ -1513,7 +1525,7 @@ The default CNI (Canal) that comes with ECS (RKE2 from SUSE) does not support VM
 
 1. Identify the network interface.
 
-    ```bash
+    ```text
     ##### Determine the network interface used by the affected ECS nodes. This can typically be found using
     the `ifconfig` or `ip addr` command:
     [root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "ifconfig | grep flags | grep -v lo && ip addr |
@@ -1528,7 +1540,7 @@ The default CNI (Canal) that comes with ECS (RKE2 from SUSE) does not support VM
 
 2. Disable TCP checksum offload. Use the appropriate commands or configuration settings to disable TCP checksum offload on the identified network interface. For example, using `ethtool`:
 
-    ```bash
+    ```text
     ##### Replace `<interface_name>` with the name of the network interface identified in step 1.
     [root@ipaserver ~]# ansible ecsmasternodes,ecsnodes -m shell -a "sudo ethtool -K <interface_name> tx off"
     ##### After disabling TCP checksum offload, verify that the changes have been applied correctly and that the
@@ -1541,7 +1553,7 @@ Create partitions on the ECS nodes - master and worker - manually if they are no
 
 1. Create partitions on the attached disks. We require three partitions: `/docker`, `/cdwdata` and `/lhdata`.
 
-    ```bash
+    ```text
     [root@pvcecs-master ~]# lsblk
     NAME    MAJ:MIN RM    SIZE RO TYPE MOUNTPOINTS
     xvda    202:0     0   600G 0 disk
@@ -1670,7 +1682,7 @@ Install httpd on the Cloudera Manager node - `cldr-mngr` - to host a local parce
 
 2. Generate the CA certificate.
 
-    ```bash
+    ```text
     [root@cldr-mngr ~]# openssl req -newkey rsa:2048 -nodes -keyout /etc/pki/tls/private/httpd.key -x509 -days
     3650 -out /etc/pki/tls/certs/httpd.crt \
     -subj "/C=US/ST=North Carolina/L=Raleigh/O=Red Hat Inc/OU=CLDR/CN=cldr-mngr.cldrsetup.local"
@@ -1694,7 +1706,7 @@ Install httpd on the Cloudera Manager node - `cldr-mngr` - to host a local parce
 
 3. Create the certificate directory to serve content from.
 
-    ```bash
+    ```text
     [root@cldr-mngr ~]# mkdir -p /var/www/https/
     [root@cldr-mngr ~]# echo secure content > /var/www/https/index.html
     [root@cldr-mngr ~]# cat /var/www/https/index.html
@@ -1705,6 +1717,9 @@ Install httpd on the Cloudera Manager node - `cldr-mngr` - to host a local parce
 
     ```bash
     [root@cldr-mngr ~]# vi /etc/httpd/conf/httpd.conf
+    ```
+
+    ```text
     ServerName cldr-mngr.cldrsetup.local:80
     ```
 
