@@ -24,7 +24,7 @@ This has one hard consequence:
 
 The single exception is `<br />` inside a GFM table cell (section 5), which carries no styling.
 
-**Never hardcode `/cloudera-guides`.** `basePath` is applied automatically — `mdx.tsx:41,50` prepends
+**Never hardcode `/cloudera-guides`.** `basePath` is applied automatically — `mdx.tsx:41,50,53` prepends
 it to any markdown `![]()` or `[]()` whose path starts with `/`, and `next.config.js:12` supplies it
 to Next's own components. Hardcoding double-prefixes it in production.
 
@@ -33,8 +33,8 @@ to Next's own components. Hardcoding double-prefixes it in production.
 ## 2. Page title and frontmatter
 
 The page `h1` is **not** written in the body. The shell renders frontmatter `title` as the `h1`
-(`app/[...slug]/page.tsx:83`), styled with the `.h2` utility
-(`app/css/additional-styles/utility-patterns.css:5`).
+(`app/[...slug]/page.tsx:79`), styled with the `.h2` utility
+(`app/css/additional-styles/utility-patterns.css:6`).
 
 ```yaml
 ---
@@ -139,7 +139,7 @@ genuine line break inside a cell, `<br />` is the one sanctioned piece of raw HT
 
 The `<Table>` / `<THead>` / `<TBody>` / `<ThRow>` / `<TbRow>` / `<Th>` / `<Td>` components are
 **not** used in this repo — they apply `whitespace-nowrap` to every row
-(`components/mdx/table.tsx:23,31`), which turns any prose-bearing table into one long horizontal
+(`components/mdx/table.tsx:21,29`), which turns any prose-bearing table into one long horizontal
 scroll.
 
 ---
@@ -147,7 +147,7 @@ scroll.
 ## 6. Code, commands and output
 
 **Always tag a fence with a language.** An untagged fence loses syntax highlighting, which is applied
-by `rehype-pretty-code` with the `one-dark-pro` theme (`mdx.tsx:70-71`). Languages in use: `bash`,
+by `rehype-pretty-code` with the `one-dark-pro` theme (`mdx.tsx:72`). Languages in use: `bash`,
 `text`, `yaml`, `python`, `sql`, `ini`, `xml`, `javascript`.
 
 Use `text` for command *output*, terminal transcripts and anything with no real syntax:
@@ -166,6 +166,23 @@ Release: 9.5
 
 **Always fence shell content.** An unfenced line beginning with `#` — common when pasting a root
 prompt or a shell comment — is parsed as a markdown heading and renders as enormous page-width text.
+
+### Why fences are the same colour in both themes
+
+A fence is a dark box in **both** themes — `prose-pre:bg-stone-800` is unpaired on purpose
+(`page.tsx:81`) — so its text must not follow the theme. Shiki writes a `style="color:…"` on every
+token it can tokenise, and inline styles win, so a `bash` or `yaml` fence colours itself. A `text`
+fence has no grammar, so shiki emits no colours at all and the text falls through to CSS.
+
+That fall-through is what the `prose-pre:[&_code]:*` rules on the container catch. They pin code
+inside a fence to `#abb2bf` — one-dark-pro's own plain-token colour, so an uncoloured `text` fence
+matches the plain runs of a `bash` fence beside it — and cancel the `prose-code:*` background and
+padding, which are meant for *inline* code and would otherwise paint a second box inside the fence.
+
+Those five rules are load-bearing, not decorative. Without them a `text` fence inherits
+`prose-code:text-stone-800` — stone-800 text on a stone-800 background, invisible in light mode.
+Any retheme that touches `prose-code:` or `prose-pre:` must keep a fence's text pinned independently
+of the theme; check a `text` fence in light mode, not just a `bash` one.
 
 Use **inline code** for anything the reader types, clicks or reads literally: paths, hostnames,
 config keys, values, UI menu items, filenames, commands named mid-sentence. Inline code is
@@ -195,14 +212,14 @@ Exactly two types are valid:
 | `important` | Purple circle-i | Prerequisites and constraints that cause failure later if missed |
 
 Do not use `type="info"` or omit `type`. Anything other than the two values above falls through to a
-default branch that renders an **orange checkmark** (`components/mdx/banner.tsx:26-29`) — which reads
+default branch that renders an **orange checkmark** (`components/mdx/banner.tsx:22-27`) — which reads
 as "done / success", not as a note.
 
 **Blockquotes (`>`) are banned.** The prose container has no `dark:prose-invert` and no
 blockquote override, so blockquote text takes the plugin default `--tw-prose-quotes` = `gray-900`,
 and `blockquote strong` inherits it. In dark mode the whole callout — label included — is near-black
 on a near-black background. Use `<Banner>`, which pairs `bg-stone-50 dark:bg-stone-900` and
-`border-stone-200 dark:border-stone-700` explicitly (`banner.tsx:34`).
+`border-stone-200 dark:border-stone-700` explicitly (`banner.tsx:32`).
 
 ### Images
 
@@ -216,7 +233,7 @@ PNG, stored under `public/images/<version>/<section>/`. The prose container roun
 image in both themes (`prose-img:border-stone-200 dark:prose-img:border-stone-700`).
 
 The `<Image>` component is **unusable** — it types `src` as `StaticImageData`
-(`components/mdx/image.tsx:6`), a Next static import, and content is rendered from strings by
+(`components/mdx/image.tsx:7`), a Next static import, and content is rendered from strings by
 `next-mdx-remote-client/rsc`, which cannot execute imports. `<ModalVideo>` is unusable for the same
 reason (`components/mdx/modal-video.tsx:9`).
 
