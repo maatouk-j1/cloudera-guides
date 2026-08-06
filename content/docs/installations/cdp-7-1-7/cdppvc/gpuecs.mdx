@@ -57,7 +57,7 @@ This article describes the steps to install the Nvidia GPU software driver and i
 
 5. After successful installation, run the `nvidia-smi` tool and ensure the driver is deployed successfully by verifying the similar output as shown in the following example.
 
-    ```bash
+    ```text
     [root@ecsgpu ~]# nvidia-smi    
     Wed Aug 24 13:03:46 2022       
     +-----------------------------------------------------------------------------+
@@ -144,7 +144,7 @@ This article describes the steps to install the Nvidia GPU software driver and i
 
 1. Assuming the CDP PvC Data Services with ECS platform is already installed, SSH into the ECS master node and run the following command to ensure that `ecsgpu.cdpkvm.cldr` host has `nvidia.com/gpu:` field in the node specification. Host `ecsgpu.cdpkvm.cldr` is a typical ECS worker node without Nvidia GPU card installed.
 
-    ```bash
+    ```text
     [root@ecsmaster1 ~]# kubectl describe node ecsgpu.cdpkvm.cldr | grep -A15 Capacity:
     Capacity:
         cpu:                16
@@ -211,7 +211,7 @@ This article describes the steps to install the Nvidia GPU software driver and i
 
 6. SSH into the ECS master node and run the following command to verify the node that hosting the above CML project session pod is `ecsgpu.cdpkvm.cldr`.
 
-    ```bash
+    ```text
     [root@ecsmaster1 ~]# oc -n workspace1-user-1 describe pod wifz6t8mvxv5ghwy | grep Node:
     Node:         ecsgpu.cdpkvm.cldr/10.15.4.185
     
@@ -228,7 +228,7 @@ This article describes the steps to install the Nvidia GPU software driver and i
 
 7. When a process is consuming the Nvidia GPU, the output of `nvidia-smi` tool will show the PID of that process (in this case, the CML session pod).
 
-    ```bash
+    ```text
     [root@ecsgpu ~]# nvidia-smi
     Thu Aug 25 13:58:40 2022       
     +-----------------------------------------------------------------------------+

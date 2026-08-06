@@ -438,7 +438,7 @@ The copying operation may take 4 - 5 hours.
 
 25. After the **RKE2 installation step is completed**, keep the remaining steps running but immediately log in to *pvcecs-master* node and **update the config for coredns to point to private DNS** (ipaserver or AD server). The coredns config should look like similar to below one:
 
-    ```bash
+    ```text
     ##### Test the nslookup and dig from ubuntu image if it is able to resolve the IP from Private DNS
     [root@pvcecs-master ~]# kubectl run -it ubuntu1 --image=ubuntu bash
 

@@ -117,7 +117,7 @@ The wizard runs in eight stages - Cluster Basics, Specify Hosts, Select Reposito
 
 13. Stop at this stage. Create a directory on base cluster nodes (for handling of a bug associated with p1000)
 
-    ```bash
+    ```text
     [root@jump ~]# ansible namenodes,datanodes -m shell -a "mkdir /var/lib/hadoop-hdfs"
     [root@jump ~]# ansible namenodes,datanodes -m shell -a "ls -lart /var/lib/hadoop-hdfs"
     ```

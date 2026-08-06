@@ -37,7 +37,7 @@ Cloudera Manager provides a wizard for integrating your organization's Kerberos 
 
 1. Before proceeding further with KDC setup, we need to ensure that the changes to `krb5.conf` related to the default cache is not reversed. View the contents of the file `/etc/krb5.conf` after logging in to both **ipaserver** node and **cldr-mngr** node and check whether the property **default_ccache_name** is commented out. If not, then open the file and comment it out.
 
-    ```bash
+    ```text
     [root@ipaserver ~]# sudo vi /etc/krb5.conf
     #default_ccache_name = KEYRING:persistent:%{uid}
     ```
@@ -46,7 +46,7 @@ Cloudera Manager provides a wizard for integrating your organization's Kerberos 
 
     If you have made any changes, only then run the below commands to restart all the IPA services. If not, skip to the next step.
 
-    ```bash
+    ```text
     [root@ipaserver ~]# ipactl restart
     ```
 
@@ -76,7 +76,7 @@ Cloudera Manager provides a wizard for integrating your organization's Kerberos 
 
     *(Skip the below command execution step, as we already installed the dependencies in prior steps.)*
 
-    ```bash
+    ```text
     [root@jump ~]# ansible all -m command -a "dnf install -y openldap-clients krb5-workstation krb5-libs"
     ```
 

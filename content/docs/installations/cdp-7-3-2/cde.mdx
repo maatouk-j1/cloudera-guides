@@ -89,19 +89,19 @@ Every time a **new virtual cluster** is created, there are a few **manual steps*
 1. Log in to the **ECS master** and run the next set of **commands** as per the instructions.
 2. Run the below command to create a temporary directory and navigate to the same.
 
-    ```bash
+    ```text
     [root@pvcecs-master ~]# mkdir -p /tmp/cde-latest && cd /tmp/cde-latest
     ```
 
 3. Download the script `cdp-cde-utils` using wget.
 
-    ```bash
+    ```text
     [root@pvcecs-master ~]# wget https://docs.cloudera.com/data-engineering/1.5.5/cdp-cde-utils.sh
     ```
 
 4. Add execute permission to this script.
 
-    ```bash
+    ```text
     [root@pvcecs-master ~]# chmod +x /tmp/cde-latest/cdp-cde-utils.sh
     ```
 
@@ -127,13 +127,13 @@ Every time a **new virtual cluster** is created, there are a few **manual steps*
 
 8. Once you get the endpoint of the virtual cluster, **login to the ECS master** and navigate to `/tmp/cde-latest` directory where the `cdp-cde-utils.sh` script is present.
 
-    ```bash
+    ```text
     [root@pvcecs-master ~]# cd /tmp/cde-latest
     ```
 
 9. Generate a self-signed certificate with the below command. Replace the `endpoint_host` with the endpoint of your virtual cluster that you got from the previous step.
 
-    ```bash
+    ```text
     [root@pvcecs-master ~]# ./cdp-cde-utils.sh init-virtual-cluster -h <endpoint_host> -a
     ```
 
@@ -152,19 +152,19 @@ This step is required to submit the jobs to CDE from the LDAP users.
 
 1. Log in to the ECS master host and navigate to the directory `/tmp/cde-latest`.
 
-    ```bash
+    ```text
     [root@pvcecs-master ~]# cd /tmp/cde-latest
     ```
 
 2. Install `krb5-workstation` package using dnf.
 
-    ```bash
+    ```text
     [root@pvcecs-master ~]# dnf install krb5-workstation krb5-libs -y
     ```
 
 3. Create a file named `<username>.principal` containing the user principal. As an example, we will consider admin as the username. Here `CLDRSETUP.LOCAL` is the realm provided during IPA setup. You need to replace it with the realm you configured.
 
-    ```bash
+    ```text
     [root@pvcecs-master ~]# cat>> admin.principal
     ```
 
@@ -187,13 +187,13 @@ This step is required to submit the jobs to CDE from the LDAP users.
 
 5. Validate the keytab using `klist`. This command should use the principals created with two encryptions provided above, namely aes256-cts and aes128-cts.
 
-    ```bash
+    ```text
     [root@pvcecs-master ~]# klist -ekt admin.keytab
     ```
 
 6. Validate the **keytab** using `kinit`. This command should get executed successfully.
 
-    ```bash
+    ```text
     [root@pvcecs-master ~]# kinit -kt admin.keytab admin@CLDRSETUP.LOCAL
     ```
 

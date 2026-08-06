@@ -17,7 +17,7 @@ These steps are **optional** - the guide marks the whole section *"Optional, Ski
 **Note:** If `nvgfd-gpu-feature-discovery-xxxx` pods remain in crashlookbackoff, apply this patch to fix the issue.
 </Banner>
 
-```bash
+```text
 [root@pvcecs-master ~]# kubectl patch clusterrolebinding gpu-feature-discovery -p '{"subjects":[{"kind":"ServiceAccount","name":"gpu-feature-discovery","namespace":"kube-system"}]}'
 ```
 

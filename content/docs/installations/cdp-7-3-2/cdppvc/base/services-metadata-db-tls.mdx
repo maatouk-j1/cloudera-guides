@@ -29,7 +29,7 @@ For more details, the guide points at `https://docs.cloudera.com/cdp-private-clo
 
 1. Copy the database server certificate to `/var/lib/ranger/` path, or use any custom path.
 
-    ```bash
+    ```text
     [root@pvcbase-master ~]# cp -rv /root/.postgresql/root.crt /var/lib/ranger/root.crt
     ```
 
@@ -55,7 +55,7 @@ For more details, the guide points at `https://docs.cloudera.com/cdp-private-clo
 
 5. Run below command on `pvcbase-master` node to check the Ranger logs, during restart.
 
-    ```bash
+    ```text
     [root@pvcbase-master ~]# tail -f /var/log/ranger/admin/catalina.out
     ```
 
@@ -65,7 +65,7 @@ In the Cloudera Manager Web console; go to **Hive > Configuration > Hive Metasto
 
 1. Copy the database server certificate to `/var/lib/hive/` path, or use any custom path.
 
-    ```bash
+    ```text
     [root@pvcbase-master ~]# cp -rv /root/.postgresql/root.crt /var/lib/hive/root.crt
     ```
 

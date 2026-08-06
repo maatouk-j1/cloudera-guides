@@ -126,7 +126,7 @@ In Cloudera Manager: **Tez > Actions > Upload Tez file to HDFS**, then **Hive > 
 
 The Queue Manager store directory is missing or owned by the wrong account:
 
-```bash
+```text
 [root@pvcbase-master ~]# sudo mkdir /var/lib/hadoop-yarn/
 [root@pvcbase-master ~]# sudo chmod +077 /var/lib/hadoop-yarn/
 [root@pvcbase-master ~]# sudo chown yarn:hadoop /var/lib/hadoop-yarn/
@@ -152,7 +152,7 @@ Make sure that `hdfs_service` is enabled in the Ozone configuration. With this e
 
 ### HDDS error in Ozone
 
-```bash
+```text
 [root@pvcbase-master ~]# systemctl restart cloudera-scm-supervisord
 ```
 
@@ -160,7 +160,7 @@ Make sure that `hdfs_service` is enabled in the Ozone configuration. With this e
 
 **Solution.** Perform a proper cleanup on the NameNode and the DataNodes.
 
-```bash
+```text
 [root@pvcbase-master ~]# rm -rvf /hdfs/*had*oz* /var/lib/had*oz* /etc/had*oz*
 ```
 
@@ -221,7 +221,7 @@ The password `Sahu@123{admin}` is the guide's lab value, transcribed verbatim. I
 
 Follow the Ranger admin access log while reproducing:
 
-```bash
+```text
 [root@pvcbase-master ~]# tail -f /var/log/ranger/admin/access_log-pvcbasemaster.cldrsetup.local-2024-03-21.log
 ```
 
@@ -295,7 +295,7 @@ vertex_index
 
 ### Solr and ZooKeeper client access
 
-```bash
+```text
 [root@pvcbase-master ~]# klist -kt /run/cloudera-scm-agent/process/1546342867-SolrServerGracefulShutDown/solr.keytab
 [root@pvcbase-master ~]# kinit -kt /run/cloudera-scm-agent/process/1546342867-SolrServerGracefulShutDown/solr.keytab solr/pvcbasemaster.cldrsetup.local@CLDRSETUP.LOCAL
 [root@pvcbase-master ~]# /opt/cloudera/parcels/CDH/bin/zookeeper-client

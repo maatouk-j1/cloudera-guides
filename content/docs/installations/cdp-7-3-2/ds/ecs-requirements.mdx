@@ -73,13 +73,13 @@ The guide reproduces that checklist in full on the [next page](/installations/cd
 
 12. For CAI, you must install `nfs-utils` in order to mount longhorn-nfs provisioned mounts. The `nfs-utils` package is required on every node of the ECS cluster. Run this command `"dnf install nfs-utils"` to install `nfs-utils`.
 
-    ```bash
+    ```text
     [root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "dnf install -y nfs-utils iscsi-initiator-utils"
     ```
 
 13. Check `iptables` is installed and working fine.
 
-    ```bash
+    ```text
     [root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "iptables -L"
     ```
 
@@ -92,7 +92,7 @@ The guide reproduces that checklist in full on the [next page](/installations/cd
 
 15. If `iptables` is not present on ecs cluster nodes, then Install `iptables`, and verify if it is working as expected.
 
-    ```bash
+    ```text
     [root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "dnf install -y iptables && iptables -L"
     ```
 

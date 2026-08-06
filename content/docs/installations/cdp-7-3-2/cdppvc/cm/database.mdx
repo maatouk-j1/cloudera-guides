@@ -50,7 +50,7 @@ This procedure highlights the installation and configuration steps with PostgreS
 
 2. Install the PostgreSQL JDBC driver by running the following command on ansible-controller/ipaserver node. Rename the Postgres JDBC driver `.jar` file to `postgresql-connector-java.jar` and copy it to the `/usr/share/java` directory. The following copy command can be used if the Postgres JDBC driver `.jar` file is installed from the OS repositories: *(Skip this, as we already performed it in prior steps)*
 
-    ```bash
+    ```text
     ##### Install JDBC Connector
     [root@jump ~]# wget https://jdbc.postgresql.org/download/postgresql-42.7.7.jar
 
@@ -126,7 +126,7 @@ This procedure highlights the installation and configuration steps with PostgreS
 
 8. Make sure that `LC_ALL` is set to `C.UTF-8` to enable UTF-8 CHARSET and initialize the database as follows:
 
-    ```bash
+    ```text
     [root@cldr-mngr ~]# echo 'LC_ALL="C.UTF-8"' >> /etc/locale.conf
     ```
 
@@ -180,7 +180,7 @@ This procedure highlights the installation and configuration steps with PostgreS
 
 11. Start the PostgreSQL Server and configure it to start at boot.
 
-    ```bash
+    ```text
     [root@cldr-mngr ~]# systemctl start postgresql-17.service
     [root@cldr-mngr ~]# systemctl enable postgresql-17.service
     [root@cldr-mngr ~]# systemctl status postgresql-17.service -l

@@ -19,7 +19,7 @@ Choose one of the nodes of the cluster or a separate node as the Ansible Admin/C
 
 1. Set up the hostname for each individual node by logging in using the IP addresses provided by the infrastructure team, so we can refer to them with names instead of IP addresses for simplicity and ease of identification. While you are configuring the hostname, also follow Step 2 while logging in to each host. Replace your ORG DOMAIN.
 
-    ```bash
+    ```text
     [root@ipaserver ~]# sudo hostnamectl set-hostname --static ipaserver.cldrsetup.local
     [root@cldr-mngr ~]# sudo hostnamectl set-hostname --static cldr-mngr.cldrsetup.local
 
@@ -27,7 +27,6 @@ Choose one of the nodes of the cluster or a separate node as the Ansible Admin/C
     [root@pvcbase-worker1 ~]# sudo hostnamectl set-hostname --static pvcbase-worker1.cldrsetup.local
     [root@pvcbase-worker2 ~]# sudo hostnamectl set-hostname --static pvcbase-worker2.cldrsetup.local
     [root@pvcbase-worker3 ~]# sudo hostnamectl set-hostname --static pvcbase-worker3.cldrsetup.local
-    [root@pvcbase-worker3 ~]# sudo hostnamectl set-hostname --static pvcbase-worker4.cldrsetup.local
 
     [root@pvcecs-master ~]# sudo hostnamectl set-hostname --static pvcecs-master.cldrsetup.local
     [root@pvcecs-worker1 ~]# sudo hostnamectl set-hostname --static pvcecs-worker1.cldrsetup.local
@@ -49,14 +48,14 @@ Choose one of the nodes of the cluster or a separate node as the Ansible Admin/C
 
     Solution 1 - Lock to your current minor version (RHEL 9.5). Run the following:
 
-    ```bash
-    sudo subscription-manager release --set=9.5
+    ```text
+    [root@<HOSTNAME> ~]# sudo subscription-manager release --set=9.5
     ```
 
     Then verify:
 
-    ```bash
-    sudo subscription-manager release --show
+    ```text
+    [root@<HOSTNAME> ~]# sudo subscription-manager release --show
     ```
 
     Expected output:
@@ -67,7 +66,7 @@ Choose one of the nodes of the cluster or a separate node as the Ansible Admin/C
 
     This locks your system repositories to RHEL 9.5 content - updates will stay within 9.5 and not move to 9.6.
 
-    ```bash
+    ```text
     [root@ipaserver ~]# sudo dnf -y update
     [root@ipaserver ~]# sudo dnf -y install wget telnet net-tools bind-utils iproute traceroute nc
     ```
@@ -107,7 +106,7 @@ Choose one of the nodes of the cluster or a separate node as the Ansible Admin/C
 
 3. Log in to the `ipaserver` node using the IP provided previously by the infrastructure team.
 
-    ```bash
+    ```text
     [root@ipaserver ~]# ssh 172.31.24.240
     ```
 
@@ -115,7 +114,7 @@ Choose one of the nodes of the cluster or a separate node as the Ansible Admin/C
 
     Populate the hosts file with IP addresses and corresponding hostnames on the `ipaserver` node by taking the private IP of each machine and adding an entry in `/etc/hosts` as follows. All of the IPs mentioned below are private IP addresses. We will later copy the same hosts file to all other nodes with the help of Ansible.
 
-    ```bash
+    ```text
     [root@ipaserver ~]# sudo vi /etc/hosts
     ```
 
@@ -463,13 +462,13 @@ Enable password-less login across all the nodes when Red Hat Linux is installed 
 
 1. Log in to the `ipaserver` node.
 
-    ```bash
+    ```text
     [root@ipaserver ~]# ssh 172.31.24.240
     ```
 
 2. Run the `ssh-keygen` command to create both the public and private SSH key pair on the Ansible controller node.
 
-    ```bash
+    ```text
     [root@ipaserver ~]# ssh-keygen -N '' -f ~/.ssh/id_rsa
     [root@ipaserver ~]# ls -l /root/.ssh
     [root@ipaserver ~]# chmod 600 /root/.ssh/id_rsa
@@ -621,7 +620,7 @@ We will be using the Bastion host as the Ansible controller/admin node.
 
 4. Copy the `/etc/hosts` file to each node that is part of the Cloudera deployment, to resolve FQDNs across the cluster.
 
-    ```bash
+    ```text
     [root@jump ~]# ansible all -m copy -a "src=/etc/hosts dest=/etc/hosts"
     ```
 
@@ -663,13 +662,13 @@ We will be using the Bastion host as the Ansible controller/admin node.
 
 3. Copy the `/etc/resolv.conf` file to each node to make them able to resolve FQDNs across the cluster.
 
-    ```bash
+    ```text
     [root@ipaserver ~]# ansible all -m copy -a "src=/etc/resolv.conf dest=/etc/resolv.conf" --become
     ```
 
 4. Copy the `/etc/sysconfig/network` file to each node to make them able to resolve FQDNs across the cluster. `/etc/resolv.conf` changes may vanish after a reboot, so to persist those changes we need the configuration below.
 
-    ```bash
+    ```text
     [root@ipaserver ~]# ansible all -m copy -a "src=/etc/sysconfig/network dest=/etc/sysconfig/network" --become
     ```
 
@@ -1064,7 +1063,7 @@ Configure the FreeIPA client on every other node so that it is managed by the `i
 
 If you are using an AD server as Kerberos instead of FreeIPA, run the following command on all the client machines and skip the `ipa-client-install` steps.
 
-```bash
+```text
 [root@pvcbase-master ~]# realm join --user=administrator ntnxlab.local
 
 # Non-interactive command
@@ -1111,19 +1110,19 @@ Verify the KDC setup: check that Kerberos ticket generation is working fine by g
 
 6. Copy the `/etc/resolv.conf` file to each node again, to make them able to resolve FQDNs across the cluster.
 
-    ```bash
+    ```text
     [root@jump ~]# ansible all -m copy -a "src=/etc/resolv.conf dest=/etc/resolv.conf"
     ```
 
 7. Copy the `/etc/sysconfig/network` file again to each node, to make them able to resolve FQDNs across the cluster. `/etc/resolv.conf` changes may vanish after a reboot, so to persist those changes we need the configuration below.
 
-    ```bash
+    ```text
     [root@jump ~]# ansible all -m copy -a "src=/etc/sysconfig/network dest=/etc/sysconfig/network"
     ```
 
 8. Enable permissions for HDFS and for PAM authentication.
 
-    ```bash
+    ```text
     [root@jump ~]# ansible all -m shell -a "chmod 1777 /tmp && chmod 444 /etc/shadow"
     ```
 
@@ -1271,7 +1270,7 @@ systemctl status firewalld | grep -e disabled -e inactive"
     **Note:** While the suggested configuration is to disable SELinux as shown below, if for any reason SELinux needs to be enabled on the cluster, run the following command to make sure that httpd can read the Yum profiles.
     </Banner>
 
-    ```bash
+    ```text
     [root@jump ~]# chcon -R -t httpd_sys_content_t /var/www/html/
     ```
 
@@ -1283,7 +1282,7 @@ Syslog must be enabled on each node to preserve logs regarding killed processes 
 
 1. Use one of the following commands to confirm that the service is properly configured.
 
-    ```bash
+    ```text
     [root@jump ~]# ansible all -m command -a "rsyslogd -v"
     [root@jump ~]# ansible all -m command -a "service rsyslog status"
     ```
@@ -1294,7 +1293,7 @@ On each node, `ulimit -n` specifies the number of inodes that can be opened simu
 
 1. For setting the ulimit on Red Hat, edit `/etc/security/limits.conf` on the admin node and add the following lines.
 
-    ```bash
+    ```text
     [root@jump ~]# vi /etc/security/limits.conf
     ```
 
@@ -1305,7 +1304,7 @@ On each node, `ulimit -n` specifies the number of inodes that can be opened simu
 
 2. Copy the `/etc/security/limits.conf` file from the admin node (`ipaserver`) to all the nodes using the following command.
 
-    ```bash
+    ```text
     [root@jump ~]# ansible all -m copy -a "src=/etc/security/limits.conf dest=/etc/security/limits.conf"
     ```
 
@@ -1332,7 +1331,7 @@ On each node, `ulimit -n` specifies the number of inodes that can be opened simu
 
 4. Copy the `/etc/pam.d/su` file from the admin node (`ipaserver`) to all the nodes using the following command.
 
-    ```bash
+    ```text
     [root@jump ~]# ansible all -m copy -a "src=/etc/pam.d/su dest=/etc/pam.d/su"
     ```
 
@@ -1350,7 +1349,7 @@ Adjusting the `tcp_retries` parameter for the system network enables faster dete
 
 1. Edit the file `/etc/sysctl.conf` on the `ipaserver` node and add the following lines.
 
-    ```bash
+    ```text
     [root@jump ~]# vi /etc/sysctl.conf
     ```
 
@@ -1365,7 +1364,7 @@ Adjusting the `tcp_retries` parameter for the system network enables faster dete
 
 2. Copy the `/etc/sysctl.conf` file from the admin node to all the nodes using the following command.
 
-    ```bash
+    ```text
     [root@jump ~]# ansible all -m copy -a "src=/etc/sysctl.conf dest=/etc/sysctl.conf"
     ```
 
@@ -1386,7 +1385,7 @@ Adjusting the `tcp_retries` parameter for the system network enables faster dete
 
 1. Run the following to set VM swappiness to 1, by updating the `/etc/sysctl.conf` file on all nodes.
 
-    ```bash
+    ```text
     [root@jump ~]# ansible all -m shell -a "echo 'vm.swappiness=1' >> /etc/sysctl.conf"
     ```
 
@@ -1394,7 +1393,7 @@ Adjusting the `tcp_retries` parameter for the system network enables faster dete
 
 1. Run the following on all nodes. The variable is `vm.overcommit_memory=0`.
 
-    ```bash
+    ```text
     [root@jump ~]# ansible all -m shell -a "echo 'vm.overcommit_memory=0' >> /etc/sysctl.conf"
     ```
 
@@ -1418,14 +1417,14 @@ Disabling Transparent Huge Pages (THP) reduces elevated CPU usage caused by THP.
 
 1. You must run the following commands for every reboot.
 
-    ```bash
+    ```text
     [root@jump ~]# ansible all -m shell -a "echo never > /sys/kernel/mm/transparent_hugepage/enabled"
     [root@jump ~]# ansible all -m shell -a "echo never > /sys/kernel/mm/transparent_hugepage/defrag"
     ```
 
 2. On the Ansible controller / `ipaserver` node, run the following commands.
 
-    ```bash
+    ```text
     [root@jump ~]# rm –f /root/thp_disable
     [root@jump ~]# echo "echo never > /sys/kernel/mm/transparent_hugepage/enabled" >> /root/thp_disable
     [root@jump ~]# echo "echo never > /sys/kernel/mm/transparent_hugepage/defrag" >> /root/thp_disable
@@ -1467,13 +1466,13 @@ For a Cloudera cluster with hosts running RHEL/CentOS 7.x, 8.x or 9.x, disable t
 
 1. Ensure that the `tuned` service is started.
 
-    ```bash
+    ```text
     [root@jump ~]# ansible all -m shell -a "systemctl start tuned"
     ```
 
 2. Turn the `tuned` service off.
 
-    ```bash
+    ```text
     [root@jump ~]# ansible all -m shell -a "tuned-adm off"
     ```
 
@@ -1508,7 +1507,7 @@ For a Cloudera cluster with hosts running RHEL/CentOS 7.x, 8.x or 9.x, disable t
 
 4. Shut down and disable the `tuned` service.
 
-    ```bash
+    ```text
     [root@jump ~]# ansible all -m shell -a "systemctl stop tuned"
     [root@jump ~]# ansible all -m shell -a "systemctl disable tuned"
     ```
@@ -1676,7 +1675,7 @@ Install httpd on the Cloudera Manager node - `cldr-mngr` - to host a local parce
     **Note:** The Red Hat repository is hosted using HTTP on the admin node; this machine is accessible by all the hosts in the cluster.
     </Banner>
 
-    ```bash
+    ```text
     [root@cldr-mngr ~]# dnf install -y httpd mod_ssl createrepo_c
     ```
 
@@ -1715,7 +1714,7 @@ Install httpd on the Cloudera Manager node - `cldr-mngr` - to host a local parce
 
 4. Edit the `httpd.conf` file; add `ServerName` and make the necessary changes to the server configuration file.
 
-    ```bash
+    ```text
     [root@cldr-mngr ~]# vi /etc/httpd/conf/httpd.conf
     ```
 
@@ -1725,7 +1724,7 @@ Install httpd on the Cloudera Manager node - `cldr-mngr` - to host a local parce
 
 5. Start the httpd service.
 
-    ```bash
+    ```text
     [root@cldr-mngr ~]# systemctl start httpd
     [root@cldr-mngr ~]# systemctl enable httpd
     [root@cldr-mngr ~]# systemctl is-enabled httpd

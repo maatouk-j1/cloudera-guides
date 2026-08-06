@@ -34,7 +34,7 @@ This article describes the steps to install the Nvidia GPU software driver and i
 
 2. SSH into the Openshift bastion node and run the following command to ensure that `ocpgpu.cdpkvm.cldr` host (with GPU card installed) has `pci-10de.present=true` field in the node specification. This indicates the presence of Nvidia GPU card in this particular worker node.
 
-    ```bash
+    ```text
     [root@ocpbastion ~]# oc describe node ocpgpu.ocp4.cdpkvm.cldr | grep pci-10de.present
                         feature.node.kubernetes.io/pci-10de.present=true
     ```
@@ -57,7 +57,7 @@ This article describes the steps to install the Nvidia GPU software driver and i
 
 2. SSH into the Openshift bastion node and run the following command to verify the successful installation of the operator and the clusterPolicy.
 
-    ```bash
+    ```text
     [root@ocpbastion ~]# oc get pods,daemonset -n nvidia-gpu-operator
     NAME                                                     READY   STATUS      RESTARTS   AGE
     pod/gpu-feature-discovery-l7pqc                          1/1     Running     0          6m46s
@@ -87,7 +87,7 @@ This article describes the steps to install the Nvidia GPU software driver and i
 
 3. Verify that the Nvidia GPU card can be consumed by a newly provisioned CUDA pod.
 
-    ```bash
+    ```text
     [root@ocpbastion ~]# oc new-project nvidia-test
 
     [root@ocpbastion ~]# cat << EOF | oc create -f -
@@ -123,7 +123,7 @@ This article describes the steps to install the Nvidia GPU software driver and i
     Node:         ocpgpu.ocp4.cdpkvm.cldr/10.15.4.185
     ```
     
-    ```bash
+    ```text
     [root@ocpbastion ~]# oc exec -it nvidia-driver-daemonset-48.84.202208152344-0-cxsld -- nvidia-smi
     Defaulted container "nvidia-driver-ctr" out of: nvidia-driver-ctr, openshift-driver-toolkit-ctr, k8s-driver-manager (init)
     Fri Aug 26 06:07:36 2022       
@@ -183,14 +183,14 @@ This article describes the steps to install the Nvidia GPU software driver and i
 
 5. SSH into the Openshift bastion node and run the following command to verify the node that hosting the above CML project session pod is `ocpgpu.cdpkvm.cldr`.
 
-    ```bash
+    ```text
     [root@ocpbastion ~]# oc -n workspace-user-1 describe pod buldb59dst035j13 | grep Node:
     Node:         ocpgpu.ocp4.cdpkvm.cldr/10.15.4.185
     ```
 
 6. When a process is consuming the Nvidia GPU, the output of `nvidia-smi` tool will show the PID of that process (in this case, the CML session pod).
 
-    ```bash
+    ```text
     [root@ocpbastion ~]# oc -n nvidia-gpu-operator exec -it nvidia-driver-daemonset-48.84.202208152344-0-r8rpv -- nvidia-smi
     Defaulted container "nvidia-driver-ctr" out of: nvidia-driver-ctr, openshift-driver-toolkit-ctr, k8s-driver-manager (init)
     Fri Aug 26 07:42:07 2022       
@@ -218,7 +218,7 @@ This article describes the steps to install the Nvidia GPU software driver and i
 ## Taint the Openshift Worker Node with Nvidia GPU Card
 1. Reserve the worker node (with Nvidia GPU Card installed) for any CML session that requires GPU card by running the following command. This will disallow all other non-GPU related workloads to be scheduled in this particular node.
 
-    ```bash
+    ```text
     [root@ocpbastion ~]# oc adm taint node ocpgpu.ocp4.cdpkvm.cldr nvidia.com/gpu=true:NoSchedule
     node/ocpgpu.ocp4.cdpkvm.cldr tainted
     ```

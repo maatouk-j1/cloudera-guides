@@ -26,7 +26,7 @@ Please note that the sizing of the direct attached disk for CDW illustrated in t
     
 4. Successful implementation will produce the following local persistent volumes automatically. In this demo, each Openshift worker node has a single 400Gi direct attached SSD.
 
-    ```bash
+    ```text
     [root@ocpbastion ~]# oc get pv | head -1; oc get pv | grep local
     NAME                                       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS      CLAIM                                                                                          STORAGECLASS                  REASON   AGE
     local-pv-12e7ab5                           400Gi      RWO            Delete           Available                                                                                                  cdw-disk                               2m33s
@@ -39,7 +39,7 @@ Please note that the sizing of the direct attached disk for CDW illustrated in t
 
 5. Successful implememtation also creates a new storageClass `cdw-disk` ready to be consumed by CDW.
 
-    ```bash
+    ```text
     [root@ocpbastion ~]# oc get sc | head -1; oc get sc | grep cdw
     NAME                                    PROVISIONER                             RECLAIMPOLICY   VOLUMEBINDINGMODE      ALLOWVOLUMEEXPANSION   AGE
     cdw-disk                                kubernetes.io/no-provisioner            Delete          WaitForFirstConsumer   false                  2m9s
@@ -58,7 +58,7 @@ Please note that the sizing of the direct attached disk for CDW illustrated in t
     
 3. Successful implementation will produce the new local persistent volumes with 200Gi SSD automatically.
 
-    ```bash
+    ```text
     [root@ocpbastion ~]# oc get pv | head -1; oc get pv | grep local
     NAME                                       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS      CLAIM                                                                                          STORAGECLASS                  REASON   AGE
     local-pv-12e7ab5                           400Gi      RWO            Delete           Available                                                                                                cdw-disk                               5m59s

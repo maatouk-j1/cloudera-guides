@@ -56,7 +56,7 @@ The objective of running these performance benchmarking tests is to gauge the ou
 
 - When testing the Longhorn performance, the abovementioned commands are executed inside the Kubernetes pod as illustrated in the following example.
 
-    ```bash
+    ```text
     # kubectl exec -ti fio-0 -n test -- /bin/bash
     [root@fio-0 /]# fio --name=fiotest --filename=test --size=10Gb --rw=randrw --direct=1 --rwmixread=50 --numjobs=8 --ioengine=libaio --group_reporting --runtime=60 --startdelay=60 --bs=1M --iodepth=8
     fiotest: (g=0): rw=randrw, bs=(R) 1024KiB-1024KiB, (W) 1024KiB-1024KiB, (T) 1024KiB-1024KiB, ioengine=libaio, iodepth=8

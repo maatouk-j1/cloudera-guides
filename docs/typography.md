@@ -220,9 +220,26 @@ file `127.0.0.1` renders blue as `entity.name.function` and the hostnames after 
 string arguments, while `::1` splits into a cyan `:` and a green `:1`. The reader sees emphasis where
 there is no meaning.
 
-The inverse case is harmless but worth knowing: in a prompt transcript, `#` opens a shell comment, so
-everything after `[root@host ~]#` is one unhighlighted token. A transcript therefore renders
-identically under `bash` and `text`.
+**A terminal transcript is `text`.** A transcript records a session — prompt, command and output
+interleaved — rather than listing commands to run, so the rule above already puts it in `text`. Tag
+it `bash` and you get one of two wrong results, depending on the prompt.
+
+With the bracketed form, the failure is silent. Shiki has no concept of a prompt and parses the line
+as bash source, so `[root@host ~]` matches the rule for a **test expression** and takes
+`meta.scope.logical-expression.shell`. Everything after the closing `]` then lands on bare
+`source.shell` with no scope at all and falls through to the plain `#abb2bf` (§10). The line reads as
+deliberately unhighlighted, so a bracketed transcript does render the same under `bash` and `text`.
+
+Note what that mechanism is *not*: the `#` in `[root@host ~]#` is the root prompt, and shiki does not
+treat it as a comment. It abuts the `]` with no whitespace, so the comment rule never fires. A real
+shell comment takes `comment.line.number-sign.shell` and renders `#7f848e` — visibly greyer than the
+`#abb2bf` plain token, and the way to tell the two apart on a rendered page.
+
+Without brackets the failure is loud, and it is the file-contents problem in reverse. In
+`root@host:~# sudo dnf update` there is no bracket for the test-expression rule to catch, so shiki
+tokenises the prompt itself as the command: `root@host:~#` renders blue as `entity.name.command.shell`
+and the actual command after it renders green as `string.unquoted.argument.shell`. The prompt is
+emphasised and the command is not. Tagging transcripts `text` avoids both cases.
 
 **Always fence shell content.** An unfenced line beginning with `#` — common when pasting a root
 prompt or a shell comment — is parsed as a markdown heading and renders as enormous page-width text.

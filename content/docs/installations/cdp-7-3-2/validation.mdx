@@ -82,7 +82,7 @@ The guide's own comments say *HDFS keytab* and *HDFS principal*, but the command
 
 ### 4. Stage the CSV files in HDFS
 
-```bash
+```text
 [root@pvcbase-master ml-20m]# hdfs dfs -mkdir /tmp/movielens
 [root@pvcbase-master ml-20m]# hdfs dfs -put * /tmp/movielens/
 [root@pvcbase-master ml-20m]# hdfs dfs -chown -R hdfs:supergroup /tmp/movielens

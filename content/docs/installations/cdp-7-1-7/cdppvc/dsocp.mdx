@@ -59,7 +59,7 @@ For Storage, enter the default block storageClass of the deployed [OCS](/install
 
 ## CDP Data Services Control Plane Artifacts
     
-```bash
+```text
 [root@ocpbastion ~]# oc -n cdp get pods
 NAME                                                              READY   STATUS    RESTARTS   AGE
 cdp-release-alert-admin-service-957bfcb58-8wcr4                   2/2     Running   0          25h
@@ -109,7 +109,7 @@ fluentd-aggregator-0                                              2/2     Runnin
 snmp-notifier-7498cc86bc-rk4g6                                    2/2     Running   0          25h
 ```
 
-```bash
+```text
 [root@ocpbastion ~]# oc -n cdp get pvc
 NAME                                                   STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                  AGE
 cdp-release-prometheus-server                          Bound    pvc-7aea8799-4f24-413e-a3e2-c49c396dbc56   10Gi       RWO            ocs-storagecluster-ceph-rbd   25h
