@@ -36,6 +36,9 @@ Choose one of the nodes of the cluster or a separate node as the Ansible Admin/C
     [root@pvcecs-worker5 ~]# sudo hostnamectl set-hostname --static pvcecs-worker5.cldrsetup.local
     [root@pvcecs-worker6 ~]# sudo hostnamectl set-hostname --static pvcecs-worker6.cldrsetup.local
     [root@pvcecs-worker7 ~]# sudo hostnamectl set-hostname --static pvcecs-worker7.cldrsetup.local
+    [root@pvcecs-worker8 ~]# sudo hostnamectl set-hostname --static pvcecs-worker8.cldrsetup.local
+    [root@pvcecs-worker9 ~]# sudo hostnamectl set-hostname --static pvcecs-worker9.cldrsetup.local
+    [root@pvcecs-worker10 ~]# sudo hostnamectl set-hostname --static pvcecs-worker10.cldrsetup.local
     ```
 
 2. While you set the hostnames by logging in to each individual host, make sure to run `dnf update` and install the Python 3 dependencies as well, since these are fresh nodes.
@@ -787,24 +790,24 @@ We will be using the Bastion host as the Ansible controller/admin node.
       Record name: 240.24
       PTR record: ipaserver.cldrsetup.local.
 
-    [root@ipaserver ~]# ipa dnsrecord-add 31.172.in-addr.arpa. 139.27 --ptr-rec cldr-mngr.cldrsetup.local.
-      Record name: 139.27
+    [root@ipaserver ~]# ipa dnsrecord-add 31.172.in-addr.arpa. 38.1 --ptr-rec cldr-mngr.cldrsetup.local.
+      Record name: 38.1
       PTR record: cldr-mngr.cldrsetup.local.
 
-    [root@ipaserver ~]# ipa dnsrecord-add 31.172.in-addr.arpa. 104.21 --ptr-rec pvcbase-master.cldrsetup.local.
-      Record name: 104.21
+    [root@ipaserver ~]# ipa dnsrecord-add 31.172.in-addr.arpa. 34.1 --ptr-rec pvcbase-master.cldrsetup.local.
+      Record name: 34.1
       PTR record: pvcbase-master.cldrsetup.local.
 
-    [root@ipaserver ~]# ipa dnsrecord-add 31.172.in-addr.arpa. 185.16 --ptr-rec pvcbase-worker1.cldrsetup.local.
-      Record name: 185.16
+    [root@ipaserver ~]# ipa dnsrecord-add 31.172.in-addr.arpa. 35.1 --ptr-rec pvcbase-worker1.cldrsetup.local.
+      Record name: 35.1
       PTR record: pvcbase-worker1.cldrsetup.local.
 
-    [root@ipaserver ~]# ipa dnsrecord-add 31.172.in-addr.arpa. 0.23 --ptr-rec pvcbase-worker2.cldrsetup.local.
-      Record name: 0.23
+    [root@ipaserver ~]# ipa dnsrecord-add 31.172.in-addr.arpa. 36.1 --ptr-rec pvcbase-worker2.cldrsetup.local.
+      Record name: 36.1
       PTR record: pvcbase-worker2.cldrsetup.local.
 
-    [root@ipaserver ~]# ipa dnsrecord-add 31.172.in-addr.arpa. 240.18 --ptr-rec pvcbase-worker3.cldrsetup.local.
-      Record name: 240.18
+    [root@ipaserver ~]# ipa dnsrecord-add 31.172.in-addr.arpa. 37.1 --ptr-rec pvcbase-worker3.cldrsetup.local.
+      Record name: 37.1
       PTR record: pvcbase-worker3.cldrsetup.local.
 
     [root@ipaserver ~]# ipa dnsrecord-add 31.172.in-addr.arpa. 239.30 --ptr-rec pvcecs-master.cldrsetup.local.
@@ -831,24 +834,24 @@ We will be using the Bastion host as the Ansible controller/admin node.
       Record name: 53.24
       PTR record: pvcecs-worker5.cldrsetup.local.
 
-    [root@ipaserver ~]# ipa dnsrecord-add 31.172.in-addr.arpa. 43.22 --ptr-rec pvcecs-worker6.cldrsetup.local.
-      Record name: 43.22
+    [root@ipaserver ~]# ipa dnsrecord-add 31.172.in-addr.arpa. 44.22 --ptr-rec pvcecs-worker6.cldrsetup.local.
+      Record name: 44.22
       PTR record: pvcecs-worker6.cldrsetup.local.
 
-    [root@ipaserver ~]# ipa dnsrecord-add 31.172.in-addr.arpa. 249.30 --ptr-rec pvcecs-worker7.cldrsetup.local.
-      Record name: 249.30
+    [root@ipaserver ~]# ipa dnsrecord-add 31.172.in-addr.arpa. 250.30 --ptr-rec pvcecs-worker7.cldrsetup.local.
+      Record name: 250.30
       PTR record: pvcecs-worker7.cldrsetup.local.
 
-    [root@ipaserver ~]# ipa dnsrecord-add 31.172.in-addr.arpa. 24.26 --ptr-rec pvcecs-worker8.cldrsetup.local.
-      Record name: 24.26
+    [root@ipaserver ~]# ipa dnsrecord-add 31.172.in-addr.arpa. 25.26 --ptr-rec pvcecs-worker8.cldrsetup.local.
+      Record name: 25.26
       PTR record: pvcecs-worker8.cldrsetup.local.
 
-    [root@ipaserver ~]# ipa dnsrecord-add 31.172.in-addr.arpa. 198.24 --ptr-rec pvcecs-worker9.cldrsetup.local.
-      Record name: 198.24
+    [root@ipaserver ~]# ipa dnsrecord-add 31.172.in-addr.arpa. 199.24 --ptr-rec pvcecs-worker9.cldrsetup.local.
+      Record name: 199.24
       PTR record: pvcecs-worker9.cldrsetup.local.
 
-    [root@ipaserver ~]# ipa dnsrecord-add 31.172.in-addr.arpa. 53.24 --ptr-rec pvcecs-worker10.cldrsetup.local.
-      Record name: 53.24
+    [root@ipaserver ~]# ipa dnsrecord-add 31.172.in-addr.arpa. 54.24 --ptr-rec pvcecs-worker10.cldrsetup.local.
+      Record name: 54.24
       PTR record: pvcecs-worker10.cldrsetup.local.
     ```
 
