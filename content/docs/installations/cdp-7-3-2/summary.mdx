@@ -230,8 +230,8 @@ Specs are upgraded for concurrent tests and higher data volume tests, and assume
 | Role | HostName | CPU | RAM | Disk | Partitions |
 |:--|:--|:--|:--|:--|:--|
 | ECS-Master | pvcecs-master | 32 | 128GB | root partition + 1.3 TB | /docker, /lhdata, /var |
-| ECS-Worker | pvcecs-worker1 | 32 | 128GB | root partition + 1.3 TB | /docker, /lhdata, /var |
-| ECS-Worker | pvcecs-worker2 | 32 | 128GB | root partition + 1.3 TB | /docker, /lhdata, /var |
+| ECS-Worker | pvcecs-worker4 | 32 | 128GB | root partition + 1.3 TB | /docker, /lhdata, /var |
+| ECS-Worker | pvcecs-worker5 | 32 | 128GB | root partition + 1.3 TB | /docker, /lhdata, /var |
 
 ### PvC Data Service (ECS) Cluster with CDE: a 6-node cluster on VMs
 
@@ -240,11 +240,11 @@ Specs are upgraded for concurrent tests and higher data volume tests, and assume
 | Role | HostName | CPU | RAM | Disk | Partitions |
 |:--|:--|:--|:--|:--|:--|
 | ECS-Master | pvcecs-master | 32 | 128GB | root partition + 1.3 TB | /docker, /lhdata, /var |
-| ECS-Worker | pvcecs-worker1 | 32 | 128GB | root partition + 1.3 TB | /docker, /lhdata, /var |
-| ECS-Worker | pvcecs-worker2 | 32 | 128GB | root partition + 1.3 TB | /docker, /lhdata, /var |
-| ECS-Worker | pvcecs-worker3 | 32 | 128GB | root partition + 1.3 TB | /docker, /lhdata, /var |
-| ECS-Worker | pvcecs-worker4 | 32 | 128GB | root partition + 1.3 TB | /docker, /lhdata, /var |
-| ECS-Worker | pvcecs-worker5 | 32 | 128GB | root partition + 1.3 TB | /docker, /lhdata, /var |
+| ECS-Worker | pvcecs-worker6 | 32 | 128GB | root partition + 1.3 TB | /docker, /lhdata, /var |
+| ECS-Worker | pvcecs-worker7 | 32 | 128GB | root partition + 1.3 TB | /docker, /lhdata, /var |
+| ECS-Worker | pvcecs-worker8 | 32 | 128GB | root partition + 1.3 TB | /docker, /lhdata, /var |
+| ECS-Worker | pvcecs-worker9 | 32 | 128GB | root partition + 1.3 TB | /docker, /lhdata, /var |
+| ECS-Worker | pvcecs-worker10 | 32 | 128GB | root partition + 1.3 TB | /docker, /lhdata, /var |
 
 ### PvC Data Service (ECS) Cluster with CDW+CDE+CAI: an 11-node cluster on VMs
 
@@ -286,7 +286,7 @@ The table below lists the software components and versions required for a single
 | PostgreSQL DB | 14 >= | Cldr-Mngr |
 | Psycopg2-binary | 2.9.11 >= | All Servers |
 | Postgres-JDBC-Connector | 42.7.7 >= | All Servers |
-| Cloudera Manager | 7.13.2.0 (7.13.2.0-77091850) | Cldr-Mngr |
+| Cloudera Manager | 7.13.2.6 (7.13.2.6-80024490) | Cldr-Mngr |
 | Cloudera on premises Base (RunTime) | 7.3.2.0 (7.3.2-1.cdh7.3.2.p0.77083870). Install Base Runtime 7.3.2 **only if you are not planning to use CAI** (Data Service), otherwise install **7.3.1 SP3 CHF2** | PvC Base Cluster Nodes |
 | Cloudera on premises Data Services | 1.5.5 SP2 (1.5.5-h2000-b238) | PvC Data Service Cluster Nodes |
 | Hadoop (Includes YARN and HDFS) | 3.4.2.7.3.2.0-957 | PvC Base Cluster Nodes |
@@ -320,11 +320,11 @@ The domain name and the hostnames mentioned here are for reference only. You may
 | NodeName | Details |
 |:--|:--|
 | pvcbase-master | Cloudera on premises Base Master |
-| pvcbase-worker1 to pvcbase-worker4 | CDP Base Cluster Worker Nodes |
+| pvcbase-worker1 to pvcbase-worker3 | CDP Base Cluster Worker Nodes |
 | ipaserver (OR Existing LDAP/AD + DNS + Kerberos + KDC) | FreeIPA / Existing AD Server |
 | cldr-mngr | Cloudera-Manager and PostgreSQL DB Server |
 | pvcecs-master | ECS Master Node |
-| pvcecs-worker1 to pvcecs-worker7 | ECS Worker Nodes |
+| pvcecs-worker1 to pvcecs-worker10 | ECS Worker Nodes |
 | CLDRSETUP.LOCAL (Replace with your ORG DOMAIN) | Dummy Domain For POC Purpose |
 
 Once you are familiar with all the information above, you can start with the preliminary work for the CDP Base cluster setup.

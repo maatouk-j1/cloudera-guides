@@ -58,8 +58,8 @@ All the repositories and parcels below are hosted from the local `httpd` instanc
     # 2. Define Cloudera Manager Version & Build
     # ================================
 
-    CM_VERSION="7.13.2.0"
-    BUILD_NUMBER="77091850"
+    CM_VERSION="7.13.2.6"
+    BUILD_NUMBER="80024490"
 
     # ================================
     # 3. Define Base URL
@@ -117,9 +117,9 @@ All the repositories and parcels below are hosted from the local `httpd` instanc
     ##### Verify if username and password are already present, so no action needed.
     [root@cldr-mngr cloudera-manager]# vi cloudera-manager.repo
     [cloudera-manager]
-    name=Cloudera Manager 7.13.2.400
-    baseurl=https://archive.cloudera.com/p/cm7/7.13.2.400/redhat9/yum/
-    gpgkey=https://archive.cloudera.com/p/cm7/7.13.2.400/redhat9/yum/RPM-GPG-KEY-cloudera
+    name=Cloudera Manager 7.13.2.6
+    baseurl=https://archive.cloudera.com/p/cm7/7.13.2.6/redhat9/yum/
+    gpgkey=https://archive.cloudera.com/p/cm7/7.13.2.6/redhat9/yum/RPM-GPG-KEY-cloudera
     username=<username>
     password=<password>
     gpgcheck=1
@@ -138,9 +138,9 @@ All the repositories and parcels below are hosted from the local `httpd` instanc
     ##### If not, update the cloudera-manager.repo to look like below.
     [root@cldr-mngr cloudera-manager]# vi cloudera-manager.repo
     [cloudera-manager]
-    name=Cloudera Manager 7.13.2.400
-    baseurl=https://<username>:<password>@archive.cloudera.com/p/cm7/7.13.2.400/redhat9/yum/
-    gpgkey=https://<username>:<password>@archive.cloudera.com/p/cm7/7.13.2.400/redhat9/yum/RPM-GPG-KEY-cloudera
+    name=Cloudera Manager 7.13.2.6
+    baseurl=https://<username>:<password>@archive.cloudera.com/p/cm7/7.13.2.6/redhat9/yum/
+    gpgkey=https://<username>:<password>@archive.cloudera.com/p/cm7/7.13.2.6/redhat9/yum/RPM-GPG-KEY-cloudera
     gpgcheck=1
     enabled=1
     autorefresh=0
@@ -186,10 +186,10 @@ All the repositories and parcels below are hosted from the local `httpd` instanc
     /var/www/html/cloudera-repos/cloudera-manager/cm7.13.2/redhat9/yum/RPMS/x86_64
     [root@cldr-mngr x86_64]# ll
     total 1862092
-    -rw-r--r--. 1 root root 116384320 Apr 23 06:52 cloudera-manager-agent-7.13.2.400-68000784.el9.x86_64.rpm
-    -rw-r--r--. 1 root root 1790367515 Apr 23 06:52 cloudera-manager-daemons-7.13.2.400-68000784.el9.x86_64.rpm
-    -rw-r--r--. 1 root root      20933 Apr 23 06:52 cloudera-manager-server-7.13.2.400-68000784.el9.x86_64.rpm
-    -rw-r--r--. 1 root root      20933 Apr 23 06:52 cloudera-manager-server-db-7.13.2.400-68000784.el9.x86_64.rpm
+    -rw-r--r--. 1 root root 116384320 Apr 23 06:52 cloudera-manager-agent-7.13.2.6-80024490.el9.x86_64.rpm
+    -rw-r--r--. 1 root root 1790367515 Apr 23 06:52 cloudera-manager-daemons-7.13.2.6-80024490.el9.x86_64.rpm
+    -rw-r--r--. 1 root root      20933 Apr 23 06:52 cloudera-manager-server-7.13.2.6-80024490.el9.x86_64.rpm
+    -rw-r--r--. 1 root root      20933 Apr 23 06:52 cloudera-manager-server-db-7.13.2.6-80024490.el9.x86_64.rpm
     [root@cldr-mngr x86_64]#
     ```
 
@@ -216,7 +216,7 @@ All the repositories and parcels below are hosted from the local `httpd` instanc
     ```ini
     [root@cldr-mngr ~]# vi /etc/yum.repos.d/cloudera-manager.repo
     [cloudera-manager]
-    name=Cloudera Manager 7.13.2.0
+    name=Cloudera Manager 7.13.2.6
     baseurl=http://<ip_of_cldr_mngr>/cloudera-repos/cloudera-manager/
     #Update IP of Repo/cldr-mngr server
     gpgcheck=0
@@ -381,12 +381,11 @@ From a host connected the internet, download Cloudera on premises Base 7.3.2 par
 
 ## Version strings in this section
 
-The commands above are transcribed verbatim from the guide, and the guide is not internally consistent about build numbers and paths. Take the version table on the [CDP 7.3.2 landing page](/installations/cdp-7-3-2) as authoritative and adjust the build IDs to whatever your Cloudera archive actually serves:
+The commands above are transcribed verbatim from the guide, and the guide is not internally consistent about build numbers and paths. Adjust the build IDs to whatever your Cloudera archive actually serves:
 
 | Where | What the guide shows |
 |:--|:--|
-| Cloudera Manager script | CM_VERSION="7.13.2.0", BUILD_NUMBER="77091850" |
-| Cloudera Manager repo file and downloaded RPMs | 7.13.2.400, build 68000784 |
+| Cloudera Manager RPM directory in the script vs. on disk | The script expands CM_VERSION to cm7.13.2.6, the transcript shows .../cloudera-manager/cm7.13.2/ |
 | CDH parcels script | BUILD_NUMBER="73534044" |
 | CDH parcels on disk | CDH-7.3.2-1.cdh7.3.2.p0.67986116-el9.parcel |
 | CDH target directory in the script vs. on disk | .../cloudera-repos/cdh7.3.2 vs. .../cloudera-repos/cdh7/7.3.2.0/ |

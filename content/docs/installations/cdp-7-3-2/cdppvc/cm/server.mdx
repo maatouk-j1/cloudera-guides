@@ -178,16 +178,6 @@ Cloudera Manager, an end-to-end management application, is used to install and c
 
     ![Terminal output of systemctl status cloudera-scm-agent showing the Cloudera Manager Agent Service loaded, enabled and active (running)](/images/cdp-7-3-2/cdppvc/cm/server/scm-agent-status.png)
 
-## Version strings in this section
-
-Two of the values above do not match the [version table on the CDP 7.3.2 landing page](/installations/cdp-7-3-2), because the screenshots and one link are recycled from an older lab build. The prose and the version table win - do not read a version out of a screenshot.
-
-| Where | What the guide shows | What this build actually is |
-|:--|:--|:--|
-| Step 2 documentation link | cloudera-manager/7.11.3/installation/... | Cloudera Manager **7.13.2.0** |
-| Welcome screenshot in Step 11 | "Welcome to Cloudera Manager 7.11.3" | Cloudera Manager **7.13.2.0** |
-| Agent status screenshot in Step 14 | prompt reads [root@cdpbase ...], dated 2023, running python2 | the node in this build is cldr-mngr |
-
 ## What comes next
 
 Cloudera Manager is up, licensed, and its agent is running on the `cldr-mngr` node. The **Add Private Cloud Base Cluster** page is waiting - but before building the cluster, turn on Auto-TLS so Cloudera Manager issues and manages certificates for every host. See [Enable Auto-TLS](/installations/cdp-7-3-2/cdppvc/cm/auto-tls).
