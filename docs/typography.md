@@ -396,7 +396,7 @@ and failure at this point leaves a partial schema behind.
 
 | Component | Version | Notes |
 |:--|:--|:--|
-| Server | 7.13.2.0 | Repo paths use a longer build number |
+| Server | 7.13.2.6 | Pin this to the build your archive serves |
 | Runtime | 7.3.2.0 | Pin this to the release you tested |
 | OS | RHEL 9.5 | Lock the minor version before installing |
 

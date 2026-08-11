@@ -51,7 +51,7 @@ Run `pdfimages -list -f N -l M` over your range *before* extracting, so you know
 |:--|:--|
 | Cloudera on premises Base Runtime | **7.3.2.0** (`7.3.2-1.cdh7.3.2.p0.77083870`) — but **7.3.1 SP3 CHF2** if Cloudera AI is in play |
 | Data Services | **1.5.5 SP2** (`1.5.5-h2000-b238`) |
-| Cloudera Manager | **7.13.2.0** (`7.13.2.0-77091850`; repo paths use `7.13.2.400`) |
+| Cloudera Manager | **7.13.2.6** (`7.13.2.6-80024490`) — the build the install procedure pulls; the source's version table still names the earlier `7.13.2.0-77091850` |
 | OS | **RHEL 9.5** |
 
 The folder slug is `cdp-7-3-2` — no SP/CHF, because service packs churn. The nav title is
