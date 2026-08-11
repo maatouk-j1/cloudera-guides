@@ -53,3 +53,26 @@ validated cluster, so the pages are meant to be read and executed in order:
 
 This differs from the [CDP 7.1.7 guide](/installations/cdp-7-1-7), which is organised by topic rather
 than as one continuous procedure.
+
+## How to read the screenshots
+
+Many of the screenshots in this guide are recycled from earlier lab builds. The screens, fields and
+steps they show are unchanged - only the values printed inside them differ. Follow the workflow as
+captured, and take every value you have to type from the prose and tables on the page, never from
+the picture.
+
+A handful of recurring substitutions account for most of what you will see:
+
+| In the captures | In this build |
+|:--|:--|
+| Domains cdppvcds.com and cdip.cisco.local, the latter an Active Directory lab | cldrsetup.local, served by FreeIPA |
+| Kerberos realm CDPPVCDS.COM | CLDRSETUP.LOCAL |
+| Cloudera Manager 7.11.3 or 7.13.1 | 7.13.2.6 |
+| Cloudera Runtime 7.1.9 | 7.3.2.0 |
+| Data Services 1.5.4 and its hotfix builds | 1.5.5 SP2 |
+
+The older lab was also a different size and went by a different name: captures showing five or six
+Base hosts, five ECS workers, or a cluster called cdip-cdp predate this build, which runs three Base
+workers, ten ECS workers and a cluster named PvCBaseCluster1.
+
+Where a capture differs in a way this table does not cover, the page it sits on carries its own note.

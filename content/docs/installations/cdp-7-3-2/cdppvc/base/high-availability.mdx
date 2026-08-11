@@ -9,10 +9,6 @@ nextTitle: Configure Services authentication for LDAP (Optional)
 nextSlug: /installations/cdp-7-3-2/cdppvc/base/ldap-auth
 ---
 
-<Banner type="warning">
-**Optional - skip this step.** The source marks the High Availability section *"Optional - Skip this step"*. The two sections that follow it on the same source page - browser configuration for Kerberos and the Base checklist - are not marked optional and close out the Base cluster build.
-</Banner>
-
 ## 1. Enable High Availability
 
 <Banner type="info">
@@ -36,12 +32,3 @@ The [Cloudera support matrix](https://supportmatrix.cloudera.com/) lists the sup
 Please review the [Cloudera on premises Base Checklist](https://docs.cloudera.com/cdp-private-cloud-data-services/latest/installation/topics/cdppvc-installation-pvcbase-checklist.html) before moving on to the Data Services install.
 
 ![Cloudera Manager Home showing BaseCluster1 with all services green - HBase, Atlas, Cloudera Manager Service, Data Lake Federation, HBase, HDFS, Hive, Hive on Tez, Hue, Infra Solr, Kafka, Knox, Ozone, Ranger, Spark 3, Tez, YARN and ZooKeeper - alongside the cluster CPU, disk IO, network IO and HDFS IO charts, with DataServicesCluster1 listed below](/images/cdp-7-3-2/cdppvc/base/high-availability/cm-home-clusters.png)
-
-## Version strings in this section
-
-| Where | This guide targets | Screenshot shows |
-|:--|:--|:--|
-| Cloudera Runtime, in the Home capture | 7.3.2.0 | Cloudera Runtime 7.1.9 (Parcels) |
-| Cloudera Manager, in the Home capture | 7.13.2.0 | 7.13.1 |
-
-The two documentation links on this page are the same class of quirk. The displayed URLs read `cloudera-manager/7.13.2/...` and `cdp-private-cloud-base/7.3.2/...`, but their PDF link annotations point at `7.13.1` and `7.3.1` - stale targets from the older lab build - so both are transcribed as plain text rather than wired up to a link. The support matrix and Base checklist links carry no such contradiction and are linked normally.
