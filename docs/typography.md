@@ -314,6 +314,11 @@ the only one that should make someone stop, and it stops meaning that if every t
 Omitting `type`, or passing anything other than the three values above, falls through to the `info`
 branch (`components/mdx/banner.tsx:22-28`) — safe, but write the type explicitly.
 
+Banners carry their own vertical rhythm — `my-5` on the root `div` (`banner.tsx:33`), the same
+`1.25em` a prose paragraph uses, so margins collapse to one 20px gap whatever a banner sits next to.
+Two or more banners in a row are fine and need no spacer between them; separate them with a blank
+line in the MDX like any other block.
+
 **Blockquotes (`>`) are banned.** The prose container has no `dark:prose-invert` and no
 blockquote override, so blockquote text takes the plugin default `--tw-prose-quotes` = `gray-900`,
 and `blockquote strong` inherits it. In dark mode the whole callout — label included — is near-black
