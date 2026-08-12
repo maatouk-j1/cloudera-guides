@@ -97,14 +97,3 @@ The checklist is lifted wholesale from Cloudera's own 1.5.x collateral, so sever
 | /etc/resolv.conf Entries | Appears **three times** - once for "no more than 3 nameserver entries", twice for "no more than 2 search entries" | Both limits apply; the duplicate row is the source's own, not a transcription slip |
 | Required Mounts | Three mounts, unnamed | [ECS Requirements](/installations/cdp-7-3-2/ds/ecs-requirements) item 9 names them /lhdata, /cdwdata and /docker |
 | Disk Mounts / /var/lib Storage Requirements | 300GB free after CM agent install, vs /var/lib must have 100GB | The two rows disagree; the 300GB figure is the one the enforcing prerequisites checker applies |
-
-## Link targets in this section
-
-Most of this table's links resolve to older Data Services documentation - **1.5.4**, **1.5.1**, **1.5.0**, **1.4.1** and **1.3.4** - than the 1.5.5 SP2 release this guide installs. Where the link text shows no version there is nothing to contradict, so those are linked as annotated. Four are handled differently.
-
-| Displayed | Annotation actually points at | Handling |
-|:--|:--|:--|
-| Docs Links → *ECS Checklist* | cdppvc-installation-pvcbase-checklist.html - the **Base** checklist, not the ECS one, and at 1.5.4 | Plain text |
-| Required Mounts → the Longhorn URL displaying longhorn.io/docs/1.5.5/... | The same page under **1.5.4** | Plain text (code span) |
-| 3rd Party Software → *NSX-T Jira* | jira.cloudera.com/browse/CDPVC-686 | Plain text - Cloudera-internal, not reachable by readers |
-| /etc/resolv.conf Entries (both rows) → *Jira*; RHEL8 - VMware → *Cloudera Support* | jira.cloudera.com/browse/BLESC-6074 and a csh.cloudera.com support case | Plain text - Cloudera-internal |
