@@ -11,12 +11,6 @@ nextSlug: /installations/cdp-7-3-2/cdppvc/base/scale-cluster
 
 The Cloudera Manager metadata database was created with TLS enabled back in [Setup Database for Cloudera Manager](/installations/cdp-7-3-2/cdppvc/cm/database). The services that keep their own schemas in that database - Ranger and the Hive metastore - do not inherit that setting from Cloudera Manager: each one needs its own copy of the database server certificate and its own JDBC URL override. Both procedures below are mandatory for a TLS-enabled metadata database, and the Hive one is additionally called out in the source as a **mandatory step for CDW**.
 
-<Banner type="info">
-**Note:** Both screenshots on this page were captured in an earlier lab, so the JDBC URLs they
-display use the older domain cdppvcds.com. The screens and the steps are unchanged - take the URLs
-from the prose and tables below, where the database host is cldr-mngr.cldrsetup.local.
-</Banner>
-
 ## 1. Configure Ranger with SSL/TLS enabled PostgreSQL Database
 
 Login to Cloudera Manager Web Console. Go to **Ranger > Configuration**.
