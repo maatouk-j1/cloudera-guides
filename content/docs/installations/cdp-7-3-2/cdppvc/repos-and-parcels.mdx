@@ -379,20 +379,6 @@ From a host connected the internet, download Cloudera on premises Base 7.3.2 par
 
 4. In a web browser please check and verify cloudera manager repository created by entering baseurl: `http://13.251.65.11/cloudera-repos/spark3`
 
-## Version strings in this section
-
-The commands above are transcribed verbatim from the guide, and the guide is not internally consistent about build numbers and paths. Adjust the build IDs to whatever your Cloudera archive actually serves:
-
-| Where | What the guide shows |
-|:--|:--|
-| Cloudera Manager RPM directory in the script vs. on disk | The script expands CM_VERSION to cm7.13.2.6, the transcript shows .../cloudera-manager/cm7.13.2/ |
-| CDH parcels script | BUILD_NUMBER="73534044" |
-| CDH parcels on disk | CDH-7.3.2-1.cdh7.3.2.p0.67986116-el9.parcel |
-| CDH target directory in the script vs. on disk | .../cloudera-repos/cdh7.3.2 vs. .../cloudera-repos/cdh7/7.3.2.0/ |
-| Procedure heading vs. the parcels it downloads | "CDS 3.3" vs. SPARK_VERSION="3.5.7191000.0" (upstream 3.5.4) |
-
-The build ID comment in the CDH script says it best: **must match build ID from Cloudera archive.**
-
 ## What comes next
 
 With the repositories and parcels hosted locally, the next step is to install the database and the Cloudera Manager Server itself - see [Setup Cloudera Manager Server](/installations/cdp-7-3-2/cdppvc/cm).

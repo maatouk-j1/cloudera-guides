@@ -337,23 +337,6 @@ include cldr-mngr.
 
     [https://github.com/cloudera-labs/toolkits/tree/main/data_services-toolkit/DS_Pre-Install_Check](https://github.com/cloudera-labs/toolkits/tree/main/data_services-toolkit/DS_Pre-Install_Check)
 
-## Source values that do not match this build
-
-Every capture in this procedure comes from the same older lab session as the ones on the [installation page](/installations/cdp-7-3-2/cdppvc/base/installation), so the values inside them disagree with the prose beside them. The prose and the [version table](/installations/cdp-7-3-2/summary) win.
-
-| Where | What the screenshot shows | What this build actually is |
-|:--|:--|:--|
-| Wizard chrome, every capture | Cloudera Manager 7.11.3 | Cloudera Manager **7.13.2.6** |
-| Every host field in Assign Roles and Setup Database | pvcbase-*.cdppvcds.com, cldr-mngr.cdppvcds.com | pvcbase-master, pvcbase-worker[1-3] and cldr-mngr on cldrsetup.local, as the role table above states |
-| Host counts in Assign Roles | × 5 New workers, pvcbase-worker[1-5] | three workers, pvcbase-worker[1-3] |
-| CM Home after Step 39 | Cloudera Runtime 7.1.9 (Parcels), 6 Hosts | Runtime **7.3.2.0** on the four-node Base cluster |
-| Ozone S3 Gateway in Assign Roles | pvcbase-worker4 | pvcbase-master, as the role table states |
-| Browser address bar | an AWS ELB hostname, ...us-west-2.elb.amazonaws.com:7183 | https://cldr-mngr.cldrsetup.local:7183/cmf/ |
-
-The role table itself is not internally consistent either, and is transcribed as printed rather than reconciled: the Kafka row names `base-master` and `pvcbaseworker[1-5]` where every other row uses `pvcbase-master` and `pvcbase-worker[1-3]`; the ZooKeeper row is headed *"must be &gt;3"* but lists three hosts while the screenshot assigns a single `Server × 1 New`; and the `YARN Queue Manager (Optional)` row has an empty Host cell.
-
-The **Runtime Cluster Hosts and Role Assignments** link in Step 19 carries no version in its displayed text, and its underlying annotation targets the **7.1.9** documentation - it is linked as the source has it. The links in the Step 35 troubleshooting block match their displayed text and are wired up as such.
-
 ## What comes next
 
 The Base cluster is up and healthy, but a set of service-level adjustments still has to be made before it is usable - Web UI access, port whitelisting and host-file entries. See [Additional Requirements and Details](/installations/cdp-7-3-2/cdppvc/base/additional-requirements).

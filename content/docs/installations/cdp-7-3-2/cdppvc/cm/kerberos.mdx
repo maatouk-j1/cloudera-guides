@@ -97,6 +97,10 @@ Cloudera Manager provides a wizard for integrating your organization's Kerberos 
     | Active Directory Suffix (Only for AD based Kerberos) | DC=cldrsetup,DC=local — Credentials: (Administrator / |
     | Active Directory Delete Accounts on Credential Regeneration (Only for AD based Kerberos) | Select (Check) |
 
+    <Banner type="info">
+    **Note:** Step 8 in the source reads *"Use Table 6 as an example"*, but the table it points at is labelled **Table 4**. The table above is that Table 4 - there is no Table 6 in this section.
+    </Banner>
+
     Check the picture below on where to populate the above mentioned fields:
 
     ![Enter KDC Information page of the wizard, annotated to show which field takes the Kerberos Realm and which two take the ipaserver FQDN, with Kerberos Encryption Types already set to aes256-cts-hmac-sha1-96](/images/cdp-7-3-2/cdppvc/cm/kerberos/enter-kdc-information-fields.png)
@@ -160,22 +164,6 @@ Cloudera Manager provides a wizard for integrating your organization's Kerberos 
             renew until 03/12/2024 21:35:07
     [root@ipaserver ~]#
     ```
-
-## Source values that do not match this build
-
-Several strings on this page come from recycled captures and older lab builds. The prose and the [version table on the CDP 7.3.2 landing page](/installations/cdp-7-3-2) win - never read a realm, hostname or version out of a screenshot.
-
-| Where | What the guide shows | What this build actually is |
-|:--|:--|:--|
-| Screenshot in Step 1 | default_realm = CDPPVCDS.COM | realm CLDRSETUP.LOCAL, domain cldrsetup.local |
-| Screenshots in Steps 8 and 10 | realm CDPPVCDS.COM, host ipaserver.cdppvcds.com, domain cdppvcds.com | the values in the Table 4 above |
-| rpm -qa output in Step 12 | ipa-client-4.6.8-5.el7.centos.16 | the nodes in this build run **RHEL 9.5** |
-| Wizard chrome in the Step 5/6 screenshots | Cloudera Manager 7.11.3 | Cloudera Manager **7.13.2.6** |
-| Documentation link at the top of this page | cdp-private-cloud-base/7.1.9/... | Cloudera on premises Base **7.3.2.0** |
-
-<Banner type="info">
-**Note:** Step 8 in the source reads *"Use Table 6 as an example"*, but the table immediately below it is labelled **Table 4**. The table reproduced above is that Table 4 - there is no Table 6 in this section.
-</Banner>
 
 ## What comes next
 

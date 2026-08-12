@@ -55,14 +55,3 @@ The guide points at the upstream reference [docs.cloudera.com/data-warehouse/1.5
 10. A new **Virtual Warehouse** will be created. You can use **Hue** to submit queries to the underlying engine of the Virtual Warehouse.
 
     ![Cloudera Data Warehouse Overview page on the Virtual Warehouses tab, listing ptgty-imp-wh1 of type IMPALA with 3 CPU and ptgty-hiv-wh1 of type HIVE with 12 CPU, both Stopped on version 2025.0.19.1-49, each with a HUE app link and a Start action](/images/cdp-7-3-2/cdw/07-virtual-warehouses-list.png)
-
-## Version strings and hostnames in this section
-
-The captures on this page come from more than one lab build, so what they display does not always match the environment this guide builds. Read them for the workflow, not for the values.
-
-| Where | The capture shows | This guide installs / uses |
-|:--|:--|:--|
-| New Virtual Warehouse form | Database Catalog cdp-pse-development-datalake-default | The default catalog named after your own environment, e.g. cldrsetup |
-| Overview, Database Catalogs tab | Catalog warehouse-cldrsetup on cldrsetup | Matches the guide's cldrsetup.local lab |
-| Overview, Virtual Warehouses tab | ptgty-imp-wh1 and ptgty-hiv-wh1, already created and Stopped | You are creating your first VW, so the list starts empty |
-| Activate Environment dialog | Environment cdp-env-temp | Your registered PvC Base environment |

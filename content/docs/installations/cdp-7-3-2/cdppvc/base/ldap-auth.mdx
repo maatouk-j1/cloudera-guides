@@ -15,7 +15,7 @@ nextSlug: /installations/cdp-7-3-2/cdppvc/base/optimize-log-collection
 
 This page configures **service** authentication against the directory. It is a different page from [Configure CM for external authentication using LDAP](/installations/cdp-7-3-2/cdppvc/cm/ldap-auth), which does the same job for Cloudera Manager itself. The directory is the FreeIPA server stood up in [Post OS Installation - Preliminary Work](/installations/cdp-7-3-2/post-os-work), and the bind password is the KDC admin password configured there.
 
-Every screenshot on this page is recycled from an unrelated Active Directory lab - see [Version strings and lab domains in this section](#version-strings-and-lab-domains-in-this-section) at the foot of the page. **Use the tables, never the captures.**
+Every screenshot on this page is recycled from an unrelated Active Directory lab. **Use the tables, never the captures.**
 
 ## 1. Configure Ranger authentication for LDAP
 
@@ -237,21 +237,3 @@ The source gives this section no numbered steps - only the capture and the prope
 | Enable LDAP Authentication for HMS: | True (Checked) |
 | LDAP URL: | ldap://ipaserver.cldrsetup.local:389/ |
 | LDAP Base DN: | dc=cldrsetup,dc=local |
-
-## Version strings and lab domains in this section
-
-Every capture on this page comes from a different lab than the one this guide builds - an Active Directory domain, not the FreeIPA server the tables target. The values are transcribed from the tables; the screenshots are kept because they show *where* each property lives in Cloudera Manager, not what to type into it.
-
-| Where | Tables say | Screenshots show |
-|:--|:--|:--|
-| Directory server | ldap://ipaserver.cldrsetup.local:389/ | ldaps://winjb-ucsg16.cdip.cisco.local:636 |
-| Base DN | dc=cldrsetup,dc=local | DC=cdip,DC=cisco,DC=local |
-| Bind user | uid=admin,cn=users,cn=accounts,dc=cldrsetup,dc=local | CN=cdpbind,OU=cloudera,DC=cdip,DC=cisco,DC=local |
-| AD domain (Hue, Hive) | cldrsetup.local | cdip.cisco.local |
-| Cluster name (Hue, HDFS captures) | PvCBaseCluster1 | cdip-cdp |
-
-Three further disagreements are internal to the source and are transcribed as printed rather than reconciled:
-
-- **Table 9 against the Usersync captures.** The table sets `Usersync User Object Class: person`, `Usersync User Search Filter: uid=*`, `Usersync User Name Attribute: uid` and both case conversions to `none`; the captures show `user`, `(&(objectClass=user)(sAMAccountName={0}))`, `sAMAccountName` and `lower`. The captures are the AD lab's values - Table 9 is the LDAP column and Table 10 the AD one.
-- **Ranger's AD Referral.** The base capture shows `ignore`, the corrected crop laid over it shows `follow`, and Table 8 says `follow`.
-- **Documentation links.** The displayed URLs all read `7.3.2`, but their PDF link annotations point at `7.1.9` (Ranger PostgreSQL) and `7.3.1` (Ranger LDAP settings, Hue, Atlas). They are transcribed as plain text rather than linked to a stale target.
