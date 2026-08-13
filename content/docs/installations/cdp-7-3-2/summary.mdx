@@ -17,12 +17,12 @@ This guide provides all the required information to set up and install Cloudera 
 
 Install Cloudera on premises Base and Data Service Clusters:
 
-- [Cloudera on premises Base installation](https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/installation/topics/cdpdc-installation.html)
+- [Cloudera on premises Base installation](https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/cdp-private-cloud-base-installation/topics/cdpdc-installation.html)
 - [Data Services installation on ECS](https://docs.cloudera.com/cdp-private-cloud-data-services/latest/installation-ecs/topics/cdppvc-installation-ecs-steps.html)
 
 Uninstall and cleanup Cloudera on premises Base, Data Service Clusters and PostgreSQL DB:
 
-- [Cloudera on premises Base uninstallation](https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/installation/topics/cdpdc-uninstallation.html)
+- [Cloudera on premises Base uninstallation](https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/cdp-private-cloud-base-installation/topics/cdpdc-uninstallation.html)
 - [Uninstall Data Services on ECS](https://docs.cloudera.com/cdp-private-cloud-data-services/1.5.5/installation-ecs/topics/cdppvc-installation-ecs-uninstall-pvc.html)
 - [How to completely uninstall PostgreSQL](https://kb.objectrocket.com/postgresql/how-to-completely-uninstall-postgresql-757)
 
@@ -185,7 +185,7 @@ The external NFS storage is expected to be ready prior to installing the Clouder
 
 ## Hardware Requirements
 
-Hardware specs (CPU, memory, disk, and so on) should be analyzed and re-determined as per the setup requirement: POC, demo, HA, DR. The setup below is for POC/Demo purposes only. See the [Cloudera requirements and supported versions](https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/installation/topics/cdpdc-requirements-supported-versions.html).
+Hardware specs (CPU, memory, disk, and so on) should be analyzed and re-determined as per the setup requirement: POC, demo, HA, DR. The setup below is for POC/Demo purposes only. See the [Cloudera requirements and supported versions](https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/cdp-private-cloud-base-installation/topics/cdpdc-requirements-supported-versions.html).
 
 ### FreeIPA/Kerberos & Private DNS Server
 
@@ -203,7 +203,7 @@ In case we are not going with FreeIPA, an external Kerberos/KDC is required.
 
 ### PvC Base Cluster: a 4-node cluster on VMs
 
-The BaseMaster node also hosts the Gateway and Utility hosts' services as per the [public documentation on runtime cluster host role assignments](https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/installation/topics/cdpdc-runtime-cluster-hosts-role-assignments.html). The role assignment strategy for Control Plane Services (HDFS, YARN, Spark, and so on) is discussed in the later steps of the PvC Base cluster setup.
+The BaseMaster node also hosts the Gateway and Utility hosts' services as per the [public documentation on runtime cluster host role assignments](https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/cdp-private-cloud-base-installation/topics/cdpdc-runtime-cluster-hosts-role-assignments.html). The role assignment strategy for Control Plane Services (HDFS, YARN, Spark, and so on) is discussed in the later steps of the PvC Base cluster setup.
 
 | Role | HostName | CPU | RAM | Disk | Partitions |
 |:--|:--|:--|:--|:--|:--|
@@ -307,7 +307,7 @@ Further references:
 
 - [Requirements and supported versions, including product compatibility matrices](https://supportmatrix.cloudera.com/), and the [Cloudera on premises Base 7.3.2 documentation index](https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/index.html)
 - [Cloudera on premises Base and Experiences versions and supported features](https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/private-release-notes/topics/rt-runtime-component-versions_732.html)
-- [Cloudera on premises Base requirements and supported versions](https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/installation/topics/cdpdc-requirements-supported-versions.html)
+- [Cloudera on premises Base requirements and supported versions](https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/cdp-private-cloud-base-installation/topics/cdpdc-requirements-supported-versions.html)
 
 Dedicated **NVMe/SSD drives** are recommended to store Ozone metadata and Ozone mgmt configuration for the admin/mgmt nodes and worker/data nodes, and CDW data service storage for virtual warehouses for local attached Storage Tiering Cache.
 
