@@ -16,11 +16,11 @@ Please review Database Requirement for Cloudera on premises Base.
 This procedure highlights the installation and configuration steps with PostgreSQL. Please review Install and Configure Databases for Cloudera on premises Base for more details: [https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/cdp-private-cloud-base-installation/topics/cdpdc-install-config-postgresql-for-cdp.html](https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/cdp-private-cloud-base-installation/topics/cdpdc-install-config-postgresql-for-cdp.html)
 
 <Banner type="warning">
-**Note:** If you already have a PostgreSQL database set up, you can skip to the section Configuring and Starting the PostgreSQL Server to verify that your PostgreSQL configurations meet the requirements for Cloudera Manager.
+If you already have a PostgreSQL database set up, you can skip to the section Configuring and Starting the PostgreSQL Server to verify that your PostgreSQL configurations meet the requirements for Cloudera Manager.
 </Banner>
 
 <Banner type="info">
-**Note:** We will be installing the external PostgreSQL DB server on the `cldr-mngr` host.
+We will be installing the external PostgreSQL DB server on the `cldr-mngr` host.
 </Banner>
 
 ---
@@ -79,13 +79,13 @@ This procedure highlights the installation and configuration steps with PostgreS
 4. Make sure that the data directory, which by default is `/var/lib/pgsql/17/data/`, is on a partition that has sufficient free space.
 
     <Banner type="warning">
-    **Note:** Cloudera Manager supports the use of a custom schema name for the Cloudera Manager Server database. By default, PostgreSQL only accepts connections on the loopback interface. You must reconfigure PostgreSQL to accept connections from external hosts.
+    Cloudera Manager supports the use of a custom schema name for the Cloudera Manager Server database. By default, PostgreSQL only accepts connections on the loopback interface. You must reconfigure PostgreSQL to accept connections from external hosts.
     </Banner>
 
 5. Installing the psycopg2 Python package for PostgreSQL-backed Hue. *(Skip this, as we already performed it in prior steps)*
 
     <Banner type="warning">
-    **Note:** If you are installing Runtime 7 and using PostgreSQL as a backend database for Hue, then you must install the 2.9.3 version (or greater) of the psycopg2 package on all Hue hosts. The psycopg2 package is automatically installed as a dependency of Cloudera Manager Agent, but the version installed is often lower than 2.9.3
+    If you are installing Runtime 7 and using PostgreSQL as a backend database for Hue, then you must install the 2.9.3 version (or greater) of the psycopg2 package on all Hue hosts. The psycopg2 package is automatically installed as a dependency of Cloudera Manager Agent, but the version installed is often lower than 2.9.3
     </Banner>
 
 6. Make sure the psycopg2 package dependencies for RHEL 9 is installed on all required hosts, by running the following commands:
@@ -175,7 +175,7 @@ This procedure highlights the installation and configuration steps with PostgreS
     ```
 
     <Banner type="info">
-    **Note:** Settings vary based on cluster size and resources.
+    Settings vary based on cluster size and resources.
     </Banner>
 
 11. Start the PostgreSQL Server and configure it to start at boot.
@@ -497,11 +497,11 @@ This procedure highlights the installation and configuration steps with PostgreS
     - [https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/cdp-private-cloud-base-installation/topics/cdpdc-configuring-starting-postgresql-server.html](https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/cdp-private-cloud-base-installation/topics/cdpdc-configuring-starting-postgresql-server.html)
 
     <Banner type="warning">
-    **Note:** The databases must be configured to support the PostgreSQL UTF8 character set encoding.
+    The databases must be configured to support the PostgreSQL UTF8 character set encoding.
     </Banner>
 
     <Banner type="warning">
-    **Note:** Record the values you enter for database names, usernames, and passwords. The Cloudera Manager installation wizard requires this information to correctly connect to these databases.
+    Record the values you enter for database names, usernames, and passwords. The Cloudera Manager installation wizard requires this information to correctly connect to these databases.
     </Banner>
 
     ```sql
@@ -584,11 +584,11 @@ This procedure highlights the installation and configuration steps with PostgreS
     ```
 
     <Banner type="info">
-    **Note:** If you plan to use Apache Ranger, please visit Configuring a PostgreSQL Database for Ranger or Ranger KMS for instructions on creating and configuring the Ranger database. **included above- install JDBC driver, create DB for ranger etc.**
+    If you plan to use Apache Ranger, please visit Configuring a PostgreSQL Database for Ranger or Ranger KMS for instructions on creating and configuring the Ranger database. **included above- install JDBC driver, create DB for ranger etc.**
     </Banner>
 
     <Banner type="info">
-    **Note:** If you plan to use Schema Registry or Streams Messaging Manager, please visit Configuring the Database for Streaming Components for instructions on configuring the database. included above- create smm and registry db etc.
+    If you plan to use Schema Registry or Streams Messaging Manager, please visit Configuring the Database for Streaming Components for instructions on configuring the database. included above- create smm and registry db etc.
     </Banner>
 
     <Banner type="important">

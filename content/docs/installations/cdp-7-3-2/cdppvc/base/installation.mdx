@@ -32,7 +32,7 @@ The wizard runs in eight stages - Cluster Basics, Specify Hosts, Select Reposito
 3. Enter the cluster host names or IP addresses in the Hostnames field. You can Provide the host pattern `pvcbase-master`, `pvcbase-worker[1-3]` or `pvcbase-worker[1-3].cldrsetup.local` etc separated with a new line and Click on **Search**.
 
     <Banner type="important">
-    **Note:** Host names must be in lowercase. If you use uppercase letters in any host name, the cluster services will not start after enabling Kerberos.
+    Host names must be in lowercase. If you use uppercase letters in any host name, the cluster services will not start after enabling Kerberos.
     </Banner>
 
 4. Specify the hosts that are part of the cluster using their IP addresses or hostname. The figure below shows a pattern that specifies the IP addresses range. Cloudera Manager will "discover" the hosts based on matching the pattern provided by you to add in the cluster. Verify that all desired nodes have been found and **selected for installation**. Verify host entries, **deselect** any that you do not want to install services on, and click **Continue**.

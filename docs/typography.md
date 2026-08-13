@@ -288,9 +288,13 @@ dark:prose-strong:text-stone-100`).
 
 ```mdx
 <Banner type="warning">
-**Note:** Follow these steps **only** if you have existing Nutanix hardware.
+Follow these steps **only** if you have existing Nutanix hardware.
 </Banner>
 ```
+
+**No `**Note:**` label inside the banner.** The icon already says it is a note, so the word is a
+second copy of the same signal and it eats the first three words of every callout. Open with the
+sentence itself. Strip the label when transcribing a source that carries one.
 
 Three types are valid, and the icon colour is the whole signal — a reader scanning a page reads the
 colour before the words, so the type must match what the note actually costs them:
@@ -307,8 +311,8 @@ cannot distinguish red from yellow. It also matches GitHub's own alert set (`> [
 `> [!WARNING]`, `> [!CAUTION]`), which most readers of this guide already have an eye for. Keep the
 shapes paired to the levels — a fourth banner type would need a fourth shape, not a fourth colour.
 
-Pick by consequence, not by how the source guide labelled it — most lines that open **Note:** in the
-source PDF are `info`, and a handful marked *"Note"* are genuinely red. Keep `important` rare: it is
+Pick by consequence, not by how the source guide labelled it — most lines the source PDF opens with
+*"Note"* are `info`, and a handful of them are genuinely red. Keep `important` rare: it is
 the only one that should make someone stop, and it stops meaning that if every third banner is red.
 
 Omitting `type`, or passing anything other than the three values above, falls through to the `info`
@@ -373,7 +377,7 @@ nextSlug: /installations/<topic-slug>/<next-page>
 ---
 
 <Banner type="important">
-**Note:** Run these steps on the master host **only**. Running them on a worker node leaves the
+Run these steps on the master host **only**. Running them on a worker node leaves the
 cluster in a state that requires a full reinstall.
 </Banner>
 
@@ -394,7 +398,7 @@ and failure at this point leaves a partial schema behind.
 </Banner>
 
 <Banner type="info">
-**Note:** The schema script prints its progress to stdout and takes a few minutes on a first run.
+The schema script prints its progress to stdout and takes a few minutes on a first run.
 </Banner>
 
 ## Version matrix

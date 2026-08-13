@@ -28,7 +28,7 @@ This is the longest single procedure in the guide - one wizard, **29 steps**, ru
     ![Add Private Cloud Containerized Cluster landing page showing the single Private Cloud Containerized Cluster tile marked Selected, with explanatory text about container-native data services and an Other Options link for OpenShift, and Back and Continue buttons](/images/cdp-7-3-2/ds/ecs/installation/02-add-private-cloud-containerized-cluster.png)
 
     <Banner type="info">
-    **Note:** Alternatively, you can also click **(+) Add > Add Cluster** at the **top right** in **Cloudera Manager**, then select **Private Cloud Containerized Cluster** as the **cluster type**, then click **Continue**.
+    Alternatively, you can also click **(+) Add > Add Cluster** at the **top right** in **Cloudera Manager**, then select **Private Cloud Containerized Cluster** as the **cluster type**, then click **Continue**.
     </Banner>
 
     ![Cloudera Manager Add drop-down menu open, showing the two entries Add Cluster and Add Hosts beside the Switch to Table View button](/images/cdp-7-3-2/ds/ecs/installation/03-add-menu-add-cluster.png)
@@ -44,7 +44,7 @@ This is the longest single procedure in the guide - one wizard, **29 steps**, ru
     ![Getting Started page of the Add Private Cloud Containerized Cluster wizard with the twelve-stage progress rail on the left, Install Method set to Internet, the Select Repository box showing the archive.cloudera.com cdp-pvc-ds latest URL, and the prerequisite and What's new lists below](/images/cdp-7-3-2/ds/ecs/installation/05-getting-started-internet.png)
 
     <Banner type="info">
-    **Note:** Verify if the version shown below is the same as the version that we are willing to install i.e. **1.5.5-h5** for current setup.
+    Verify if the version shown below is the same as the version that we are willing to install i.e. **1.5.5-h5** for current setup.
     </Banner>
 
     ![Install Method section showing Internet selected and the Select Repository drop-down, with the line You are about to install CDP Private Cloud Data Services version 1.5.4-h5-b104 outlined in red](/images/cdp-7-3-2/ds/ecs/installation/06-install-method-version-check.png)
@@ -120,11 +120,11 @@ This is the longest single procedure in the guide - one wizard, **29 steps**, ru
 11. On the **Specify Hosts** page, hosts that have already been added to Cloudera Manager are listed on the **Currently Managed Hosts** tab. If the intended ECS nodes are not added previously (in case of a fresh setup) and you can't see them listed under **Currently Managed Hosts** tab, Click on **New Hosts** tab.
 
     <Banner type="important">
-    **Note:** To specify the hosts that are part of the cluster, enter Fully Qualified Domain Names (FQDNs)/hostnames or IP addresses in the Hostname field, or provide a list of search patterns/ IP address range of available matching ECS hosts. **Host names must be in lowercase. If you use uppercase letters in any host name, the cluster services will not start after enabling Kerberos.**
+    To specify the hosts that are part of the cluster, enter Fully Qualified Domain Names (FQDNs)/hostnames or IP addresses in the Hostname field, or provide a list of search patterns/ IP address range of available matching ECS hosts. **Host names must be in lowercase. If you use uppercase letters in any host name, the cluster services will not start after enabling Kerberos.**
     </Banner>
 
     <Banner type="info">
-    **Note:** You can Provide host pattern `pvcbase-master`, `pvcbase-worker[1-3]` or `pvcbase-worker[1-3].cldrsetup.local` etc separated with a new line and Click on **Search**. Cloudera Manager will "discover" the hosts based on matching the pattern provided by you to add in the cluster. Verify that all desired nodes have been found and **selected for installation**. Verify host entries, **deselect** any that you do not want to install services on. Select and/or deselect one or more of these hosts to add to the ECS cluster and click **Continue**.
+    You can Provide host pattern `pvcbase-master`, `pvcbase-worker[1-3]` or `pvcbase-worker[1-3].cldrsetup.local` etc separated with a new line and Click on **Search**. Cloudera Manager will "discover" the hosts based on matching the pattern provided by you to add in the cluster. Verify that all desired nodes have been found and **selected for installation**. Verify host entries, **deselect** any that you do not want to install services on. Select and/or deselect one or more of these hosts to add to the ECS cluster and click **Continue**.
     </Banner>
 
     ```text
@@ -133,7 +133,7 @@ This is the longest single procedure in the guide - one wizard, **29 steps**, ru
     ```
 
     <Banner type="info">
-    **Note:** Click the pattern link under the Hostname box to display more information about allowed **FQDN** patterns.
+    Click the pattern link under the Hostname box to display more information about allowed **FQDN** patterns.
     </Banner>
 
     ![Specify Hosts page on the New Hosts tab with 11 hosts selected, the Hostname box holding the master and worker patterns, SSH Port 22, and a results table listing pvcecs-master and pvcecs-worker1 through worker10 with their IP addresses and the result Host was successfully scanned](/images/cdp-7-3-2/ds/ecs/installation/14-specify-hosts.png)
@@ -184,7 +184,7 @@ This is the longest single procedure in the guide - one wizard, **29 steps**, ru
 15. Next on the **Assign Roles** page, ensure that the roles assignment for your new **Cloudera on premises Containerized cluster** is as follows. You can customize the role assignment for your cluster. But, Cloudera does not recommend altering assignments unless you have specific requirements such as having selected a specific host for a specific role.
 
     <Banner type="warning">
-    **Note:** Single node ECS installation is supported, but is only intended to enable CDSW to CAI migration. If you are installing ECS on a single node, only the Docker and ECS Server roles are assigned. The ECS Agent role is not required for single node installation.
+    Single node ECS installation is supported, but is only intended to enable CDSW to CAI migration. If you are installing ECS on a single node, only the Docker and ECS Server roles are assigned. The ECS Agent role is not required for single node installation.
     </Banner>
 
     **Note:** With 1 mgmt node and 12 worker node for CDP Data Services ECS cluster we select host role assignment as:
@@ -257,7 +257,7 @@ This option requires that cluster hosts have access to the internet and you have
 This option requires that you set up a Docker Repository in your environment and that all cluster hosts have connectivity to the repository.
 
 <Banner type="warning">
-**Note:** If you are installing ECS on a single node, you should select the Use a Custom Docker Repository option. Single node ECS installation is supported, but is only intended to enable CDSW to CAI migration.
+If you are installing ECS on a single node, you should select the Use a Custom Docker Repository option. Single node ECS installation is supported, but is only intended to enable CDSW to CAI migration.
 </Banner>
 
 ![Configure Docker Repository page with Use a custom Docker Repository selected, an empty Custom Docker Repository box, instructions for generating and running the copy-docker script, a confirmation checkbox, and Docker Username, Docker Password and Docker Certificate fields](/images/cdp-7-3-2/ds/ecs/installation/23-docker-repository-custom.png)
@@ -290,11 +290,11 @@ bash copy-docker.txt
 The copying operation may take 4 - 5 hours.
 
 <Banner type="warning">
-**Note:** Embedded Repository can be a single point of failure. If the node that runs the Docker Repository fails or becomes unavailable, some cluster functionalities might become unavailable. Moving the Docker Repository to another node is a complex process and will require engaging Cloudera Professional Services.
+Embedded Repository can be a single point of failure. If the node that runs the Docker Repository fails or becomes unavailable, some cluster functionalities might become unavailable. Moving the Docker Repository to another node is a complex process and will require engaging Cloudera Professional Services.
 </Banner>
 
 <Banner type="info">
-**Note:** Cloudera Repository option is best suited for proof-of-concept, non-production deployments or deployments that do not have security requirements that disallow internet access. This option requires that cluster hosts have access to the internet, and an installation method selected as Internet.
+Cloudera Repository option is best suited for proof-of-concept, non-production deployments or deployments that do not have security requirements that disallow internet access. This option requires that cluster hosts have access to the internet, and an installation method selected as Internet.
 </Banner>
 
 ## Step. Configure Data Services
@@ -313,7 +313,7 @@ The copying operation may take 4 - 5 hours.
     On the **Configure Data Services** page, you can modify configuration settings such as the data storage directory, number of replicas, and so on. If you want to specify a custom certificate, place the certificate and the private key in a specific location on the Cloudera Manager server host and specify the paths in the input boxes labeled as Ingress Controller TLS/SSL Server Certificate/Private Key File below. This certificate will be copied to the Control Plane during the installation process.
 
     <Banner type="warning">
-    **Note:** The "Ingress Controller TLS/SSL Server Certificate File (PEM Format)" must only contain `-----BEGIN CERTIFICATE-----` through `-----END CERTIFICATE-----` (inclusive) for the server and CA certs. It cannot include any preamble text and, and must not include a private key.
+    The "Ingress Controller TLS/SSL Server Certificate File (PEM Format)" must only contain `-----BEGIN CERTIFICATE-----` through `-----END CERTIFICATE-----` (inclusive) for the server and CA certs. It cannot include any preamble text and, and must not include a private key.
 
     The "Ingress Controller TLS/SSL Server Private Key File (PEM Format)" must only contain the unencrypted key, and only the header through the footer, with no preamble text.
 
@@ -325,7 +325,7 @@ The copying operation may take 4 - 5 hours.
     ![Configure Data Services page showing Data Storage Directory with DOCKER Service-Wide set to /docker and ECS Service-Wide set to /lhdata, Application Domain set to cdppvcds.com, Local Path Storage Directory /cdwdata, Number of replicas target_redundancy 2, Use internal alias for registry unchecked and Cluster Signing Duration 365](/images/cdp-7-3-2/ds/ecs/installation/24-configure-data-services.png)
 
     <Banner type="warning">
-    **Note:** Please review the range of cluster IP and service IP as part of the ECS installation. It might conflict existing network configuration. Please adjust the range of IPs to be configured. Consult with the network team to avoid potential conflict.
+    Please review the range of cluster IP and service IP as part of the ECS installation. It might conflict existing network configuration. Please adjust the range of IPs to be configured. Consult with the network team to avoid potential conflict.
     </Banner>
 
     ![Cluster IP Range set to 10.42.0.0/16 and Service IP Range set to 10.43.0.0/16, described as the IPv4/IPv6 network CIDRs to use for pod IPs and service IPs](/images/cdp-7-3-2/ds/ecs/installation/25-cluster-and-service-ip-range.png)
@@ -365,7 +365,7 @@ The copying operation may take 4 - 5 hours.
     ![Check Prerequisites page with a red Host Prerequisites banner reading Error(s) were detected, Status Finished, a Run Again button, and one error row about the 16-core minimum, with the Continue button greyed out](/images/cdp-7-3-2/ds/ecs/installation/29-check-prerequisites-failed.png)
 
     <Banner type="warning">
-    **Note:** If the prerequisite check fails due to any reason or you need to skip this step, try the workaround by right-clicking on the screen, select **Inspect**, go to the **Console** tab, and run the below command:
+    If the prerequisite check fails due to any reason or you need to skip this step, try the workaround by right-clicking on the screen, select **Inspect**, go to the **Console** tab, and run the below command:
     </Banner>
 
     ```javascript
@@ -385,11 +385,11 @@ The copying operation may take 4 - 5 hours.
 23. On the **Inspect Cluster** page, you can **Inspect your Network Performance and Hosts**. Click on the **Show Inspector Results**. If the inspect tool displays any issues, you can fix those issues and click on **Run Again** to rerun the inspect tool. After all of the issues have been resolved, click on **Continue**.
 
     <Banner type="warning">
-    **Note:** These inspections are more comprehensive host and network tests that you can **optionally run**. To **skip these tests**, select the **I understand the risks of not running the inspections or the detected issues, let me continue with cluster setup** checkbox.
+    These inspections are more comprehensive host and network tests that you can **optionally run**. To **skip these tests**, select the **I understand the risks of not running the inspections or the detected issues, let me continue with cluster setup** checkbox.
     </Banner>
 
     <Banner type="info">
-    **Note:** Safe to ignore unrelated errors in the host inspector result. For example, the hosts in a Cloudera on premises Containerized Cluster that have GPUs are required to have NVidia Drivers and NVidia-container-runtime installed. The following hosts do not satisfy this requirement: `pvcecs-worker[1-12].cldrsetup.local`
+    Safe to ignore unrelated errors in the host inspector result. For example, the hosts in a Cloudera on premises Containerized Cluster that have GPUs are required to have NVidia Drivers and NVidia-container-runtime installed. The following hosts do not satisfy this requirement: `pvcecs-worker[1-12].cldrsetup.local`
 
     Since all hosts part of the ECS installation might not have NVIDIA GPU installed and NVidia driver and NVidia container-runtime is not installed on non-GPU node(s). It is safe to ignore the warning and click on the checkbox to continue with ECS installation.
     </Banner>
@@ -433,7 +433,7 @@ The copying operation may take 4 - 5 hours.
     ```
 
     <Banner type="info">
-    **Note:** Run `# kubectl get pods -A` to review all pods and their status as either running or completed.
+    Run `# kubectl get pods -A` to review all pods and their status as either running or completed.
     </Banner>
 
 25. After the **RKE2 installation step is completed**, keep the remaining steps running but immediately log in to *pvcecs-master* node and **update the config for coredns to point to private DNS** (ipaserver or AD server). The coredns config should look like similar to below one:
@@ -518,7 +518,7 @@ The copying operation may take 4 - 5 hours.
 26. **Install Data Services** step will run a set of first run commands and report status on Data Services installation. The installation progress is displayed on the **Install Data Services** page. This step will take **nearly an hour to complete**. When the installation is complete, click **Continue**.
 
     <Banner type="info">
-    **Note:** Installing Data Services can take several hours. The copying operation for Docker repository may take 4 - 5 hours.
+    Installing Data Services can take several hours. The copying operation for Docker repository may take 4 - 5 hours.
     </Banner>
 
     ![Install Data Services page showing First Run Command Status Finished in 17.8m, with Start DOCKER completing in 47.21s and Start ECS in 17m, and the message Finished First Run of the following services successfully: DOCKER, ECS](/images/cdp-7-3-2/ds/ecs/installation/33-install-data-services-finished.png)
@@ -626,7 +626,7 @@ recreate the ECS environment.
 Reference: [https://community.cloudera.com/t5/Support-Questions/Unable-to-create-Data-Engineering-Cluster-in-CDP-Private/m-p/377969](https://community.cloudera.com/t5/Support-Questions/Unable-to-create-Data-Engineering-Cluster-in-CDP-Private/m-p/377969)
 
 <Banner type="important">
-**Note:** Ozone is a necessary service if you want to install CDE. This error typically occurs when required services like Ozone are not present in the base cluster at the time of CDE environment creation. In such cases, the `cdp-services` namespace remains empty and lacks critical components like the `s3proxy`, which is essential for Fluent Bit to forward logs to Ozone. The `s3proxy` deployment is triggered automatically during the environment creation process and cannot be manually deployed via Helm or other means. Therefore, if Ozone is added after the environment has already been created, the only solution is to delete and recreate the entire Data Services installation. This ensures that the `s3proxy` is properly deployed, allowing the environment to function correctly and resolving the AWS credential-related error during CDE Virtual Cluster setup.
+Ozone is a necessary service if you want to install CDE. This error typically occurs when required services like Ozone are not present in the base cluster at the time of CDE environment creation. In such cases, the `cdp-services` namespace remains empty and lacks critical components like the `s3proxy`, which is essential for Fluent Bit to forward logs to Ozone. The `s3proxy` deployment is triggered automatically during the environment creation process and cannot be manually deployed via Helm or other means. Therefore, if Ozone is added after the environment has already been created, the only solution is to delete and recreate the entire Data Services installation. This ensures that the `s3proxy` is properly deployed, allowing the environment to function correctly and resolving the AWS credential-related error during CDE Virtual Cluster setup.
 </Banner>
 
 **This one is not recoverable in place.** If CDE is on the roadmap, Ozone must be on the Base cluster *before* the ECS environment is created - which is a decision that belongs back at [Data Lake Creation](/installations/cdp-7-3-2/cdppvc/base/data-lake), not here.

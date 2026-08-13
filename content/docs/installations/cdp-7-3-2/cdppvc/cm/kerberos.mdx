@@ -12,23 +12,23 @@ nextSlug: /installations/cdp-7-3-2/cdppvc/cm/mgmt-services
 Cloudera Manager provides a wizard for integrating your organization's Kerberos with your cluster to provide authentication services. Cloudera Manager clusters can be integrated with MIT Kerberos, Red Hat Identity Management (or the upstream FreeIPA), or Microsoft Active Directory. For more information, see [Enable Kerberos Authentication for CDP](https://docs.cloudera.com/cdp-private-cloud-base/7.1.9/security-kerberos-authentication/topics/cm-security-kerberos-enabling-intro.html).
 
 <Banner type="info">
-**Note:** In our lab, we configured AD based Kerberos authentication. We presume that AD is pre-configured with user(s) and proper authentication is set up for Kerberos Authentication.
+In our lab, we configured AD based Kerberos authentication. We presume that AD is pre-configured with user(s) and proper authentication is set up for Kerberos Authentication.
 </Banner>
 
 <Banner type="warning">
-**Note:** Before integrating Kerberos with your cluster, configure TLS encryption between Cloudera Manager Server and all Cloudera Manager Agent host systems in the cluster. During the Kerberos integration process, Cloudera Manager Server sends keytab files to the Cloudera Manager Agent hosts, and TLS encrypts the network communication, so these files are protected.
+Before integrating Kerberos with your cluster, configure TLS encryption between Cloudera Manager Server and all Cloudera Manager Agent host systems in the cluster. During the Kerberos integration process, Cloudera Manager Server sends keytab files to the Cloudera Manager Agent hosts, and TLS encrypts the network communication, so these files are protected.
 </Banner>
 
 <Banner type="warning">
-**Note:** For FreeIPA, you must have administrative privileges to the `ipaserver` instance for initial setup and for on-going management, or you will need to have the help of your LDAP administrator prior to and during the integration process. For example, administrative access is needed to access the FreeIPA Kerberos KDC, create principals, and troubleshoot Kerberos TGT/TGS-ticket-renewal and take care of any other issues that may arise.
+For FreeIPA, you must have administrative privileges to the `ipaserver` instance for initial setup and for on-going management, or you will need to have the help of your LDAP administrator prior to and during the integration process. For example, administrative access is needed to access the FreeIPA Kerberos KDC, create principals, and troubleshoot Kerberos TGT/TGS-ticket-renewal and take care of any other issues that may arise.
 </Banner>
 
 <Banner type="info">
-**Note:** In case, you configure **Active-Directory** based Kerberos authentication. We presume that Active Directory is pre-configured with OU, user(s) and proper authentication is setup for Kerberos Authentication. LDAP users and bind users are expected to be in the same branch/OU.
+In case, you configure **Active-Directory** based Kerberos authentication. We presume that Active Directory is pre-configured with OU, user(s) and proper authentication is setup for Kerberos Authentication. LDAP users and bind users are expected to be in the same branch/OU.
 </Banner>
 
 <Banner type="warning">
-**Note:** For **Active Directory**, you must have administrative privileges to the Active Directory instance for initial setup and for on-going management, or you will need to have the help of your AD administrator prior to and during the integration process. For example, administrative access is needed to access the Active Directory KDC, create principals, and troubleshoot Kerberos TGT/TGS-ticket-renewal and take care of any other issues that may arise.
+For **Active Directory**, you must have administrative privileges to the Active Directory instance for initial setup and for on-going management, or you will need to have the help of your AD administrator prior to and during the integration process. For example, administrative access is needed to access the Active Directory KDC, create principals, and troubleshoot Kerberos TGT/TGS-ticket-renewal and take care of any other issues that may arise.
 </Banner>
 
 ---
@@ -98,7 +98,7 @@ Cloudera Manager provides a wizard for integrating your organization's Kerberos 
     | Active Directory Delete Accounts on Credential Regeneration (Only for AD based Kerberos) | Select (Check) |
 
     <Banner type="info">
-    **Note:** Step 8 in the source reads *"Use Table 6 as an example"*, but the table it points at is labelled **Table 4**. The table above is that Table 4 - there is no Table 6 in this section.
+    Step 8 in the source reads *"Use Table 6 as an example"*, but the table it points at is labelled **Table 4**. The table above is that Table 4 - there is no Table 6 in this section.
     </Banner>
 
     Check the picture below on where to populate the above mentioned fields:
@@ -106,7 +106,7 @@ Cloudera Manager provides a wizard for integrating your organization's Kerberos 
     ![Enter KDC Information page of the wizard, annotated to show which field takes the Kerberos Realm and which two take the ipaserver FQDN, with Kerberos Encryption Types already set to aes256-cts-hmac-sha1-96](/images/cdp-7-3-2/cdppvc/cm/kerberos/enter-kdc-information-fields.png)
 
     <Banner type="info">
-    **Note:** In this setup, we used Kerberos authentication with **RedHat FreeIPA**.
+    In this setup, we used Kerberos authentication with **RedHat FreeIPA**.
     </Banner>
 
     ![Enter KDC Information page filled in, with Kerberos Encryption Types aes256-cts-hmac-sha1-96, a Kerberos Security Realm, KDC Server Host and KDC Admin Server Host pointing at the ipaserver FQDN, and the Domain Name(s) field populated](/images/cdp-7-3-2/cdppvc/cm/kerberos/enter-kdc-information-filled.png)

@@ -12,7 +12,7 @@ nextSlug: /installations/cdp-7-3-2/cdw
 With Data Services running on the Embedded Container Service (ECS) cluster, Cloudera AI (CAI) is the first data service to stand up. This page walks through provisioning an AI Workbench from the Data Services console, granting users and groups access to it, creating a project, completing Hadoop (Kerberos) authentication so sessions can reach cluster data, and exploring the workbench through AMPs, sessions and the built-in IDEs.
 
 <Banner type="info">
-**Note:** The source guide titles this section *Cloudera on premises Machine Learning (CAI)*, and many of its screenshots still carry the older **Cloudera Machine Learning** / **ML Workspaces** branding. Cloudera AI is the current name for the same data service; the prose below uses **Cloudera AI (CAI)** and **AI Workbench**, matching the guide's own step text.
+The source guide titles this section *Cloudera on premises Machine Learning (CAI)*, and many of its screenshots still carry the older **Cloudera Machine Learning** / **ML Workspaces** branding. Cloudera AI is the current name for the same data service; the prose below uses **Cloudera AI (CAI)** and **AI Workbench**, matching the guide's own step text.
 </Banner>
 
 ## Reference documentation
@@ -67,7 +67,7 @@ To get started with CAI, follow the steps below.
     ![Provision workspace form continued, showing the Production Machine Learning section with Enable Governance unchecked and Enable Model Metrics checked, and an Other Settings section with Enable TLS unchecked, Enable Monitoring checked and an empty CML Static Subdomain field](/images/cdp-7-3-2/cai/step3-production-machine-learning-settings.png)
 
     <Banner type="info">
-    **Note:** Click on the *i* icon to get more information on the field.
+    Click on the *i* icon to get more information on the field.
     </Banner>
 
 4. When provisioning of the workbench is completed the status reports as **Ready**. Once it is created, it appears on the **AI Workbenches** page as shown below.
@@ -179,7 +179,7 @@ To get started with CAI, follow the steps below.
 25. Open the **AMP** created project. To access the **WebUI**, click on **Open**.
 
     <Banner type="info">
-    **Note:** If you come across any new URLs for accessing a service's Web UI, make sure to add a hostname-to-IP mapping in your laptop's `/etc/hosts` file. Use the ECS master's IP if you're mapping for Data Services. For example: `ptgty-cai-wb.apps.cldrsetup.local` should map to the ECS master IP to be accessible via your browser.
+    If you come across any new URLs for accessing a service's Web UI, make sure to add a hostname-to-IP mapping in your laptop's `/etc/hosts` file. Use the ECS master's IP if you're mapping for Data Services. For example: `ptgty-cai-wb.apps.cldrsetup.local` should map to the ECS master IP to be accessible via your browser.
     </Banner>
 
     ![Agent Studio - admin project overview at ptgty-cai-wb.apps.cldrsetup.local/admin/agent-studio-admin, with the Models, Jobs and Files sections and the workbench name ptgty-cai-workbench and cloud provider ECS shown at the bottom of the left pane](/images/cdp-7-3-2/cai/step25-amp-project-overview.png)
@@ -195,7 +195,7 @@ To get started with CAI, follow the steps below.
     ![JupyterLab notebook inside Cloudera Machine Learning running hdfs dfs -ls / , which lists seven items including /hbase, /ranger, /tmp, /user, /warehouse and /yarn, followed by hdfs dfsadmin -report showing the configured and present capacity, DFS remaining and used figures, replicated block counts all at zero, and the start of the Live datanodes list](/images/cdp-7-3-2/cai/step27-hdfs-access-jupyter.png)
 
     <Banner type="info">
-    **Note:** Deploying and documentation of every aspect of the AI Workbench, project, and user management is not covered here. Please refer to the related Cloudera documentation on the Cloudera AI How to section for more details: [https://docs.cloudera.com/machine-learning/cloud/product/topics/ml-product-overview.html](https://docs.cloudera.com/machine-learning/cloud/product/topics/ml-product-overview.html)
+    Deploying and documentation of every aspect of the AI Workbench, project, and user management is not covered here. Please refer to the related Cloudera documentation on the Cloudera AI How to section for more details: [https://docs.cloudera.com/machine-learning/cloud/product/topics/ml-product-overview.html](https://docs.cloudera.com/machine-learning/cloud/product/topics/ml-product-overview.html)
     </Banner>
 
 ## GPU in this section
