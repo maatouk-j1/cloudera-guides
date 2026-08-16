@@ -59,54 +59,32 @@ Follow steps below to configure Ranger for LDAP authentication.
 
     ![Ranger Usersync configuration part 3 - Enable User Search checked, Group Search Base, Group Object Class, Group Name Attribute, Group Member Attribute, Group Hierarchy Levels 0 and Ldap Group Names](/images/cdp-7-3-2/on-premises/base/ldap-auth/ranger-usersync-config-3.png)
 
-    **UserSync LDAP Integration**
+    **UserSync LDAP/AD Integration**
+
+    Rows tagged For AD / For LDAP take a different value depending on the directory type; every other row applies to both.
 
     | Component | Value |
     |:--|:--|
     | Source for Syncing User and Groups | org.apache.ranger.ldapusersync.process.LdapUserGroupBuilder |
     | Ranger Usersync Unix Backend | nss |
     | Usersync LDAP/AD URL | ldap://ipaserver.cldrsetup.local:389/ |
-    | Usersync Bind User | uid=admin,cn=users,cn=accounts,dc=cldrsetup,dc=local |
+    | Usersync Bind User | For AD: Administrator@cldrsetup.local — For LDAP: uid=admin,cn=users,cn=accounts,dc=cldrsetup,dc=local |
     | Usersync Bind User Password | `<ldap_bind_password>` (password for KDC admin, configured earlier) |
-    | Usersync User Search Base | cn=users,cn=accounts,dc=cldrsetup,dc=local |
+    | Usersync User Search Base | For AD: OU=cloudera,DC=cldrsetup,DC=local — For LDAP: cn=users,cn=accounts,dc=cldrsetup,dc=local |
     | Usersync User Search Scope | sub |
-    | Usersync User Object Class | person |
-    | Usersync User Search Filter | uid=* |
-    | Usersync User Name Attribute | uid |
+    | Usersync User Object Class | For AD: user — For LDAP: person |
+    | Usersync User Search Filter | For AD: (sAMAccountName=*) — For LDAP: uid=* |
+    | Usersync User Name Attribute | For AD: sAMAccountName — For LDAP: uid |
     | Usersync Referral | follow |
     | Usersync Username Case Conversion | none |
     | Usersync Groupname Case Conversion | none |
     | Usersync Enable User Search | Ranger Usersync Default Group |
-    | Usersync Group Search Base | cn=groups,cn=accounts,dc=cldrsetup,dc=local |
+    | Usersync Group Search Base | For AD: OU=cloudera,DC=cldrsetup,DC=local — For LDAP: cn=groups,cn=accounts,dc=cldrsetup,dc=local<br />*An OU would need to be mentioned to configure ldap if you are using AD based setup* |
     | Usersync Group Search Filter | For AD: `(&(objectClass=group)(member={0}))` — For LDAP: `(&(objectClass=posixGroup)(memberUid={0}))` |
     | Usersync Group Search Scope | sub |
-    | Usersync Group Object Class | ipausergroup |
+    | Usersync Group Object Class | For AD: group — For LDAP: ipausergroup |
     | Usersync Group Name Attribute | cn |
-    | Usersync Group Member Attribute | member |
-
-    **UserSync AD Integration**
-
-    | Component | Value |
-    |:--|:--|
-    | Source for Syncing User and Groups | org.apache.ranger.ldapusersync.process.LdapUserGroupBuilder |
-    | Ranger Usersync Unix Backend | nss |
-    | Usersync LDAP/AD URL | ldap://ipaserver.cldrsetup.local:389/ |
-    | Usersync Bind User | `Administrator@cldrsetup.local` |
-    | Usersync Bind User Password | `<ldap_bind_password>` (password for KDC admin, configured earlier) |
-    | Usersync User Search Base | OU=cloudera,DC=cldrsetup,DC=local |
-    | Usersync User Search Scope | sub |
-    | Usersync User Object Class | user |
-    | Usersync User Search Filter | (sAMAccountName=*) |
-    | Usersync User Name Attribute | sAMAccountName |
-    | Usersync Referral | follow |
-    | Usersync Username Case Conversion | none |
-    | Usersync Groupname Case Conversion | none |
-    | Usersync Enable User Search | Ranger Usersync Default Group |
-    | Usersync Group Search Base | OU=cloudera,DC=cldrsetup,DC=local — *An OU would need to be mentioned to configure ldap if you are using AD based setup* |
-    | Usersync Group Search Scope | sub |
-    | Usersync Group Object Class | group |
-    | Usersync Group Name Attribute | cn |
-    | Usersync Group Member Attribute | `(member={1})` |
+    | Usersync Group Member Attribute | For AD: `(member={1})` — For LDAP: member |
 
 6. Click on save changes.
 
