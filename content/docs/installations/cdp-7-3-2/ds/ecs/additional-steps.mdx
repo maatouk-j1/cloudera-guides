@@ -1,6 +1,6 @@
 ---
 title: Additional Steps for ECS Cluster Setup
-topicTitle: Install CDP Data Services using ECS
+topicTitle: Install Cloudera Data Services using ECS
 topicSlug: cdp-7-3-2/ds/ecs
 summary: Optional post-install steps for the ECS cluster - patch the GPU feature discovery pods if they crashloop, then reserve GPU nodes through the node_taint host override.
 prevTitle: Install ECS Cluster
@@ -25,7 +25,7 @@ If `nvgfd-gpu-feature-discovery-xxxx` pods remain in crashlookbackoff, apply thi
 
 ## Set up a GPU node
 
-To reserve a GPU node in Cloudera on premises Data Services ECS cluster, assign a taint to the node. Set the node taint `nvidia.com/gpu: true:NoSchedule`. For more details on setting up a GPU node, see [the Cloudera Machine Learning GPU node setup documentation](https://docs.cloudera.com/machine-learning/1.5.5/private-cloud-requirements/topics/ml-gpu-node-setup.html).
+To reserve a GPU node in Cloudera Data Services on premises ECS cluster, assign a taint to the node. Set the node taint `nvidia.com/gpu: true:NoSchedule`. For more details on setting up a GPU node, see [the Cloudera AI GPU node setup documentation](https://docs.cloudera.com/machine-learning/1.5.5/private-cloud-requirements/topics/ml-gpu-node-setup.html).
 
 1. To set up a GPU node for ECS, go to **Hosts > Configuration**.
 

@@ -22,7 +22,7 @@ const MAX_RESULTS = 10;
  * A term found in the title outweighs the same term found in the breadcrumb.
  *
  * Matching was unranked while every page's section was the constant string
- * "CDP Private Cloud", which contributed nothing. Now that the section carries
+ * "Cloudera on premises", which contributed nothing. Now that the section carries
  * the real nav trail, a common word like "install" appears in all 93 breadcrumbs
  * via the "Installations" node â€” so without ranking the top 10 was decided by
  * index order alone, which is alphabetical by path and never reached CDP 7.3.2.

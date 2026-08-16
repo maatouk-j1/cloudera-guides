@@ -26,7 +26,7 @@ const IMAGE_TREES = ['public/images/cdp-7-1-7', 'public/images/cdp-7-3-2'];
 /** Pages that render but sit in no nav, by design. */
 const UNREACHABLE_ALLOWLIST = new Set([
   // Not an on-premises installation; lives at the site root, outside version grouping.
-  'cdp-public-cloud',
+  'cloudera-on-cloud',
   // Superseded by app/page.tsx as the home page; kept as a plain /index route.
   'index',
 ]);

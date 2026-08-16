@@ -39,10 +39,10 @@ On the Cloudera Manager UI, navigate to **Clusters > Cloudera Management Service
 
 ```ini
 PostgreSQL
-com.cloudera.headlamp.orm.hibernate.connection.url=jdbc:postgresql://<DB-HOST>:<DB-PORT>/<DB_NAME>?useSSL=true&trustCertificateKeyStoreUrl=<PATH_TO_TRUSTSTORE_FILE>&trustCertificateKeyStoreType=<TRUSTSTORE_TYPE>&trustCertificateKeyStorePassword=<TRUSTSTORE_PASSWORD>
+com.cloudera.headlamp.orm.hibernate.connection.url=jdbc:postgresql://<db_host>:<db_port>/<db_name>?useSSL=true&trustCertificateKeyStoreUrl=<path_to_truststore_file>&trustCertificateKeyStoreType=<truststore_type>&trustCertificateKeyStorePassword=<truststore_password>
 com.cloudera.headlamp.db.type=postgresql
-com.cloudera.headlamp.db.host=<DB-HOST>:<DB-PORT>
-com.cloudera.headlamp.db.name=<DB_NAME>
+com.cloudera.headlamp.db.host=<db_host>:<db_port>
+com.cloudera.headlamp.db.name=<db_name>
 ```
 
 ### Agent heartbeat fails: certificate does not match localhost
@@ -67,22 +67,22 @@ in connect
 __call__
     raise WrongHost(expectedHost=self.host,
 M2Crypto.SSL.Checker.WrongHost: Peer certificate subjectAltName does not match host, expected
-localhost, got DNS:pvcbasemaster.cldrsetup.local
+localhost, got DNS:pvcbase-master.cldrsetup.local
 ```
 
 The same root cause surfaces from the server side as a host inspection failure:
 
 ```text
-pvcecs[1-5].cldrsetup.local; pvcecsmaster.cldrsetup.local: IOException thrown while collecting data
+pvcecs[1-5].cldrsetup.local; pvcecs-master.cldrsetup.local: IOException thrown while collecting data
 from host: Received fatal alert: internal_error
 ```
 
 **Solution.** Change the `server_host` in the agent config from `localhost` to the DNS name and restart all agents.
 
 ```text
-openssl s_client -connect pvcbasemaster.cldrsetup.local:7183
+openssl s_client -connect pvcbase-master.cldrsetup.local:7183
 
-[root@pvcbasemaster cloudera-scm-agent]# cat /etc/cloudera-scm-agent/config.ini|grep server
+[root@pvcbase-master cloudera-scm-agent]# cat /etc/cloudera-scm-agent/config.ini|grep server
 change hostname to dnsname in place of localhost and restart all agents (heartbeat issue resolved)
 
 /opt/cloudera/cm-agent/bin/supervisorctl -c /var/run/cloudera-scm-agent/supervisor/supervisord.conf restart status_server
@@ -96,7 +96,7 @@ grep -v -e '^[[:space:]]*$' -e '^#' /etc/cloudera-scm-agent/config.ini
 2024-03-16 03:04:54,710 ERROR pool-7-thread-1:com.cloudera.server.cmf.components.CmServerStateSynchronizer: Failed during cleanup : null
 ```
 
-**Solution.** Set `java_home` by searching for *java* in the configuration on the Cloudera Manager console. Install PostgreSQL and CDP Base on the same day, all together — otherwise this may cause an SSL issue (observation).
+**Solution.** Set `java_home` by searching for *java* in the configuration on the Cloudera Manager console. Install PostgreSQL and Cloudera Base on premises on the same day, all together — otherwise this may cause an SSL issue (observation).
 
 ### Stale service status
 
@@ -177,14 +177,14 @@ Type "help" for help.
 
 postgres=# \q
 
-[root@pvcbasemaster data]# echo -n 'Sahu@123{admin}' | md5sum
-c94251c29cd07ed2daf0b6edcf843362  -
+[root@pvcbase-master data]# echo -n '<new_admin_password>' | md5sum
+<md5_of_new_admin_password>  -
 ```
 
 Then update the row and read it back:
 
 ```text
-[root@pvcbasemaster data]# sudo -u postgres psql -U postgres -p 5432 -h $(hostname)
+[root@pvcbase-master data]# sudo -u postgres psql -U postgres -p 5432 -h $(hostname)
 Password for user postgres:
 psql (17.11)
 SSL connection (protocol: TLSv1.2, cipher: ECDHE-RSA-AES256-GCM-SHA384, bits: 256, compression: off)
@@ -197,7 +197,7 @@ ranger=# update x_portal_user set password = '9746e519adb14ec3ffbf4aff051f104d' 
 UPDATE 1
 ranger=# select * from x_portal_user where login_id = 'admin';
   id |        create_time         |       update_time       | added_by_id | upd_by_id | first_name | last_name | pub_scr_name | login_id | password | email | status | user_src | notes | other_attributes | sync_source | old_passwords | password_updated_time
-   1 | 2024-03-17 12:15:27.272988 | 2024-03-17 19:15:43.854 |             |           | Admin      |           | Admin        | admin    | c94251c29cd07ed2daf0b6edcf843362 |       |      1 |        0 |       |                  |             |               |
+   1 | 2024-03-17 12:15:27.272988 | 2024-03-17 19:15:43.854 |             |           | Admin      |           | Admin        | admin    | <md5_of_new_admin_password> |       |      1 |        0 |       |                  |             |               |
 (1 row)
 ranger=# \q
 ```
@@ -205,7 +205,7 @@ ranger=# \q
 Finally, confirm the Ranger service account itself can connect:
 
 ```text
-[root@pvcbasemaster data]# sudo -u postgres psql -U rangeradmin -p 5432 -d ranger -h $(hostname)
+[root@pvcbase-master data]# sudo -u postgres psql -U rangeradmin -p 5432 -d ranger -h $(hostname)
 Password for user rangeradmin:
 psql (17.11)
 SSL connection (protocol: TLSv1.2, cipher: ECDHE-RSA-AES256-GCM-SHA384, bits: 256, compression: off)
@@ -213,16 +213,14 @@ Type "help" for help.
 ranger=> \q
 ```
 
-The hash written by the `update` (`9746e5…`) is not the hash printed by `md5sum` above (`c94251…`), and the `select` afterwards shows the row still holding `c94251…`. The two snippets come from different runs; generate your own hash with `md5sum` and use that value in the `update`.
-
-The password `Sahu@123{admin}` is the guide's lab value, transcribed verbatim. It is not a credential to reuse.
+The hash written by the `update` (`9746e5…`) is not the hash printed by `md5sum` above, and the `select` afterwards shows the row still holding the `md5sum` value rather than the one just written. The two snippets come from different runs; generate your own hash with `md5sum` and use that value in the `update`.
 
 ### Ranger log and PostgreSQL TLS errors
 
 Follow the Ranger admin access log while reproducing:
 
 ```text
-[root@pvcbase-master ~]# tail -f /var/log/ranger/admin/access_log-pvcbasemaster.cldrsetup.local-2024-03-21.log
+[root@pvcbase-master ~]# tail -f /var/log/ranger/admin/access_log-pvcbase-master.cldrsetup.local-2024-03-21.log
 ```
 
 Handshakes dropped at the PostgreSQL end look like this:
@@ -287,7 +285,7 @@ character 261
 2024-03-26 03:35:19,203 ERROR - [main:] ~ GraphBackedSearchIndexer.initialize() failed
 (GraphBackedSearchIndexer:386)
 org.apache.solr.client.solrj.impl.HttpSolrClient$RemoteSolrException: Error from server at
-https://pvcbasemaster.cldrsetup.local:8995/solr: Can not find the specified config set:
+https://pvcbase-master.cldrsetup.local:8995/solr: Can not find the specified config set:
 vertex_index
 ```
 
@@ -297,7 +295,7 @@ vertex_index
 
 ```text
 [root@pvcbase-master ~]# klist -kt /run/cloudera-scm-agent/process/1546342867-SolrServerGracefulShutDown/solr.keytab
-[root@pvcbase-master ~]# kinit -kt /run/cloudera-scm-agent/process/1546342867-SolrServerGracefulShutDown/solr.keytab solr/pvcbasemaster.cldrsetup.local@CLDRSETUP.LOCAL
+[root@pvcbase-master ~]# kinit -kt /run/cloudera-scm-agent/process/1546342867-SolrServerGracefulShutDown/solr.keytab solr/pvcbase-master.cldrsetup.local@CLDRSETUP.LOCAL
 [root@pvcbase-master ~]# /opt/cloudera/parcels/CDH/bin/zookeeper-client
 ```
 
@@ -453,12 +451,12 @@ If deleting the namespace alone does not clear it, delete the running pod first,
 ```text
 [root@pvcecs-master ~]# k get pods -A|grep dashboard
 kubernetes-dashboard    kubernetes-dashboard-68876b7cb8-fl58c                   1/1     Running   0             4m13s
-[root@pvcecsmaster ~]# k delete pod kubernetes-dashboard
+[root@pvcecs-master ~]# k delete pod kubernetes-dashboard
 Error from server (NotFound): pods "kubernetes-dashboard" not found
-[root@pvcecsmaster ~]# k delete pod kubernetes-dashboard-68876b7cb8-fl58c -n kubernetes-dashboard
+[root@pvcecs-master ~]# k delete pod kubernetes-dashboard-68876b7cb8-fl58c -n kubernetes-dashboard
 pod "kubernetes-dashboard-68876b7cb8-fl58c" deleted
-[root@pvcecsmaster ~]#
-[root@pvcecsmaster ~]# k delete ns kubernetes-dashboard
+[root@pvcecs-master ~]#
+[root@pvcecs-master ~]# k delete ns kubernetes-dashboard
 ```
 
 The first `delete pod` fails because the pod name carries the ReplicaSet hash — you have to name the pod exactly, and pass `-n kubernetes-dashboard`.
@@ -473,7 +471,7 @@ The first `delete pod` fails because the pod name carries the ReplicaSet hash �
 ### x509: certificate signed by unknown authority
 
 ```text
-[root@pvcecsmaster ~]# kubectl get pods
+[root@pvcecs-master ~]# kubectl get pods
 Unable to connect to the server: tls: failed to verify certificate: x509: certificate signed by unknown authority
 ```
 
@@ -481,13 +479,13 @@ Unable to connect to the server: tls: failed to verify certificate: x509: certif
 
 ```text
 [root@pvcecs-master ~]# mkdir -p ~/.kube
-[root@pvcecsmaster opt]# cp /etc/rancher/rke2/rke2.yaml ~/.kube/config
+[root@pvcecs-master opt]# cp /etc/rancher/rke2/rke2.yaml ~/.kube/config
 cp: overwrite '/root/.kube/config'? Yes
 
-[root@pvcecsmaster opt]# /var/lib/rancher/rke2/data/v1.26.10-rke2r1-e58e49f33617/bin/kubectl get nodes
+[root@pvcecs-master opt]# /var/lib/rancher/rke2/data/v1.26.10-rke2r1-e58e49f33617/bin/kubectl get nodes
 NAME                         STATUS   ROLES                        AGE     VERSION
-pvcecsmaster.cldrsetup.local    Ready    control-plane,etcd,master     61s    v1.26.10+rke2r1
-[root@pvcecsmaster opt]# cp /tmp/ecs_util.sh /opt/cloudera/cm-agent/service/ecs/ecs_util.sh
+pvcecs-master.cldrsetup.local   Ready    control-plane,etcd,master     61s    v1.26.10+rke2r1
+[root@pvcecs-master opt]# cp /tmp/ecs_util.sh /opt/cloudera/cm-agent/service/ecs/ecs_util.sh
 ```
 
 Cleanup was not done properly; after a proper cleanup by script, it started running.
@@ -658,9 +656,7 @@ kubectl create secret generic pg-hms-db-certs \
 ### Websocket connection failed
 
 ```text
-livelog.ml-94961167-848.apps.ntnxlab.local
+livelog.ml-94961167-848.apps.cldrsetup.local
 ```
 
 **Solution.** Right-click on the page and select **Inspect**. Go to the **Network** tab, look for the `livelog` request, and add the corresponding livelog URL as an entry in the `/etc/hosts` file.
-
-This hostname ends `apps.ntnxlab.local` rather than `apps.cldrsetup.local` — it is captured from a different lab build than the rest of the guide. Substitute your own wildcard DNS domain.

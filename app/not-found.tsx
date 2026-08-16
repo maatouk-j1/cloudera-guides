@@ -1,7 +1,35 @@
+'use client'
+
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Footer from '@/components/ui/footer'
+import { resolveRedirect } from '@/lib/redirects'
 
 export default function NotFound() {
+  const [redirecting, setRedirecting] = useState(false)
+
+  // Static export has no server, so renamed slugs are forwarded from here —
+  // GitHub Pages serves this page for every unmatched path. See lib/redirects.ts.
+  useEffect(() => {
+    const target = resolveRedirect(window.location.pathname)
+    if (!target) return
+
+    setRedirecting(true)
+    window.location.replace(target + window.location.search + window.location.hash)
+  }, [])
+
+  if (redirecting) {
+    return (
+      <div className="xl:flex">
+        <div className="w-full">
+          <p className="text-lg text-stone-600 dark:text-stone-400">
+            This page has moved. Redirecting&hellip;
+          </p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="xl:flex">
       <div className="w-full">
@@ -26,7 +54,7 @@ export default function NotFound() {
                 Home
               </h2>
               <p className="text-sm text-stone-600 dark:text-stone-400">
-                Start from the top of the Cloudera CDP Guide.
+                Start from the top of the Cloudera Platform Guide.
               </p>
             </Link>
 
@@ -38,7 +66,7 @@ export default function NotFound() {
                 Installations
               </h2>
               <p className="text-sm text-stone-600 dark:text-stone-400">
-                Browse the installation guides by CDP version.
+                Browse the installation guides by version.
               </p>
             </Link>
           </div>

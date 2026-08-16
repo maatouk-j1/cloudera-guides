@@ -36,8 +36,8 @@ const aspekta = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Cloudera CDP Guide",
-  description: "CDP Private Cloud - Installations, Upgrades & Use Cases",
+  title: "Cloudera Platform Guide",
+  description: "Cloudera on premises - Installations, Upgrades & Use Cases",
   icons: {
     icon: `${basePath}/favicon.ico`,
   },

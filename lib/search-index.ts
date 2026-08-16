@@ -11,10 +11,10 @@ const BREADCRUMB_SEPARATOR = ' › ';
 
 /**
  * The full trail of nav ancestors, e.g.
- * "CDP Private Cloud › Installations › CDP 7.3.2 › Setup Cloudera Manager Server".
+ * "Cloudera on premises › Installations › CDP 7.3.2 › Setup Cloudera Manager Server".
  *
  * This used to return only the top-most ancestor, which made every page under
- * Installations read "CDP Private Cloud" — indistinguishable once a second
+ * Installations read "Cloudera on premises" — indistinguishable once a second
  * version of the guide landed (issue #55). The trail also feeds the search
  * match text, so "cdp 7.3.2 ldap" now narrows to that release.
  */

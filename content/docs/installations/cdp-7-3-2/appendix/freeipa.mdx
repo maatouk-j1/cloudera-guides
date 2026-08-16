@@ -9,9 +9,7 @@ nextTitle: Cluster Validation
 nextSlug: /installations/cdp-7-3-2/validation
 ---
 
-FreeIPA underpins DNS, Kerberos and LDAP for the whole deployment — the base cluster's Kerberos realm, the reverse DNS records the ECS ingress depends on, and the LDAP directory that Cloudera Manager, Ranger, Hue, Atlas and the Data Services console all authenticate against. This page collects the commands used against it.
-
-The guide's own reference for this section is [https://www.devopszones.com/2020/03/how-to-add-freeipa-user-in-cli-and-web.html](https://www.devopszones.com/2020/03/how-to-add-freeipa-user-in-cli-and-web.html).
+[https://www.devopszones.com/2020/03/how-to-add-freeipa-user-in-cli-and-web.html](https://www.devopszones.com/2020/03/how-to-add-freeipa-user-in-cli-and-web.html)
 
 ## Add users on FreeIPA
 
@@ -19,17 +17,17 @@ The guide's own reference for this section is [https://www.devopszones.com/2020/
 - Run the below command to create a user. Enter the password in the password prompt.
 
 ```bash
-ipa user-add --password <User Name>
+ipa user-add --password <user_name>
 ```
 
 The guide's worked example creates the user `kdsahu`:
 
 ```text
-[root@pvcbasemaster ~]# ipa
+[root@ipaserver ~]# ipa
 ipa: ERROR: Ticket expired
-[root@pvcbasemaster ~]# kinit admin && klist -e
+[root@ipaserver ~]# kinit admin && klist -e
 Password for admin@CLDRSETUP.LOCAL:
-[root@pvcbasemaster ~]# ipa user-add --password kdsahu
+[root@ipaserver ~]# ipa user-add --password kdsahu
 First name: Kuldeep
   Last name: Sahu
 User login [kdsahu]: kdsahu
@@ -56,7 +54,7 @@ Added user "kdsahu"
   Password: True
   Member of groups: ipausers
   Kerberos keys available: True
-[root@pvcbasemaster ~]# su - kdsahu
+[root@ipaserver ~]# su - kdsahu
 Last login: Thu Mar 21 01:00:40 PDT 2024 on pts/0
 ```
 
@@ -134,8 +132,8 @@ klist -k /tmp/cdptest-single.keytab
 
 ```bash
 kinit admin
-ipa dnsrecord-add 16.172.in-addr.arpa. 231.31 --ptr-rec console-cdp.apps.pvcecsmaster.cldrsetup.local.
-ipa dnsrecord-del 16.172.in-addr.arpa. 231.31 --ptr-rec console-cdp.apps.pvcecsmaster.cldrsetup.local
+ipa dnsrecord-add 16.172.in-addr.arpa. 231.31 --ptr-rec pvcecs-master.cldrsetup.local.
+ipa dnsrecord-del 16.172.in-addr.arpa. 231.31 --ptr-rec pvcecs-master.cldrsetup.local
 ipa dnsrecord-find 16.172.in-addr.arpa.
 ipa dnsrecord-add cldrsetup.local *.apps
 ipa dnszone-list
@@ -152,12 +150,12 @@ The last two lines are not pipelines — they are the guide's shorthand for the 
 A user created with `--password` gets a pre-expired password, so the first `kinit` forces a change:
 
 ```text
-[kuldeep@pvcbasemaster ~]$ kinit kdsahu
+[kdsahu@pvcbase-master ~]$ kinit kdsahu
 Password for kdsahu@CLDRSETUP.LOCAL:
 Password expired.  You must change it now.
 Enter new password:
 Enter it again:
-[kuldeep@pvcbasemaster ~]$
+[kdsahu@pvcbase-master ~]$
 ```
 
 ## Verify a user with ldapsearch
@@ -165,7 +163,7 @@ Enter it again:
 Querying the IPA directory directly confirms the account, its Kerberos principal, its POSIX attributes and its group memberships:
 
 ```bash
-ldapsearch  -H ldap://ipaserver.cldrsetup.local:389 -D "uid=admin,cn=users,cn=accounts,dc=cldrsetup,dc=local" -w 'cloudera123' -b "cn=users,cn=accounts,dc=cldrsetup,dc=local" '(&(uid=admin))' | grep -v "#"
+ldapsearch  -H ldap://ipaserver.cldrsetup.local:389 -D "uid=admin,cn=users,cn=accounts,dc=cldrsetup,dc=local" -w '<ldap_bind_password>' -b "cn=users,cn=accounts,dc=cldrsetup,dc=local" '(&(uid=admin))' | grep -v "#"
 ```
 
 ```text
@@ -190,8 +188,7 @@ loginShell: /bin/bash
 gecos: Administrator
 ipaUniqueID: e42d6b54-e094-11ee-9c71-0050568db389
 memberOf: cn=admins,cn=groups,cn=accounts,dc=cldrsetup,dc=local
-memberOf: cn=Replication Administrators,cn=privileges,cn=pbac,dc=cldrsetup,dc=c
- om
+memberOf: cn=Replication Administrators,cn=privileges,cn=pbac,dc=cldrsetup,dc=local
 memberOf: cn=Add Replication Agreements,cn=permissions,cn=pbac,dc=cldrsetup,dc=local
 memberOf: cn=Read Replication Agreements,cn=permissions,cn=pbac,dc=cldrsetup,dc=local
 memberOf: cn=Modify DNA Range,cn=permissions,cn=pbac,dc=cldrsetup,dc=local
@@ -205,7 +202,7 @@ memberOf: cn=System: Manage Host Principals,cn=permissions,cn=pbac,dc=cldrsetup,
 memberOf: cn=trust admins,cn=groups,cn=accounts,dc=cldrsetup,dc=local
 krbLastPwdChange: 20240312172405Z
 krbPasswordExpiration: 20240610172405Z
-krbExtraData:: AAK1j/Blcm9vdC9hZG1pbkBDRFBQVkNEUy5DT00A
+krbExtraData:: AAK1j/Blcm9vdC9hZG1pbkBDTERSU0VUVVAuTE9DQUwA
 krbLoginFailedCount: 0
 krbLastFailedAuth: 20240325064805Z
 
@@ -214,38 +211,47 @@ result: 0 Success
 [root@ipaserver ~]#
 ```
 
-The `dc=c` / ` om` split across two lines is standard LDIF line folding — the value unfolds to a single string.
-
 ## Verify reverse DNS records
 
 ```text
-[root@pvcecsmaster ~]# ipa dnsrecord-find 16.172.in-addr.arpa.
+[root@ipaserver ~]# ipa dnsrecord-find 16.172.in-addr.arpa.
   Record name: @
   NS record: ipaserver.cldrsetup.local.
+  Record name: 225.31
+  PTR record: cldr-mngr.cldrsetup.local.
   Record name: 226.31
   PTR record: ipaserver.cldrsetup.local.
   Record name: 227.31
   PTR record: pvcbase-master.cldrsetup.local.
   Record name: 228.31
   PTR record: pvcbase-worker1.cldrsetup.local.
+  Record name: 229.31
+  PTR record: pvcbase-worker2.cldrsetup.local.
+  Record name: 230.31
+  PTR record: pvcbase-worker3.cldrsetup.local.
   Record name: 231.31
   PTR record: pvcecs-master.cldrsetup.local.
   Record name: 232.31
   PTR record: pvcecs-worker1.cldrsetup.local.
+  Record name: 233.31
+  PTR record: pvcecs-worker2.cldrsetup.local.
+  Record name: 234.31
+  PTR record: pvcecs-worker3.cldrsetup.local.
+  Record name: 235.31
+  PTR record: pvcecs-worker4.cldrsetup.local.
+  Record name: 236.31
+  PTR record: pvcecs-worker5.cldrsetup.local.
+  Record name: 237.31
+  PTR record: pvcecs-worker6.cldrsetup.local.
+  Record name: 238.31
+  PTR record: pvcecs-worker7.cldrsetup.local.
+  Record name: 239.31
+  PTR record: pvcecs-worker8.cldrsetup.local.
+  Record name: 240.31
+  PTR record: pvcecs-worker9.cldrsetup.local.
+  Record name: 241.31
+  PTR record: pvcecs-worker10.cldrsetup.local.
 -----------------------------
-Number of entries returned 12
+Number of entries returned 18
 -----------------------------
 ```
-
-## Source quirks in this section
-
-This section is visibly less finished than the rest of the guide — parts of it are pasted assistant output, complete with stray `bash` fence markers and emoji step numbers, which have been dropped here in favour of plain numbering. Four things are worth knowing before following it literally:
-
-| What the source shows | The discrepancy |
-|:--|:--|
-| *"Log in to the IPA server"*, then a transcript prompted [root@pvcbasemaster ~]# | The worked example runs from the **base cluster master**, not from ipaserver — the host the instruction names. The ldapsearch example further down does run on [root@ipaserver ~]#. |
-| ipa dnsrecord-find listing **five** PTR records | The summary beneath it reads Number of entries returned 12. The listing is abridged; the zone holds twelve records. |
-| krbExtraData:: AAK1j/Blcm9vdC9hZG1pbkBDRFBQVkNEUy5DT00A | Base64-decodes to root/admin@CDPPVCDS.COM — a principal from the older cdppvcds.com lab build, in a directory whose every other attribute reads cldrsetup.local. Same recycled-lab quirk seen in the screenshots throughout the guide. |
-| memberOf: cn=Replication Administrators,…,dc=cldrsetup,dc=c om | Unfolds to dc=cldrsetup,dc=com, where all twelve sibling entries end dc=cldrsetup,dc=local. |
-
-The `ldapsearch` bind password `cloudera123` is the guide's lab value and is transcribed verbatim; it is not a credential to reuse.

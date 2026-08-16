@@ -1,15 +1,15 @@
 ---
-title: Post OS Installation - Preliminary Work
+title: Post OS Installation
 topicTitle: CDP 7.3.2
 topicSlug: cdp-7-3-2
-summary: Prepare the freshly installed RHEL 9.5 hosts - hostnames, FreeIPA, password-less login, Ansible, DNS zones, OS tuning and a local repository host - before installing Cloudera on premises Base and Data Services.
+summary: Prepare the freshly installed RHEL 9.5 hosts - hostnames, FreeIPA, password-less login, Ansible, DNS zones, OS tuning and a local repository host - before installing Cloudera Base on premises and Data Services.
 prevTitle: Solution Summary
 prevSlug: /installations/cdp-7-3-2/summary
-nextTitle: Install CDP Private Cloud
-nextSlug: /installations/cdp-7-3-2/cdppvc
+nextTitle: Install Cloudera on premises
+nextSlug: /installations/cdp-7-3-2/on-premises
 ---
 
-Before getting into the actual installation of Cloudera on premises Base and Data Services clusters, we need to prepare our machines and perform some steps to meet the prerequisites.
+Before getting into the actual installation of Cloudera Base on premises and Data Services clusters, we need to prepare our machines and perform some steps to meet the prerequisites.
 
 Choose one of the nodes of the cluster or a separate node as the Ansible Admin/Controller Node for management. In this document, we configured the `ipaserver` for this purpose.
 
@@ -52,13 +52,13 @@ Choose one of the nodes of the cluster or a separate node as the Ansible Admin/C
     Solution 1 - Lock to your current minor version (RHEL 9.5). Run the following:
 
     ```text
-    [root@<HOSTNAME> ~]# sudo subscription-manager release --set=9.5
+    [root@<hostname> ~]# sudo subscription-manager release --set=9.5
     ```
 
     Then verify:
 
     ```text
-    [root@<HOSTNAME> ~]# sudo subscription-manager release --show
+    [root@<hostname> ~]# sudo subscription-manager release --show
     ```
 
     Expected output:
@@ -217,10 +217,10 @@ In this step, a private DNS server and other services such as KDC and Directory 
 | Server host name [ipaserver.cldrsetup.local]: | ipaserver.cldrsetup.local |
 | Please confirm the domain name [cldrsetup.local]: | cldrsetup.local |
 | Please provide a realm name [CLDRSETUP.LOCAL]: | CLDRSETUP.LOCAL |
-| Directory Manager password: | `<Password For Directory Manager>` (cloudera123) |
-| Password (confirm): | `<Confirm Password>` (cloudera123) |
-| IPA admin password: | `<Password For IPA Admin>` (cloudera123) |
-| Password (confirm): | `<Confirm Password>` (cloudera123) |
+| Directory Manager password: | `<directory_manager_password>` |
+| Password (confirm): | `<directory_manager_password>` |
+| IPA admin password: | `<ipa_admin_password>` |
+| Password (confirm): | `<ipa_admin_password>` |
 | Do you want to configure DNS forwarders? [yes]: | `<ENTER>` |
 | Do you want to search for missing reverse zones?[yes]: | no |
 | NetBIOS domain name [CLDRSETUP]: | CLDRSETUP |
@@ -281,14 +281,14 @@ Please keep the same password for both the Directory Manager and the IPA admin s
     instance of directory server created for IPA.
     The password must be at least 8 characters long.
 
-    Directory Manager password: <cloudera123>
-    Password (confirm): <cloudera123>
+    Directory Manager password: <directory_manager_password>
+    Password (confirm): <directory_manager_password>
 
     The IPA server requires an administrative user, named 'admin'.
     This user is a regular system account used for IPA server administration.
 
-    IPA admin password: <cloudera123>
-    Password (confirm): <cloudera123>
+    IPA admin password: <ipa_admin_password>
+    Password (confirm): <ipa_admin_password>
 
     Checking DNS domain cldrsetup.local., please wait ...
     Do you want to configure DNS forwarders? [yes]: no
@@ -424,7 +424,7 @@ Please keep the same password for both the Directory Manager and the IPA admin s
     ipa server installation. The command should generate the ticket and should be listed by executing klist -e.
 
     [root@ipaserver ~]# kinit admin
-    Password for admin@CLDRSETUP.LOCAL: <cloudera123>
+    Password for admin@CLDRSETUP.LOCAL: <ipa_admin_password>
 
     [root@ipaserver ~]# klist -e
     Ticket cache: KCM:0
@@ -700,7 +700,7 @@ We will be using the Bastion host as the Ansible controller/admin node.
     ```text
     ##### Take the CIDR block of the network in which the instances are created and create a reverse DNS zone by
     executing the below command on the IPA Server machine.
-    ##### ipa dnszone-add --name-from-ip=<YOUR_VPC_CIDR>
+    ##### ipa dnszone-add --name-from-ip=<your_vpc_cidr>
 
     ##### If your VPC has a CIDR 172.16.0.0/16, then the command looks as below.
 
@@ -730,7 +730,7 @@ We will be using the Bastion host as the Ansible controller/admin node.
 
     ```text
     ##### OPEN /etc/krb5.conf on IPASERVER and comment ccache conf: (this step is not needed on any cluster node,
-    as CDP will manage the krb5.conf in further steps config)
+    as Cloudera Base on premises will manage the krb5.conf in further steps config)
     #### After the setup is complete, we need to make a kerberos config change which gets enabled automatically
     post the ipa server setup.
 
@@ -774,7 +774,7 @@ We will be using the Bastion host as the Ansible controller/admin node.
 
     ##### Generate the command as shown below and run the same for all the FreeIPA agents, that includes all the
     nodes of Base and ECS cluster.
-            ipa dnsrecord-add <2nd>.<1st>.in-addr.arpa. <4th>.<3rd> --ptr-rec <server FQDN>.
+            ipa dnsrecord-add <2nd>.<1st>.in-addr.arpa. <4th>.<3rd> --ptr-rec <server_fqdn>.
     ##### Example:
             ipa dnsrecord-add 16.172.in-addr.arpa. 226.31 --ptr-rec ipaserver.cldrsetup.local.
 
@@ -936,7 +936,7 @@ Configure the FreeIPA client on every other node so that it is managed by the `i
     </Banner>
 
     <Banner type="warning">
-    Please review the Java requirement in the Cloudera on premises Base Requirements and Supported Versions sections. We installed OpenJDK 11 for this solution validation; `ipa-client` will also require and auto-install Java 11 on all hosts if it is not present or a different version, for example Java 17, is installed. See [Java requirements](https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/cdp-private-cloud-base-installation/topics/cdpdc-java-requirements.html).
+    Please review the Java requirement in the Cloudera Base on premises Requirements and Supported Versions sections. We installed OpenJDK 11 for this solution validation; `ipa-client` will also require and auto-install Java 11 on all hosts if it is not present or a different version, for example Java 17, is installed. See [Java requirements](https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/cdp-private-cloud-base-installation/topics/cdpdc-java-requirements.html).
     </Banner>
 
     ```text
@@ -968,7 +968,7 @@ Configure the FreeIPA client on every other node so that it is managed by the `i
     | Enter a NTP source pool address, or press Enter to skip: | `<ENTER>` |
     | Continue to configure the system with these values? [no]: | yes |
     | User authorized to enroll computers: | admin |
-    | `Password for admin@<Your_Domain>:` | `<Password created earlier>` (cloudera123) |
+    | `Password for admin@<your_domain>:` | `<ipa_admin_password>` |
 
     ```text
     [root@pvcbase-master ~]# ipa-client-install --force-join
@@ -991,8 +991,8 @@ Configure the FreeIPA client on every other node so that it is managed by the `i
     Using default chrony configuration.
     Attempting to sync time with chronyc.
     Time synchronization was successful.
-    User authorized to enroll computers: <admin>
-    Password for admin@CLDRSETUP.LOCAL: <cloudera123>
+    User authorized to enroll computers: admin
+    Password for admin@CLDRSETUP.LOCAL: <ipa_admin_password>
     Successfully retrieved CA cert
         Subject:     CN=Certificate Authority,O=CLDRSETUP.LOCAL
         Issuer:      CN=Certificate Authority,O=CLDRSETUP.LOCAL
@@ -1027,7 +1027,7 @@ Configure the FreeIPA client on every other node so that it is managed by the `i
     ipa server installation. The command should generate the ticket and should be listed by executing klist -e.
 
     [root@ipaserver ~]# kinit admin
-    Password for admin@CLDRSETUP.LOCAL: <cloudera123>
+    Password for admin@CLDRSETUP.LOCAL: <ipa_admin_password>
 
     [root@ipaserver ~]# klist -e
     Ticket cache: KCM:0
@@ -1064,20 +1064,24 @@ Configure the FreeIPA client on every other node so that it is managed by the `i
 
 ### Option 2: If using an AD server
 
-If you are using an AD server as Kerberos instead of FreeIPA, run the following command on all the client machines and skip the `ipa-client-install` steps.
+If you are using an AD server as Kerberos instead of FreeIPA:
 
-```text
-[root@pvcbase-master ~]# realm join --user=administrator ntnxlab.local
+1. Run the following command on all the client machines and skip the `ipa-client-install` steps.
 
-# Non-interactive command
-[root@pvcbase-master ~]# echo '<password>' | realm join --user=administrator ntnxlab.local
-```
+    ```text
+    [root@pvcbase-master ~]# realm join --user=administrator ntnxlab.local
 
-Verify the KDC setup: check that Kerberos ticket generation is working fine by generating a ticket for the `administrator` user from all individual hosts.
+    # Non-interactive command
+    [root@pvcbase-master ~]# echo '<ad_admin_password>' | realm join --user=administrator ntnxlab.local
+    ```
 
-![Terminal showing kinit administrator@NTNXLAB.LOCAL followed by klist -e, listing a valid krbtgt ticket for the AD realm](/images/cdp-7-3-2/post-os-work/kinit-klist-ad-administrator.png)
+2. Verify the KDC setup: check that Kerberos ticket generation is working fine by generating a ticket for the `administrator` user from all individual hosts.
 
-4. Verify the network configuration file `/etc/resolv.conf` on the Bastion server, so that it uses the name server created in the previous steps. Do this after installing `freeipa-client`, as it overrides `resolv.conf` and may lead to rework.
+    ![Terminal showing kinit administrator@NTNXLAB.LOCAL followed by klist -e, listing a valid krbtgt ticket for the AD realm](/images/cdp-7-3-2/post-os-work/kinit-klist-ad-administrator.png)
+
+### Common steps: complete these whichever option you chose
+
+1. Verify the network configuration file `/etc/resolv.conf` on the Bastion server, so that it uses the name server created in the previous steps. Do this after installing `freeipa-client`, as it overrides `resolv.conf` and may lead to rework.
 
     Open the file `/etc/resolv.conf` in edit mode and verify the following. Make sure the new entry is added above any other `nameserver` entry. The contents of the file must look similar to the below.
 
@@ -1097,7 +1101,7 @@ Verify the KDC setup: check that Kerberos ticket generation is working fine by g
 
     ![Contents of a generated /etc/resolv.conf showing the dhclient-script header, the search domain and the nameserver entry](/images/cdp-7-3-2/post-os-work/resolv-conf-dhclient.png)
 
-5. Verify the network configuration file `/etc/sysconfig/network` on the Bastion server, so that it uses the name server created in the previous steps.
+2. Verify the network configuration file `/etc/sysconfig/network` on the Bastion server, so that it uses the name server created in the previous steps.
 
     The changes in `/etc/resolv.conf` above are temporary and would get overwritten if the machine is rebooted. In order to keep the nameserver entry persistent, open the file `/etc/sysconfig/network` in edit mode and verify the entries below.
 
@@ -1111,25 +1115,25 @@ Verify the KDC setup: check that Kerberos ticket generation is working fine by g
     [root@jump ~]#
     ```
 
-6. Copy the `/etc/resolv.conf` file to each node again, to make them able to resolve FQDNs across the cluster.
+3. Copy the `/etc/resolv.conf` file to each node again, to make them able to resolve FQDNs across the cluster.
 
     ```text
     [root@jump ~]# ansible all -m copy -a "src=/etc/resolv.conf dest=/etc/resolv.conf"
     ```
 
-7. Copy the `/etc/sysconfig/network` file again to each node, to make them able to resolve FQDNs across the cluster. `/etc/resolv.conf` changes may vanish after a reboot, so to persist those changes we need the configuration below.
+4. Copy the `/etc/sysconfig/network` file again to each node, to make them able to resolve FQDNs across the cluster. `/etc/resolv.conf` changes may vanish after a reboot, so to persist those changes we need the configuration below.
 
     ```text
     [root@jump ~]# ansible all -m copy -a "src=/etc/sysconfig/network dest=/etc/sysconfig/network"
     ```
 
-8. Enable permissions for HDFS and for PAM authentication.
+5. Enable permissions for HDFS and for PAM authentication.
 
     ```text
     [root@jump ~]# ansible all -m shell -a "chmod 1777 /tmp && chmod 444 /etc/shadow"
     ```
 
-9. Log in to the `pvcbase-master` node and verify that forward and reverse DNS lookup is working fine from each machine.
+6. Log in to the `pvcbase-master` node and verify that forward and reverse DNS lookup is working fine from each machine.
 
     <Banner type="info">
     In case of an AD server, you can verify on any client machine such as `pvcbase-master`.
@@ -1145,7 +1149,7 @@ Verify the KDC setup: check that Kerberos ticket generation is working fine by g
 
     #(forward lookup)Running the below command should return the IPV4 of the machine in the Answer Section.
 
-    # dig <FQDN of the SERVER> A
+    # dig <server_fqdn> A
     # dig $(hostname) A | grep -A2 ANSWER
     # Ex:- dig ipaserver.cldrsetup.local A
 
@@ -1159,7 +1163,7 @@ Verify the KDC setup: check that Kerberos ticket generation is working fine by g
 
     #(reverse lookup) Running the below command should return the hostname of the machine in the Answer Section.
 
-    # dig -x <Private_IP_of_SERVER>
+    # dig -x <private_ip_of_server>
     # dig -x $(hostname -i)|grep -A2 ANSWER
     # Ex:- dig -x 172.31.40.119
 
@@ -1174,7 +1178,7 @@ Verify the KDC setup: check that Kerberos ticket generation is working fine by g
     [root@pvcbase-master ~]$
     ```
 
-10. Log in to the `ipaserver`, then configure and validate that the wildcard DNS record is working fine and resolvable. This is required later for the ECS Data Services cluster - if it is not set properly, there is a good chance the ECS installation gets corrupted.
+7. Log in to the `ipaserver`, then configure and validate that the wildcard DNS record is working fine and resolvable. This is required later for the ECS Data Services cluster - if it is not set properly, there is a good chance the ECS installation gets corrupted.
 
     <Banner type="warning">
     In case of an AD server, you need to create the wildcard DNS record on the AD DNS server manually in the forward and reverse lookup zones, and then you can verify by running the command `nslookup console-cdp.apps.cldrsetup.local` on the `pvcecs-master` node.
@@ -1222,7 +1226,7 @@ Verify the KDC setup: check that Kerberos ticket generation is working fine by g
     [root@ipaserver ~]#
     ```
 
-11. Download and copy the PostgreSQL JDBC driver to all hosts.
+8. Download and copy the PostgreSQL JDBC driver to all hosts.
 
     ```text
     [root@jump ~]# wget https://jdbc.postgresql.org/download/postgresql-42.7.7.jar
@@ -1256,39 +1260,39 @@ systemctl status firewalld | grep -e disabled -e inactive"
 SELinux must be disabled during the install procedure and cluster setup. SELinux can be enabled after installation and while the cluster is running.
 </Banner>
 
-1. SELinux can be disabled by editing `/etc/selinux/config` (on some systems it would be `/etc/sysconfig/selinux`). To disable SELinux, change `SELINUX=enforcing` to `SELINUX=disabled` or `SELINUX=permissive`. Follow these steps:
+SELinux can be disabled by editing `/etc/selinux/config` (on some systems it would be `/etc/sysconfig/selinux`). To disable SELinux, change `SELINUX=enforcing` to `SELINUX=disabled` or `SELINUX=permissive`. Follow these steps:
 
-    ```text
-    [root@jump ~]# ansible all -m shell -a "sed -i 's/SELINUX=enforcing/SELINUX=disabled/g'
-    /etc/selinux/config"
-    [root@jump ~]# ansible all -m shell -a "setenforce 0"
-    [root@jump ~]# ansible all -m shell -a "getenforce"
-    ```
+```text
+[root@jump ~]# ansible all -m shell -a "sed -i 's/SELINUX=enforcing/SELINUX=disabled/g'
+/etc/selinux/config"
+[root@jump ~]# ansible all -m shell -a "setenforce 0"
+[root@jump ~]# ansible all -m shell -a "getenforce"
+```
 
-    <Banner type="info">
-    This command may fail if SELinux is already disabled. This requires a reboot to take effect.
-    </Banner>
+<Banner type="info">
+This command may fail if SELinux is already disabled. This requires a reboot to take effect.
+</Banner>
 
-    <Banner type="warning">
-    While the suggested configuration is to disable SELinux as shown below, if for any reason SELinux needs to be enabled on the cluster, run the following command to make sure that httpd can read the Yum profiles.
-    </Banner>
+<Banner type="warning">
+While the suggested configuration is to disable SELinux as shown below, if for any reason SELinux needs to be enabled on the cluster, run the following command to make sure that httpd can read the Yum profiles.
+</Banner>
 
-    ```text
-    [root@jump ~]# chcon -R -t httpd_sys_content_t /var/www/html/
-    ```
+```text
+[root@jump ~]# chcon -R -t httpd_sys_content_t /var/www/html/
+```
 
-    ![Contents of /etc/selinux/config with SELINUX=disabled highlighted and SELINUXTYPE set to targeted](/images/cdp-7-3-2/post-os-work/selinux-config-disabled.png)
+![Contents of /etc/selinux/config with SELINUX=disabled highlighted and SELINUXTYPE set to targeted](/images/cdp-7-3-2/post-os-work/selinux-config-disabled.png)
 
 ## 9. Enable syslog
 
 Syslog must be enabled on each node to preserve logs regarding killed processes or failed jobs. Modern versions such as syslog-ng and rsyslog are possible, making it more difficult to be sure that a syslog daemon is present.
 
-1. Use one of the following commands to confirm that the service is properly configured.
+Use one of the following commands to confirm that the service is properly configured.
 
-    ```text
-    [root@jump ~]# ansible all -m command -a "rsyslogd -v"
-    [root@jump ~]# ansible all -m command -a "service rsyslog status"
-    ```
+```text
+[root@jump ~]# ansible all -m command -a "rsyslogd -v"
+[root@jump ~]# ansible all -m command -a "service rsyslog status"
+```
 
 ## 10. Set ulimit
 
@@ -1373,24 +1377,24 @@ On each node, setting the number of TCP retries to 5 can help detect unreachable
 
 ## 12. Disable IPv6 defaults
 
-1. Run the following commands.
+Run the following commands.
 
-    ```text
-    [root@jump ~]# ansible all -m shell -a "echo 'net.ipv6.conf.all.disable_ipv6 = 1' >> /etc/sysctl.conf" -l
-    'all:!ecsmasternodes:!ecsnodes'
-    [root@jump ~]# ansible all -m shell -a "echo 'net.ipv6.conf.default.disable_ipv6 = 1' >> /etc/sysctl.conf"
-    -l 'all:!ecsmasternodes:!ecsnodes'
-    [root@jump ~]# ansible all -m shell -a "echo 'net.ipv6.conf.lo.disable_ipv6 = 0' >> /etc/sysctl.conf" -l
-    'all:!ecsmasternodes:!ecsnodes'
-    ```
+```text
+[root@jump ~]# ansible all -m shell -a "echo 'net.ipv6.conf.all.disable_ipv6 = 1' >> /etc/sysctl.conf" -l
+'all:!ecsmasternodes:!ecsnodes'
+[root@jump ~]# ansible all -m shell -a "echo 'net.ipv6.conf.default.disable_ipv6 = 1' >> /etc/sysctl.conf"
+-l 'all:!ecsmasternodes:!ecsnodes'
+[root@jump ~]# ansible all -m shell -a "echo 'net.ipv6.conf.lo.disable_ipv6 = 0' >> /etc/sysctl.conf" -l
+'all:!ecsmasternodes:!ecsnodes'
+```
 
 ## 13. Disable swapping
 
-1. Run the following to set VM swappiness to 1, by updating the `/etc/sysctl.conf` file on all nodes.
+Run the following to set VM swappiness to 1, by updating the `/etc/sysctl.conf` file on all nodes.
 
-    ```text
-    [root@jump ~]# ansible all -m shell -a "echo 'vm.swappiness=1' >> /etc/sysctl.conf"
-    ```
+```text
+[root@jump ~]# ansible all -m shell -a "echo 'vm.swappiness=1' >> /etc/sysctl.conf"
+```
 
 ## 14. Disable memory overcommit
 
@@ -1553,120 +1557,120 @@ Disabling TCP checksum offload may have implications on network performance or s
 
 Create partitions on the ECS nodes - master and worker - manually if they are not present. Check with `df -h` first; the guide marks this procedure as skippable when the partitions already exist.
 
-1. Create partitions on the attached disks. We require three partitions: `/docker`, `/cdwdata` and `/lhdata`.
+Create partitions on the attached disks. We require three partitions: `/docker`, `/cdwdata` and `/lhdata`.
 
-    ```text
-    [root@pvcecs-master ~]# lsblk
-    NAME    MAJ:MIN RM    SIZE RO TYPE MOUNTPOINTS
-    xvda    202:0     0   600G 0 disk
-    ├─xvda1 202:1     0     1M 0 part
-    ├─xvda2 202:2     0   200M 0 part /boot/efi
-    ├─xvda3 202:3     0   600M 0 part /boot
-    └─xvda4 202:4     0 599.2G 0 part /
-    xvdb    202:16    0   600G 0 disk
-    xvdc    202:32    0   600G 0 disk
-    xvdd    202:48    0   600G 0 disk
-    xvde    202:48    0   600G 0 disk
+```text
+[root@pvcecs-master ~]# lsblk
+NAME    MAJ:MIN RM    SIZE RO TYPE MOUNTPOINTS
+xvda    202:0     0   600G 0 disk
+├─xvda1 202:1     0     1M 0 part
+├─xvda2 202:2     0   200M 0 part /boot/efi
+├─xvda3 202:3     0   600M 0 part /boot
+└─xvda4 202:4     0 599.2G 0 part /
+xvdb    202:16    0   600G 0 disk
+xvdc    202:32    0   600G 0 disk
+xvdd    202:48    0   600G 0 disk
+xvde    202:48    0   600G 0 disk
 
-    [root@pvcecs-master ~]# fdisk -l
-    Disk /dev/sda: 268.4 GB, 268435456000 bytes, 524288000 sectors
-    Units = sectors of 1 * 512 = 512 bytes
-    Sector size (logical/physical): 512 bytes / 512 bytes
-    I/O size (minimum/optimal): 512 bytes / 512 bytes
-    Disk label type: dos
-    Disk identifier: 0x000a04a5
+[root@pvcecs-master ~]# fdisk -l
+Disk /dev/sda: 268.4 GB, 268435456000 bytes, 524288000 sectors
+Units = sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
+Disk label type: dos
+Disk identifier: 0x000a04a5
 
-    Device Boot             Start                 End               Blocks    Id System
-    /dev/sda1   *               2048             2099199              1048576    83 Linux
-    /dev/sda2                2099200           524287999            261094400    8e Linux LVM
-    /dev/xvdb                2099200           524287999            261094400    8e Linux LVM
-    /dev/xvdc                2099200           524287999            261094400    8e Linux LVM
-    /dev/xvdd                2099200           524287999            261094400    8e Linux LVM
-    /dev/xvde                2099200           524287999            261094400    8e Linux LVM
+Device Boot             Start                 End               Blocks    Id System
+/dev/sda1   *               2048             2099199              1048576    83 Linux
+/dev/sda2                2099200           524287999            261094400    8e Linux LVM
+/dev/xvdb                2099200           524287999            261094400    8e Linux LVM
+/dev/xvdc                2099200           524287999            261094400    8e Linux LVM
+/dev/xvdd                2099200           524287999            261094400    8e Linux LVM
+/dev/xvde                2099200           524287999            261094400    8e Linux LVM
 
-    Disk /dev/sdb: 644.2 GB, 644245094400 bytes, 1258291200 sectors
-    Units = sectors of 1 * 512 = 512 bytes
-    Sector size (logical/physical): 512 bytes / 512 bytes
-    I/O size (minimum/optimal): 512 bytes / 512 bytes
-    [root@pvcecs-master ~]#
+Disk /dev/sdb: 644.2 GB, 644245094400 bytes, 1258291200 sectors
+Units = sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
+[root@pvcecs-master ~]#
 
-    [root@pvcecs-master ~]# sudo parted /dev/xvdb mklabel gpt
-    Information: You may need to update /etc/fstab.
+[root@pvcecs-master ~]# sudo parted /dev/xvdb mklabel gpt
+Information: You may need to update /etc/fstab.
 
-    [root@pvcecs-master ~]# sudo parted /dev/xvdc mklabel gpt
-    [root@pvcecs-master ~]# sudo parted /dev/xvdd mklabel gpt
+[root@pvcecs-master ~]# sudo parted /dev/xvdc mklabel gpt
+[root@pvcecs-master ~]# sudo parted /dev/xvdd mklabel gpt
 
-    [root@pvcecs-master ~]# sudo parted -a opt /dev/xvdb mkpart primary ext4 0% 100%
-    Information: You may need to update /etc/fstab.
+[root@pvcecs-master ~]# sudo parted -a opt /dev/xvdb mkpart primary ext4 0% 100%
+Information: You may need to update /etc/fstab.
 
-    [root@pvcecs-master ~]# sudo parted -a opt /dev/xvdc mkpart primary ext4 0% 100%
-    [root@pvcecs-master ~]# sudo parted -a opt /dev/xvdd mkpart primary ext4 0% 100%
+[root@pvcecs-master ~]# sudo parted -a opt /dev/xvdc mkpart primary ext4 0% 100%
+[root@pvcecs-master ~]# sudo parted -a opt /dev/xvdd mkpart primary ext4 0% 100%
 
-    [root@pvcecs-master ~]# sudo mkfs.ext4 /dev/xvdb
-    mke2fs 1.46.5 (30-Dec-2021)
-    Found a gpt partition table in /dev/xvdb
-    Proceed anyway? (y,N) y
-    Creating filesystem with 157286400 4k blocks and 39321600 inodes
-    Filesystem UUID: 934fece5-074e-4102-8481-6ed3a3b10931
-    Superblock backups stored on blocks:
-            32768, 98304, 163840, 229376, 294912, 819200, 884736, 1605632, 2654208,
-            4096000, 7962624, 11239424, 20480000, 23887872, 71663616, 78675968,
-            102400000
+[root@pvcecs-master ~]# sudo mkfs.ext4 /dev/xvdb
+mke2fs 1.46.5 (30-Dec-2021)
+Found a gpt partition table in /dev/xvdb
+Proceed anyway? (y,N) y
+Creating filesystem with 157286400 4k blocks and 39321600 inodes
+Filesystem UUID: 934fece5-074e-4102-8481-6ed3a3b10931
+Superblock backups stored on blocks:
+        32768, 98304, 163840, 229376, 294912, 819200, 884736, 1605632, 2654208,
+        4096000, 7962624, 11239424, 20480000, 23887872, 71663616, 78675968,
+        102400000
 
-    Allocating group tables: done
-    Writing inode tables: done
-    Creating journal (262144 blocks):
-    done
-    Writing superblocks and filesystem accounting information: done
+Allocating group tables: done
+Writing inode tables: done
+Creating journal (262144 blocks):
+done
+Writing superblocks and filesystem accounting information: done
 
-    [root@pvcecs-master ~]# sudo mkfs.ext4 /dev/xvdc
-    [root@pvcecs-master ~]# sudo mkfs.ext4 /dev/xvdd
+[root@pvcecs-master ~]# sudo mkfs.ext4 /dev/xvdc
+[root@pvcecs-master ~]# sudo mkfs.ext4 /dev/xvdd
 
-    [root@pvcecs-master ~]# sudo mkdir -p /docker /cdwdata /lhdata
+[root@pvcecs-master ~]# sudo mkdir -p /docker /cdwdata /lhdata
 
-    [root@pvcecs-master ~]# sudo mount /dev/xvdb /docker
-    [root@pvcecs-master ~]# sudo mount /dev/xvdc /cdwdata
-    [root@pvcecs-master ~]# sudo mount /dev/xvdd /lhdata
+[root@pvcecs-master ~]# sudo mount /dev/xvdb /docker
+[root@pvcecs-master ~]# sudo mount /dev/xvdc /cdwdata
+[root@pvcecs-master ~]# sudo mount /dev/xvdd /lhdata
 
-    [root@pvcecs-master ~]# sudo blkid /dev/xvdb
-    [root@pvcecs-master ~]# sudo blkid /dev/xvdc
-    [root@pvcecs-master ~]# sudo blkid /dev/xvdd
+[root@pvcecs-master ~]# sudo blkid /dev/xvdb
+[root@pvcecs-master ~]# sudo blkid /dev/xvdc
+[root@pvcecs-master ~]# sudo blkid /dev/xvdd
 
-    [root@pvcecs-master ~]# cat /etc/fstab
-    UUID=497ad222-04fa-453f-b110-ba8001d38788       /       xfs     defaults        0                               0
-    UUID=2e0d9ec9-a82a-43cc-a8e2-c6db30e7f6a4       /boot   xfs     defaults        0                               0
-    UUID=7B77-95E7 /boot/efi         vfat   defaults,uid=0,gid=0,umask=077,shortname=winnt                          0           2
-    [root@pvcecs-master ~]#
+[root@pvcecs-master ~]# cat /etc/fstab
+UUID=497ad222-04fa-453f-b110-ba8001d38788       /       xfs     defaults        0                               0
+UUID=2e0d9ec9-a82a-43cc-a8e2-c6db30e7f6a4       /boot   xfs     defaults        0                               0
+UUID=7B77-95E7 /boot/efi         vfat   defaults,uid=0,gid=0,umask=077,shortname=winnt                          0           2
+[root@pvcecs-master ~]#
 
-    [root@pvcecs-master ~]# cat>> /etc/fstab
-    UUID=497ad222-04fa-453f-b110-ba8001d38788        /       xfs     defaults         0       0
-    UUID=2e0d9ec9-a82a-43cc-a8e2-c6db30e7f6a4        /boot   xfs     defaults         0       0
-    UUID=7B77-95E7 /boot/efi         vfat    defaults,uid=0,gid=0,umask=077,shortname=winnt 0                                   2
-    UUID="934fece5-074e-4102-8481-6ed3a3b10931"    /docker xfs defaults 0 0
-    UUID="52f4940d-3dca-4b90-a223-3bef6eee2b74" /cdwdata     xfs     defaults         0       0
-    UUID="d7e9640b-cc12-49ac-b6c2-6eb3136679a1" /lhdata     xfs     defaults        0       0
+[root@pvcecs-master ~]# cat>> /etc/fstab
+UUID=497ad222-04fa-453f-b110-ba8001d38788        /       xfs     defaults         0       0
+UUID=2e0d9ec9-a82a-43cc-a8e2-c6db30e7f6a4        /boot   xfs     defaults         0       0
+UUID=7B77-95E7 /boot/efi         vfat    defaults,uid=0,gid=0,umask=077,shortname=winnt 0                                   2
+UUID="934fece5-074e-4102-8481-6ed3a3b10931"    /docker xfs defaults 0 0
+UUID="52f4940d-3dca-4b90-a223-3bef6eee2b74" /cdwdata     xfs     defaults         0       0
+UUID="d7e9640b-cc12-49ac-b6c2-6eb3136679a1" /lhdata     xfs     defaults        0       0
 
-    [root@pvcecs-master ~]# mount -av
-    [root@pvcecsmaster overlay2]# lvs
-      LV      VG      Attr       LSize    Pool Origin Data%                     Meta%   Move Log Cpy%Sync Convert
-      home    centos -wi-ao---- 183.24g
-      root    centos -wi-ao----    50.00g
-      swap    centos -wi-ao----    15.75g
-      cdwdata vgcdp -wi-ao---- 600.00g
-      docker vgcdp -wi-ao---- <600.00g
-      var     vgcdp -wi-ao---- <600.00g
-      lhdata vgcdp -wi-ao---- 1200.00g
-    [root@pvcecsmaster overlay2]#
+[root@pvcecs-master ~]# mount -av
+[root@pvcecs-master overlay2]# lvs
+  LV      VG      Attr       LSize    Pool Origin Data%                     Meta%   Move Log Cpy%Sync Convert
+  home    centos -wi-ao---- 183.24g
+  root    centos -wi-ao----    50.00g
+  swap    centos -wi-ao----    15.75g
+  cdwdata vgcdp -wi-ao---- 600.00g
+  docker vgcdp -wi-ao---- <600.00g
+  var     vgcdp -wi-ao---- <600.00g
+  lhdata vgcdp -wi-ao---- 1200.00g
+[root@pvcecs-master overlay2]#
 
-    [root@pvcecsmaster overlay2]# pvs
-      PV         VG      Fmt Attr PSize  PFree
-      /dev/sda2 centos lvm2 a-- <249.00g    4.00m
-      /dev/sdb   vgcdp lvm2 a-- <600.00g <224.96g
-      /dev/sdc   vgcdp lvm2 a-- <600.00g <224.96g
-      /dev/sdd   vgcdp lvm2 a-- <1200.00g<224.96g
-      /dev/sde   vgcdp lvm2 a-- <600.00g <224.96g
-    [root@pvcecs-master ~]#
-    ```
+[root@pvcecs-master overlay2]# pvs
+  PV         VG      Fmt Attr PSize  PFree
+  /dev/sda2 centos lvm2 a-- <249.00g    4.00m
+  /dev/sdb   vgcdp lvm2 a-- <600.00g <224.96g
+  /dev/sdc   vgcdp lvm2 a-- <600.00g <224.96g
+  /dev/sdd   vgcdp lvm2 a-- <1200.00g<224.96g
+  /dev/sde   vgcdp lvm2 a-- <600.00g <224.96g
+[root@pvcecs-master ~]#
+```
 
 ## 19. Install httpd on the Cloudera Manager node
 

@@ -5,7 +5,7 @@ topicSlug: cdp-7-3-2
 summary: Introduction, cluster architecture, service dependencies, prerequisites, and the hardware and software requirements for a Cloudera on premises 7.3.2 deployment with ECS.
 prevTitle: VM Creation
 prevSlug: /installations/cdp-7-3-2/vm
-nextTitle: Post OS Installation - Preliminary Work
+nextTitle: Post OS Installation
 nextSlug: /installations/cdp-7-3-2/post-os-work
 ---
 
@@ -15,48 +15,48 @@ This guide provides all the required information to set up and install Cloudera 
 
 ## Important URLs
 
-Install Cloudera on premises Base and Data Service Clusters:
+Install Cloudera Base on premises and Data Service Clusters:
 
-- [Cloudera on premises Base installation](https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/cdp-private-cloud-base-installation/topics/cdpdc-installation.html)
+- [Cloudera Base on premises installation](https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/cdp-private-cloud-base-installation/topics/cdpdc-installation.html)
 - [Data Services installation on ECS](https://docs.cloudera.com/cdp-private-cloud-data-services/latest/installation-ecs/topics/cdppvc-installation-ecs-steps.html)
 
-Uninstall and cleanup Cloudera on premises Base, Data Service Clusters and PostgreSQL DB:
+Uninstall and cleanup Cloudera Base on premises, Data Service Clusters and PostgreSQL DB:
 
-- [Cloudera on premises Base uninstallation](https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/cdp-private-cloud-base-installation/topics/cdpdc-uninstallation.html)
+- [Cloudera Base on premises uninstallation](https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/cdp-private-cloud-base-installation/topics/cdpdc-uninstallation.html)
 - [Uninstall Data Services on ECS](https://docs.cloudera.com/cdp-private-cloud-data-services/1.5.5/installation-ecs/topics/cdppvc-installation-ecs-uninstall-pvc.html)
 - [How to completely uninstall PostgreSQL](https://kb.objectrocket.com/postgresql/how-to-completely-uninstall-postgresql-757)
 
 ## Introduction
 
-Cloudera on premises is an integrated analytics and data management platform deployed in private data centers. Cloudera Data Platform is a single platform that has two form factors: CDP Public and Cloudera on premises. It consists of Cloudera on premises Base and Cloudera on premises Data Services, and offers broad data analytics and artificial intelligence functionality along with secure user access and data governance features.
+Cloudera on premises is an integrated analytics and data management platform deployed in private data centers. Cloudera Platform is a single platform that has two form factors: Cloudera on premises and Cloudera on cloud. It consists of Cloudera Base on premises and Cloudera Data Services on premises, and offers broad data analytics and artificial intelligence functionality along with secure user access and data governance features.
 
-Cloudera on premises (PvC) data services components run on containerized clusters and thus require a container orchestration engine to manage all the workloads.
+Cloudera on premises data services components run on containerized clusters and thus require a container orchestration engine to manage all the workloads.
 
 There will be two major components in a Cloudera on premises installation:
 
-- Cloudera on premises Base Cluster
-- Cloudera on premises Data Services Cluster
+- Cloudera Base on premises Cluster
+- Cloudera Data Services on premises Cluster
 
-Cloudera on premises DS offers installation with two orchestration engines:
+Cloudera Data Services on premises offers installation with two orchestration engines:
 
 - RedHat Openshift Container Platform (OCP)
 - Embedded Container Service (Cloudera managed-ECS)
 
-This guide focuses on **Cloudera on premises Data Service Cluster** setup with **ECS**.
+This guide focuses on **Cloudera Data Services on premises cluster** setup with **ECS**.
 
 ## Cluster Architecture
 
 A Cloudera on premises setup consists of the following three parts.
 
-![Architecture diagram showing a FreeIPA server as the identity and authentication provider above a CDP Base Cluster of pvcmaster and pvcbase1-3 nodes and a CDP ECS Cluster of ecsmaster and ecsworker1-5 nodes](/images/cdp-7-3-2/summary/architecture-overview.png)
+![Architecture diagram showing a FreeIPA server as the identity and authentication provider above a Cloudera Base on premises Cluster of pvcmaster and pvcbase1-3 nodes and a Cloudera Data Services on premises (ECS) Cluster of ecsmaster and ecsworker1-5 nodes](/images/cdp-7-3-2/summary/architecture-overview.png)
 
 ### FreeIPA / AD server
 
 Provides the identity and authentication to the cluster. It includes Kerberos as the authentication provider and LDAP as the directory service provider. All the cluster nodes (both Base and ECS) act as FreeIPA agents. The FreeIPA server includes Private DNS Server, MIT Kerberos KDC, Directory Server, Chrony, Dogtag certificate system and SSSD.
 
-### CDP Base Cluster
+### Cloudera Base on premises Cluster
 
-Consists of all the prerequisite services that form the basis for the CDP Data Lake for Data Services:
+Consists of all the prerequisite services that form the basis for the Data Lake used by Cloudera Data Services on premises:
 
 - Atlas
 - Solr
@@ -90,9 +90,9 @@ Missing components which are not considered as part of this setup guide, but can
 - S3 Connecter
 - Zeppelin
 
-### CDP ECS Data Services Cluster
+### Cloudera Data Services on premises (ECS) Cluster
 
-This is the Rancher (RKE) based Kubernetes cluster that forms the basis for all the containerized workloads of CDP Data Services. It consists of ECS master, ECS agents, and Docker servers.
+This is the Rancher (RKE) based Kubernetes cluster that forms the basis for all the containerized workloads of Cloudera Data Services on premises. It consists of ECS master, ECS agents, and Docker servers.
 
 ### Service Dependencies
 
@@ -144,12 +144,12 @@ The table below summarizes the machines used for this POC. This is a minimum req
 
 Screenshots shown and versions used in this guide are for reference purposes only and may differ from the versions you use.
 
-| Count | CDP Role |
+| Count | Cloudera Role |
 |:--|:--|
 | 1 | FreeIPA or AD Server (Will be used for FreeIPA, Kerberos, Private DNS, LDAP, NTP, KDC, and will be used as an ansible controller node for automation purpose) |
 | 1 | Cloudera-Manager Server (with external PostgreSQL Database server, will be used for downloading bits as well) |
-| 4 | CDP Base Cluster (1 Master and 3 Worker Nodes) |
-| 3-11 | CDP ECS Data Services Cluster (1 Master and 3-10 Worker Nodes) |
+| 4 | Cloudera Base on premises Cluster (1 Master and 3 Worker Nodes) |
+| 3-11 | Cloudera Data Services on premises (ECS) Cluster (1 Master and 3-10 Worker Nodes) |
 
 ### DNS Server (In case we are not going with FreeIPA)
 
@@ -163,7 +163,7 @@ The external DNS server is expected to be ready prior to installing the Cloudera
 
 ### Kerberos + LDAP Server/AD + Certificate (Required only, in case we are not going with FreeIPA)
 
-An external Kerberos server and the Kerberos key distribution center (KDC), with a realm established, must be available to provide authentication to CDP services, users and hosts.
+An external Kerberos server and the Kerberos key distribution center (KDC), with a realm established, must be available to provide authentication to Cloudera on premises services, users and hosts.
 
 An external secured LDAP-compliant identity/directory server (LDAPS) is required to enable the Cloudera on premises solution to look up user accounts and groups in the directory. This is expected to be ready prior to installing the Cloudera on premises solution, and its installation procedure is not covered in this guide.
 
@@ -179,9 +179,9 @@ CAI requires an external NFS server to store the project files and directories. 
 
 The external NFS storage is expected to be ready prior to installing the Cloudera on premises solution. External NFS storage installation is not covered in this guide.
 
-![Diagram of vSphere/vSAN cluster 1 for CDP Base, hosting the PVC MASTER and PVC BASE1-3 servers across four hosts](/images/cdp-7-3-2/summary/vsphere-cluster-base.png)
+![Diagram of vSphere/vSAN cluster 1 for Cloudera Base on premises, hosting the PVC MASTER and PVC BASE1-3 servers across four hosts](/images/cdp-7-3-2/summary/vsphere-cluster-base.png)
 
-![Diagram of vSphere/vSAN cluster 2 for CDP Data Experience, hosting the PVC ECS1-4 servers across four hosts](/images/cdp-7-3-2/summary/vsphere-cluster-data-services.png)
+![Diagram of vSphere/vSAN cluster 2 for Cloudera Data Services on premises, hosting the PVC ECS1-4 servers across four hosts](/images/cdp-7-3-2/summary/vsphere-cluster-data-services.png)
 
 ## Hardware Requirements
 
@@ -266,7 +266,7 @@ Specs are upgraded for concurrent tests and higher data volume tests, and assume
 
 ## Reference Architecture
 
-This reference architecture explains the architecture and deployment procedures for Cloudera Data Platform on premises, using on-premises infrastructure for big data and analytics. It provides the details to configure Cloudera on premises on bare metal RHEL 9 based infrastructure.
+This reference architecture explains the architecture and deployment procedures for Cloudera on premises, using on-premises infrastructure for big data and analytics. It provides the details to configure Cloudera on premises on bare metal RHEL 9 based infrastructure.
 
 The versions it is built and validated against are listed in the software requirements table below.
 
@@ -287,8 +287,8 @@ The table below lists the software components and versions required for a single
 | Psycopg2-binary | 2.9.11 >= | All Servers |
 | Postgres-JDBC-Connector | 42.7.7 >= | All Servers |
 | Cloudera Manager | 7.13.2.6 (7.13.2.6-80024490) | Cldr-Mngr |
-| Cloudera on premises Base (RunTime) | 7.3.2.0 (7.3.2-1.cdh7.3.2.p0.77083870). Install Base Runtime 7.3.2 **only if you are not planning to use CAI** (Data Service), otherwise install **7.3.1 SP3 CHF2** | PvC Base Cluster Nodes |
-| Cloudera on premises Data Services | 1.5.5 SP2 (1.5.5-h2000-b238) | PvC Data Service Cluster Nodes |
+| Cloudera Base on premises (RunTime) | 7.3.2.0 (7.3.2-1.cdh7.3.2.p0.77083870). Install Base Runtime 7.3.2 **only if you are not planning to use CAI** (Data Service), otherwise install **7.3.1 SP3 CHF2** | PvC Base Cluster Nodes |
+| Cloudera Data Services on premises | 1.5.5 SP2 (1.5.5-h2000-b238) | PvC Data Service Cluster Nodes |
 | Hadoop (Includes YARN and HDFS) | 3.4.2.7.3.2.0-957 | PvC Base Cluster Nodes |
 | Spark3 | 3.5.4.7.3.2.0-957 | PvC Base Cluster Nodes |
 | Ozone | 2.0.0.7.3.2.0-957 | PvC Base Cluster Nodes |
@@ -305,9 +305,9 @@ The table below lists the software components and versions required for a single
 
 Further references:
 
-- [Requirements and supported versions, including product compatibility matrices](https://supportmatrix.cloudera.com/), and the [Cloudera on premises Base 7.3.2 documentation index](https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/index.html)
-- [Cloudera on premises Base and Experiences versions and supported features](https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/private-release-notes/topics/rt-runtime-component-versions_732.html)
-- [Cloudera on premises Base requirements and supported versions](https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/cdp-private-cloud-base-installation/topics/cdpdc-requirements-supported-versions.html)
+- [Requirements and supported versions, including product compatibility matrices](https://supportmatrix.cloudera.com/), and the [Cloudera Base on premises 7.3.2 documentation index](https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/index.html)
+- [Cloudera Base on premises and Experiences versions and supported features](https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/private-release-notes/topics/rt-runtime-component-versions_732.html)
+- [Cloudera Base on premises requirements and supported versions](https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/cdp-private-cloud-base-installation/topics/cdpdc-requirements-supported-versions.html)
 
 Dedicated **NVMe/SSD drives** are recommended to store Ozone metadata and Ozone mgmt configuration for the admin/mgmt nodes and worker/data nodes, and CDW data service storage for virtual warehouses for local attached Storage Tiering Cache.
 
@@ -319,12 +319,12 @@ The domain name and the hostnames mentioned here are for reference only. You may
 
 | NodeName | Details |
 |:--|:--|
-| pvcbase-master | Cloudera on premises Base Master |
-| pvcbase-worker1 to pvcbase-worker3 | CDP Base Cluster Worker Nodes |
+| pvcbase-master | Cloudera Base on premises Master |
+| pvcbase-worker1 to pvcbase-worker3 | Cloudera Base on premises Cluster Worker Nodes |
 | ipaserver (OR Existing LDAP/AD + DNS + Kerberos + KDC) | FreeIPA / Existing AD Server |
 | cldr-mngr | Cloudera-Manager and PostgreSQL DB Server |
 | pvcecs-master | ECS Master Node |
 | pvcecs-worker1 to pvcecs-worker10 | ECS Worker Nodes |
 | CLDRSETUP.LOCAL (Replace with your ORG DOMAIN) | Dummy Domain For POC Purpose |
 
-Once you are familiar with all the information above, you can start with the preliminary work for the CDP Base cluster setup.
+Once you are familiar with all the information above, you can start with the preliminary work for the Cloudera Base on premises cluster setup.

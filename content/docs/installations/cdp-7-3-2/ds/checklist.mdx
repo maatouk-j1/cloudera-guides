@@ -1,11 +1,11 @@
 ---
 title: Checklist
-topicTitle: CDP Data Services Installation (ECS)
+topicTitle: Cloudera Data Services Installation (ECS)
 topicSlug: cdp-7-3-2/ds
 summary: The guide's full pre-installation checklist for Embedded Container Service - every item to verify on the Base cluster and the ECS hosts before the installer runs, grouped by the release that introduced it.
 prevTitle: Embedded Container Service (ECS) Requirements
 prevSlug: /installations/cdp-7-3-2/ds/ecs-requirements
-nextTitle: Install CDP Data Services using ECS
+nextTitle: Install Cloudera Data Services using ECS
 nextSlug: /installations/cdp-7-3-2/ds/ecs
 ---
 
@@ -30,10 +30,10 @@ The rows in **bold with an empty Details cell** are the source's own section div
 | Base Components TLS | All Base components configured with TLS. |
 | Base Components Kerberos | All Base components configured with Kerberos. |
 | CDW Base Cluster HMS | CDW - Base HMS, mTLS can be used instead of user/password.<br />If using CDW, the Base Cluster HMS is configured to allow TLS connections (set to allow TLS, but not forced to require it). |
-| Wildcard DNS Record | **CRITICAL**: A wildcard subdomain (called app_domain in cm) has been created in DNS. For AD this usually means a subdomain folder + an "A record" with name = "" pointing to the ECS host and a CNAME record. The "A record" does not need a reverse PTR.<br />**AD Example**: If corp domain is "company.com", then create a new subdomain folder called "ecs-dev", then within that create AD another called "apps", then create a "A record" inside that folder, its name is "", its IP will be the IP of the host you will install ECS Server onto.<br />Verify with dig utility e.g., $ dig foobar.apps.cdppvc.com.<br />Look for "ANSWER" section in the result. |
+| Wildcard DNS Record | **CRITICAL**: A wildcard subdomain (called app_domain in cm) has been created in DNS. For AD this usually means a subdomain folder + an "A record" with name = "" pointing to the ECS host and a CNAME record. The "A record" does not need a reverse PTR.<br />**AD Example**: If corp domain is "company.com", then create a new subdomain folder called "ecs-dev", then within that create AD another called "apps", then create a "A record" inside that folder, its name is "", its IP will be the IP of the host you will install ECS Server onto.<br />Verify with dig utility e.g., $ dig foobar.apps.cldrsetup.local.<br />Look for "ANSWER" section in the result. |
 | DNS Resolver | DNS needs to be the primary resolver, do not use entries in /etc/hosts (except for localhost). |
 | ECS Nodes File System | RHEL 8 & RHEL 9 - disk partition that backs "/var" should be xfs file system (using the default ftype = 1), this is usually the root partition /. |
-| RHEL/Centos 7.x Support | **New in 1.5.5:** RH/Centos 7.x no longer supported. If running RHEL 7.x, you must upgrade to a higher version before installing Cloudera on premises Data Services. |
+| RHEL/Centos 7.x Support | **New in 1.5.5:** RH/Centos 7.x no longer supported. If running RHEL 7.x, you must upgrade to a higher version before installing Cloudera Data Services on premises. |
 | Hostname Configuration | Hostname must = FQDN, use `hostnamectl set-hostname <fqdn>`. |
 | /etc/resolv.conf Entries | /etc/resolv.conf must NOT have more than 3 "nameserver" entries. |
 | MTU Size | Ensure that net interfaces are configured to a maximum transmission unit size (MTU) not smaller than 1450, (typical MTU is 1500), required by the Calico CNI plugin. |
@@ -57,11 +57,11 @@ The rows in **bold with an empty Details cell** are the source's own section div
 | Air Gapped Customers | If a customer is Air Gapped, they must download all the ECS bits and stage them behind an HTTP server. Make sure they do this right away as this is 150GB of content (circa 1.5.0). |
 | License Key | In every case, Customer (or Cloudera employee) MUST have a valid license key that includes an entitlement for PrivateCloud! |
 | Ingress Certificates | It is usually better to have a customer CA signed ECS Ingress domain cert, but not required as ECS will sign using an RKE CA cert (the RKE CA will have to be pre-trusted on a user's machine, or the browser will show "insecure" TLS connection). This ECS generated CA is not managed by CM's auto-TLS, so for JDBC/impala-shell/beeline/other connections, you must add this to a client truststore manually. The ECS generated CA will have a CN=rke2-server-ca@xxxxxxxxxx and is located at /var/lib/rancher/rke2/server/tls/server-ca.crt. |
-| Customer CA Signed Certs | For customer CA signed certs: This cert must include 2 SubjectAltNames. If wildcard format is not allowed, let the installer use the RKE CA. Example:<br />DNS.1 = *.apps.cdppvc.com<br />DNS.2 = apps.cdppvc.com |
+| Customer CA Signed Certs | For customer CA signed certs: This cert must include 2 SubjectAltNames. If wildcard format is not allowed, let the installer use the RKE CA. Example:<br />DNS.1 = *.apps.cldrsetup.local<br />DNS.2 = apps.cldrsetup.local |
 | **New in 1.5:** | |
 | No Wildcard TLS | There is an option to deploy when wildcard SAN entries are not allowed. See doc for method & limits: [No wildcard TLS](https://docs.cloudera.com/management-console/1.5.4/private-cloud-security-overview/topics/mc-private-cloud-security-no-wildcard-tls.html). |
-| CAI Workbench Certificates | If installing in a network domain that requires strict host checking, HSTS, you will need to use TLS for CAI Workbenchs. Fun fact: "cloudera.com" requires HSTS, which is usually not seen with customers but is emerging.<br />This cert must include SubjectAltNames.<br />DNS.1 = *.xxxx-xxxx.apps.cdppvc.com (xxxx-xxxx = the CAI workspace ID) |
-| CDE Virtual Cluster Certificates | Same as CAI for HSTS. CDE includes a utility to generate RKE signed certs for each virtual cluster. If you make your own cert for a CDE virtual cluster, this cert must include SubjectAltNames.<br />DNS.1 = *.xxxx-xxxx.apps.cdppvc.com (xxxx-xxxx = the CDE virtual cluster ID) |
+| CAI Workbench Certificates | If installing in a network domain that requires strict host checking, HSTS, you will need to use TLS for CAI Workbenchs. Fun fact: "cloudera.com" requires HSTS, which is usually not seen with customers but is emerging.<br />This cert must include SubjectAltNames.<br />DNS.1 = *.xxxx-xxxx.apps.cldrsetup.local (xxxx-xxxx = the CAI workspace ID) |
+| CDE Virtual Cluster Certificates | Same as CAI for HSTS. CDE includes a utility to generate RKE signed certs for each virtual cluster. If you make your own cert for a CDE virtual cluster, this cert must include SubjectAltNames.<br />DNS.1 = *.xxxx-xxxx.apps.cldrsetup.local (xxxx-xxxx = the CDE virtual cluster ID) |
 | CDW HMS Configuration | CDW can be configured to allow non-TLS connections for HMS db. See [CDW Documentation](https://docs.cloudera.com/data-warehouse/1.5.1/securing/topics/dw-private-disable-ssl-requirement-hms-database.html). |
 | FreeIPA Support | FreeIPA is now supported. "LDAP Group Search Filter" in Mgmt Console must include (!(cn=admins)), or group sync will break<br />e.g. `(&(member={0})(objectclass=posixgroup)(!(cn=admins)))`.<br />Must alter the /etc/krb5.conf - comment out includedir directives.<br />In CM7.10.1, CM generated "local to auth" krb5 rules include embedded \Q and \E chars, this is legal for base but causes a parsing problem for CDW. Contact for workaround (Should be patched in 1.5.1 - CHF1). |
 | **Fixed in 1.5.0:** | |

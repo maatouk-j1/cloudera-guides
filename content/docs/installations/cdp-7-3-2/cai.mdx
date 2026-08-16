@@ -3,21 +3,19 @@ title: Cloudera AI (CAI)
 topicTitle: CDP 7.3.2
 topicSlug: cdp-7-3-2
 summary: Provision a Cloudera AI Workbench on the ECS cluster, grant access to it, create a project, authenticate against the Kerberized Hadoop cluster, and explore AMPs, sessions and IDEs.
-prevTitle: Accessing Cloudera
-prevSlug: /installations/cdp-7-3-2/accessing-cloudera
+prevTitle: Accessing Data Services
+prevSlug: /installations/cdp-7-3-2/accessing-data-services
 nextTitle: Cloudera Data Warehouse (CDW)
 nextSlug: /installations/cdp-7-3-2/cdw
 ---
 
-With Data Services running on the Embedded Container Service (ECS) cluster, Cloudera AI (CAI) is the first data service to stand up. This page walks through provisioning an AI Workbench from the Data Services console, granting users and groups access to it, creating a project, completing Hadoop (Kerberos) authentication so sessions can reach cluster data, and exploring the workbench through AMPs, sessions and the built-in IDEs.
-
 <Banner type="info">
-The source guide titles this section *Cloudera on premises Machine Learning (CAI)*, and many of its screenshots still carry the older **Cloudera Machine Learning** / **ML Workspaces** branding. Cloudera AI is the current name for the same data service; the prose below uses **Cloudera AI (CAI)** and **AI Workbench**, matching the guide's own step text.
+Deploying and documentation of every aspect of the AI Workbench, project, and user management is not covered here. Please refer to the related Cloudera documentation on the Cloudera AI How to section for more details: [https://docs.cloudera.com/machine-learning/1.5.5/product/topics/ml-product-overview.html](https://docs.cloudera.com/machine-learning/1.5.5/product/topics/ml-product-overview.html)
 </Banner>
 
 ## Reference documentation
 
-Please review [Cloudera on premises Machine Learning](https://docs.cloudera.com/machine-learning/1.5.3/index.html) for more details.
+Please review [Cloudera AI on premises](https://docs.cloudera.com/machine-learning/1.5.5/index.html) for more details.
 
 Please review the requirements page for ECS and get started with CAI on Cloudera on premises:
 
@@ -25,14 +23,14 @@ Please review the requirements page for ECS and get started with CAI on Cloudera
 
 For more details on the CAI workspace and how-to steps, visit:
 
-- [https://docs.cloudera.com/machine-learning/cloud/workspaces/topics/ml-provision-workspaces.html](https://docs.cloudera.com/machine-learning/cloud/workspaces/topics/ml-provision-workspaces.html)
+- [https://docs.cloudera.com/machine-learning/1.5.5/workspaces-privatecloud/index.html](https://docs.cloudera.com/machine-learning/1.5.5/workspaces-privatecloud/index.html)
 - [https://docs.cloudera.com/machine-learning/1.5.5/workspaces-privatecloud/topics/ml-pvc-provision-ml-workspace.html](https://docs.cloudera.com/machine-learning/1.5.5/workspaces-privatecloud/topics/ml-pvc-provision-ml-workspace.html)
 
 ## AI Workbench creation
 
 To get started with CAI, follow the steps below.
 
-1. On the **Cloudera Private Cloud Data Services console**, click on **Cloudera AI**.
+1. On the **Data Services console**, click on **Cloudera AI**.
 
     ![Data Services console showing the Data Services row of tiles - Data Engineering, Data Warehouse and Machine Learning with a Machine Learning tooltip - above a Data Management row of tiles - Replication Manager, Data Catalog and Management Console](/images/cdp-7-3-2/cai/step1-data-services-console.png)
 
@@ -50,9 +48,9 @@ To get started with CAI, follow the steps below.
         - If you choose **External NFS Server**, perform on **all ECS nodes**. *(Skip this, as we are not using it in current setup)*
 
         ```text
-        #### nfs://172.31.30.239:/lhdata/nfs_storage/kuldeep-test-cml-w1
-        [root@pvcecs-master ~]# mkdir -p /lhdata/nfs_storage/kuldeep-test-cml-w1
-        [root@pvcecs-master ~]# chown 8536:8536 /lhdata/nfs_storage/kuldeep-test-cml-w1
+        #### nfs://172.31.30.239:/lhdata/nfs_storage/ptgty-cai-wb
+        [root@pvcecs-master ~]# mkdir -p /lhdata/nfs_storage/ptgty-cai-wb
+        [root@pvcecs-master ~]# chown 8536:8536 /lhdata/nfs_storage/ptgty-cai-wb
         ```
 
     - Under **Production Learning**, the below parameters need to be updated.
@@ -98,11 +96,11 @@ To get started with CAI, follow the steps below.
 
     ![Cloudera Machine Learning Projects page with View Resource Usage Details expanded, showing Active Workloads counters at zero for Sessions, Experiments, Models, Jobs and Applications, and a User Resources panel reporting available CPU, Memory and GPU](/images/cdp-7-3-2/cai/step10-projects-resource-usage.png)
 
-11. For more details and how to review the projects section in the AI Workbench: [https://docs.cloudera.com/machine-learning/cloud/projects/index.html](https://docs.cloudera.com/machine-learning/cloud/projects/index.html)
+11. For more details and how to review the projects section in the AI Workbench: [https://docs.cloudera.com/machine-learning/1.5.5/projects/index.html](https://docs.cloudera.com/machine-learning/1.5.5/projects/index.html)
 
 ## Creation of Project in AI Workbench
 
-12. At the middle right, you will find the **New Project** button. Click on it. The **New Project** page appears. Enter the details as described below. Enter the project name and select the type of initial setup.
+1. At the middle right, you will find the **New Project** button. Click on it. The **New Project** page appears. Enter the details as described below. Enter the project name and select the type of initial setup.
 
     - **Project Name**: Enter a suitable name for your project.
     - **Project Description**: Enter a description for the project.
@@ -118,31 +116,33 @@ To get started with CAI, follow the steps below.
 
     ![New Project form with Project Owner admin, Project Name Agent Studio - admin, Project Description Deploy AMP for Agent Studio, Project Visibility set to Private, and an Initial Setup row of tabs - Blank, Template, AMPs, Local Files, Git - with Template selected and a language drop-down listing R, Python, PySpark and Scala](/images/cdp-7-3-2/cai/step12-new-project-page.png)
 
-13. Select **Runtime setup**. For initial exploration, select Basic and keep the kernel to **Python3.9** (enable the checkbox to add a GPU enabled Runtime variant, if applicable — *We are not using GPU in our current setup*).
+2. Select **Runtime setup**. For initial exploration, select Basic and keep the kernel to **Python3.9** (enable the checkbox to add a GPU enabled Runtime variant, if applicable — *We are not using GPU in our current setup*).
+
+    A session that requests a GPU on a cluster with no GPU nodes stays unschedulable, so leave the variant unchecked and pick a CPU-only resource profile at step 4. Where GPU nodes do exist, they are dedicated and tainted as described in [Dedicating ECS Nodes for Specific Workloads (Optional)](/installations/cdp-7-3-2/ds/ecs/specific-workloads).
 
     ![Runtime setup panel with the Basic tab selected and the Kernel drop-down open, listing Cloudera Data Visualization, Python 3.7, Python 3.8, Python 3.9, R 3.6, R 4.0 and R 4.1](/images/cdp-7-3-2/cai/step13-runtime-setup-kernel-list.png)
 
     ![Runtime setup panel with the Basic tab selected, Kernel set to Python 3.9 and Add GPU enabled Runtime variant checked, listing the six runtimes that will be added - JupyterLab, PBJ Workbench and Workbench, each in Nvidia GPU and Standard editions at 2023.08](/images/cdp-7-3-2/cai/step13-runtime-setup-gpu-variant.png)
 
-14. Click on **Create Project**. After some time, a new project will be created and will be available on the **Projects** page.
+3. Click on **Create Project**. After some time, a new project will be created and will be available on the **Projects** page.
 
-15. Click on the **sessions** tab and enter details for the new session. You will see a warning like below:
+4. Click on the **sessions** tab and enter details for the new session. You will see a warning like below:
 
     ![Start A New Session form with a Not authenticated to Hadoop warning, Session Name test-user1, Runtime set to JupyterLab, Python 3.10, Nvidia GPU edition, version 2023.08, Enable Spark toggled off beside Spark 3.2.3 - CDP 7.1.7.2035, a Runtime Image path, a Resource Profile of 2 vCPU / 8 GiB Memory and 1 GPU, and Cancel and Start Session buttons](/images/cdp-7-3-2/cai/step15-start-new-session-warning.png)
 
-16. Before starting any new session in the recently created project, you must complete the Hadoop authentication part, as the cluster setup is Kerberized.
+5. Before starting any new session in the recently created project, you must complete the Hadoop authentication part, as the cluster setup is Kerberized.
 
     So, to be able to access data from Hadoop clusters, go to **user > user settings > Hadoop authentication**. Open a **new tab in the same browser** window, by duplicating the existing tab. Go to the **CAI home page** and click on **User Settings** in the left pane. Click on **Hadoop Authentication**.
 
     ![User Settings page with the Hadoop Authentication tab selected, showing the Kerberos section with an empty Principal field prompting user@DOMAIN.COM, a Credentials area with Password and Keytab tabs, an Enter Password field and an Authenticate button, with red arrows pointing at the User Settings entry in the left pane and at the Hadoop Authentication tab](/images/cdp-7-3-2/cai/step16-user-settings-hadoop-authentication.png)
 
     - Enter the **Principal**, e.g. `username@DOMAIN.LOCAL`, i.e. `admin@CLDRSETUP.LOCAL`.
-    - Under the **Credentials**, enter the password (i.e. `cloudera123`) or keytab details of the LDAP user and click on **Authenticate**.
+    - Under the **Credentials**, enter the password (`<ldap_bind_password>`) or keytab details of the LDAP user and click on **Authenticate**.
     - Once the authentication is successful, proceed to the next step. You will see the output similar to the below screenshot, after the successful authentication and integration to the Kerberized Hadoop cluster.
 
     ![User Settings Hadoop Authentication tab showing a Kerberos authentication panel reading Currently authenticated as cdpbind@CDIP.CISCO.LOCAL, with a Sign out button and a Show Kerberos configuration link](/images/cdp-7-3-2/cai/step16-hadoop-authentication-success.png)
 
-17. Now, to explore the CAI IDEs, click on the newly created workspace. It will open the **Projects** screen of CAI. Go to the **Project page**, click on the newly created project and then click on the **New Session** button on the top right. Explore CAI by running jobs with different IDEs like Jupyterlab and Workbench.
+6. Now, to explore the CAI IDEs, click on the newly created workspace. It will open the **Projects** screen of CAI. Go to the **Project page**, click on the newly created project and then click on the **New Session** button on the top right. Explore CAI by running jobs with different IDEs like Jupyterlab and Workbench.
 
     ![Workbench list row with status Ready and a red arrow pointing at the workspace name link cml-workspc](/images/cdp-7-3-2/cai/step17-workbench-ready-name-link.png)
 
@@ -150,33 +150,33 @@ To get started with CAI, follow the steps below.
 
 ## Site administration, AMPs and sessions
 
-18. Go to **Site Administration** to edit the **Resource profile** and **GPU per session/Job**.
+1. Go to **Site Administration** to edit the **Resource profile** and **GPU per session/Job**.
 
     ![Site Administration Resource Profiles table listing six profiles from 2 vCPU / 4 GiB Memory to 8 vCPU / 64 GiB Memory with Edit and Delete actions, Maximum GPUs per Session/Job set to 2, Enable CPU bursting checked, and an Engine Images section with Disable Engines checked](/images/cdp-7-3-2/cai/step18-site-administration-resource-profiles.png)
 
-19. Go to the **AMPs** tab to get started with pre-built models.
+2. Go to the **AMPs** tab to get started with pre-built models.
 
     ![Accelerators for ML Projects page at ptgty-cai-wb.apps.cldrsetup.local/amps showing 38 AMPs filtered by All, Cloudera and Hugging Face sources, with tiles for Synthetic Data Studio, Agent Studio, RAG Studio and RAG Monitoring, each with Deploy and Cloudera AMP labels](/images/cdp-7-3-2/cai/step19-amps-tab.png)
 
-20. Select the **AMP** and click on **Configure Project**.
+3. Select the **AMP** and click on **Configure Project**.
 
-21. After editing the **Runtime field** for the new project, click on **Launch Project**.
+4. After editing the **Runtime field** for the new project, click on **Launch Project**.
 
     ![Configure Project page for Agent Studio - admin 1, AMP Name Agent Studio (v1), with an Environment Variables table setting AGENT_STUDIO_NUM_WORKFLOW_RUNNERS to 5 and its description, and a Runtime section with Editor JupyterLab, Kernel Python 3.10, Edition Standard and Version 2025.01](/images/cdp-7-3-2/cai/step21-configure-project-agent-studio.png)
 
-22. **Agent Studio - admin – AMP** project overview.
+5. **Agent Studio - admin – AMP** project overview.
 
     ![Agent Studio - admin project overview in the AI Workbench, with an empty Models section, a Jobs table containing Agent Studio - Upgrade in status Not Yet Run, and a Files list showing the alembic, app, bin, components, data, docs, examples and images folders](/images/cdp-7-3-2/cai/step22-agent-studio-project-overview.png)
 
-23. Create a new session by **Start A New Session** with the desired resources, editor, kernel, and number of GPUs.
+6. Create a new session by **Start A New Session** with the desired editor, kernel and resource profile.
 
     ![Start A New Session form with Session Name llama2-test1, Runtime set to JupyterLab, Python 3.10, Standard edition, version 2023.08, Enable Spark toggled off beside Spark 3.2.3 - CDP 7.1.7.2035, the Runtime Image cdip-ecs1.cdip.cisco.local:5000/cloudera/cdsw/ml-runtime-jupyterlab-python3.10-standard:2023.08.2-b8, and a Resource Profile of 8 vCPU / 64 GiB Memory with 2 GPUs](/images/cdp-7-3-2/cai/step23-start-new-session.png)
 
-24. **Jupyter notebook** session in CAI.
+7. **Jupyter notebook** session in CAI.
 
     ![JupyterLab session running inside Cloudera Machine Learning, with the project file browser on the left and a Launcher tab offering Notebook and Console tiles for Python 3 (ipykernel) plus Terminal, Text File, Markdown File, Python File and Show Contextual Help](/images/cdp-7-3-2/cai/step24-jupyterlab-session.png)
 
-25. Open the **AMP** created project. To access the **WebUI**, click on **Open**.
+8. Open the **AMP** created project. To access the **WebUI**, click on **Open**.
 
     <Banner type="info">
     If you come across any new URLs for accessing a service's Web UI, make sure to add a hostname-to-IP mapping in your laptop's `/etc/hosts` file. Use the ECS master's IP if you're mapping for Data Services. For example: `ptgty-cai-wb.apps.cldrsetup.local` should map to the ECS master IP to be accessible via your browser.
@@ -184,45 +184,12 @@ To get started with CAI, follow the steps below.
 
     ![Agent Studio - admin project overview at ptgty-cai-wb.apps.cldrsetup.local/admin/agent-studio-admin, with the Models, Jobs and Files sections and the workbench name ptgty-cai-workbench and cloud provider ECS shown at the bottom of the left pane](/images/cdp-7-3-2/cai/step25-amp-project-overview.png)
 
-26. The WebUI for **Agent Studio - admin** with pre-trained data is now available. **Change settings** on the WebUI or use them out of the box. For example, we questioned *"what is Cloudera Data Platform?"*.
+9. The WebUI for **Agent Studio - admin** with pre-trained data is now available. **Change settings** on the WebUI or use them out of the box. For example, we questioned *"what is Cloudera Data Platform?"*.
 
     ![Agent Studio welcome page at cai-agent-studio-dsv8az.ptgty-cai-wb.apps.cldrsetup.local, warning that Agent Studio needs a default LLM model to run workflows and that the AI Studios entitlement is not enabled, above the Create Agent Workflows, Create Agents and Tools, Assign Tasks and Deploy Workflow descriptions and a Get Started button](/images/cdp-7-3-2/cai/step26-agent-studio-welcome.png)
 
     ![Agent Studio ops projects page at cai-agent-studio-ops-qbidzw.ptgty-cai-wb.apps.cldrsetup.local/projects, showing a single default project card with Total Traces 0, Total Tokens 0 and no Latency P50, and New Project and Last 7 Days buttons](/images/cdp-7-3-2/cai/step26-agent-studio-ops-projects.png)
 
-27. **Access HDFS data** from the **jupyter notebook session** in CAI.
+10. **Access HDFS data** from the **jupyter notebook session** in CAI.
 
     ![JupyterLab notebook inside Cloudera Machine Learning running hdfs dfs -ls / , which lists seven items including /hbase, /ranger, /tmp, /user, /warehouse and /yarn, followed by hdfs dfsadmin -report showing the configured and present capacity, DFS remaining and used figures, replicated block counts all at zero, and the start of the Live datanodes list](/images/cdp-7-3-2/cai/step27-hdfs-access-jupyter.png)
-
-    <Banner type="info">
-    Deploying and documentation of every aspect of the AI Workbench, project, and user management is not covered here. Please refer to the related Cloudera documentation on the Cloudera AI How to section for more details: [https://docs.cloudera.com/machine-learning/cloud/product/topics/ml-product-overview.html](https://docs.cloudera.com/machine-learning/cloud/product/topics/ml-product-overview.html)
-    </Banner>
-
-## GPU in this section
-
-The step text and the screenshots disagree about GPUs, and the disagreement runs both ways within the same procedure.
-
-- Step 13 states *"We are not using GPU in our current setup"*, yet its own second capture has **Add GPU enabled Runtime variant** checked and lists the six Nvidia GPU and Standard runtimes that get added.
-- Step 15's session capture selects the **Nvidia GPU** edition with a resource profile of **2 vCPU / 8 GiB Memory** and **1 GPU**.
-- Step 18 sets **Maximum GPUs per Session/Job** to **2**, and step 23 starts a session with **8 vCPU / 64 GiB Memory** and **2 GPUs**.
-
-If the cluster has no GPU nodes, leave the GPU runtime variant unchecked at step 13 and pick a CPU-only resource profile at steps 15 and 23; a session requesting a GPU on a cluster without one stays unschedulable. GPU nodes, where they exist, are dedicated and tainted as described in [Dedicating ECS Nodes for Specific Workloads (Optional)](/installations/cdp-7-3-2/ds/ecs/specific-workloads).
-
-## Version and hostname mismatches in this section
-
-Most of the captures in this section are recycled from an older lab build, so hostnames, domains, workspace names and product branding differ from the values the prose uses. Follow the prose; the screenshots are for orientation only.
-
-| Item | Prose / this deployment | What the screenshots show |
-|:--|:--|:--|
-| Product branding | Cloudera AI (CAI), AI Workbench | *Cloudera Machine Learning*, *ML Workspaces*, *Provision Machine Learning Workspace* |
-| Static subdomain field | **CAI Static Subdomain** | CML Static Subdomain |
-| Workspace / workbench name | ptgty-cai-workbench | cdip-cml-ws1, cml-workspc |
-| Environment | default environment for this deployment | cdip (steps 3 and 6), cdp-env-1 (steps 4 and 8) |
-| Domain | cldrsetup.local | cdip.cisco.local, cdp.example |
-| NFS export | nfs://172.31.30.239:/lhdata/nfs_storage/kuldeep-test-cml-w1 | nfs://10.29.148.69:/data/disk1/nfs_storage/cdip-cml-ws1 |
-| Kerberos principal | admin@CLDRSETUP.LOCAL | cdpbind@CDIP.CISCO.LOCAL |
-| Signed-in user | admin | pkatti, hardipat |
-| Spark / Runtime versions | Base Runtime 7.3.2.0 (7.3.1 SP3 CHF2 where Cloudera AI is in play) | Spark 3.2.3 - CDP 7.1.7.2035, ML Runtimes 2023.08 |
-| Kernel at step 13 | Python 3.9 | Python 3.7 highlighted in the drop-down capture |
-
-The documentation link in the first paragraph is annotated to the **1.5.3** Cloudera Machine Learning docs, while this deployment runs Data Services **1.5.5 SP2** — the remaining five links all target `1.5.5` or `cloud` and match their displayed text.

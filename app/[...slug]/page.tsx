@@ -31,7 +31,7 @@ export async function generateMetadata(
   const { title } = page.metadata;
 
   return {
-    title: title ? `${title} - Cloudera CDP Guide` : 'Cloudera CDP Guide',
+    title: title ? `${title} - Cloudera Platform Guide` : 'Cloudera Platform Guide',
   };
 }
 
