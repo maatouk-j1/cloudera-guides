@@ -2,7 +2,7 @@
 title: Cluster Validation
 topicTitle: CDP 7.3.2
 topicSlug: cdp-7-3-2
-summary: Validate the Cloudera on premises Base cluster end to end by loading the MovieLens 20M dataset into Hive over Kerberos, then validate Ozone by creating a volume and a bucket through the S3 gateway principal.
+summary: Validate the Cloudera Base on premises cluster end to end by loading the MovieLens 20M dataset into Hive over Kerberos, then validate Ozone by creating a volume and a bucket through the S3 gateway principal.
 prevTitle: FreeIPA Reference
 prevSlug: /installations/cdp-7-3-2/appendix/freeipa
 nextTitle: Cluster Cleanup
@@ -42,8 +42,8 @@ The MovieLens 20M dataset ships as a ZIP of CSV files, each carrying a header ro
 [root@pvcbase-master ml-20m]# hdfs dfs -ls /
 24/03/21 04:32:28 WARN ipc.Client: Exception encountered while connecting to the server :
 org.apache.hadoop.security.AccessControlException: Client cannot authenticate via:[TOKEN, KERBEROS]
-ls: DestHost:destPort pvcbasemaster.cldrsetup.local:8020 , LocalHost:localPort
-pvcbasemaster.cldrsetup.local/172.16.31.227:0. Failed on local exception: java.io.IOException:
+ls: DestHost:destPort pvcbase-master.cldrsetup.local:8020 , LocalHost:localPort
+pvcbase-master.cldrsetup.local/172.16.31.227:0. Failed on local exception: java.io.IOException:
 org.apache.hadoop.security.AccessControlException: Client cannot authenticate via:[TOKEN, KERBEROS]
 [root@pvcbase-master ml-20m]#
 ```

@@ -6,7 +6,7 @@ export type NavItem = {
 
 export const navigation: NavItem[] = [
   {
-    title: "CDP Private Cloud",
+    title: "Cloudera on premises",
     children: [
       {
         title: "Installations",
@@ -146,87 +146,87 @@ export const navigation: NavItem[] = [
               { title: "VM Creation", href: "/installations/cdp-7-3-2/vm" },
               { title: "Solution Summary", href: "/installations/cdp-7-3-2/summary" },
               {
-                title: "Post OS Installation - Preliminary Work",
+                title: "Post OS Installation",
                 href: "/installations/cdp-7-3-2/post-os-work",
               },
               {
-                title: "Install CDP Private Cloud",
-                href: "/installations/cdp-7-3-2/cdppvc",
+                title: "Install Cloudera on premises",
+                href: "/installations/cdp-7-3-2/on-premises",
                 children: [
                   {
                     title: "Prerequisites Overview",
-                    href: "/installations/cdp-7-3-2/cdppvc/prerequisites",
+                    href: "/installations/cdp-7-3-2/on-premises/prerequisites",
                   },
                   {
                     title: "Setup Repositories and Parcels",
-                    href: "/installations/cdp-7-3-2/cdppvc/repos-and-parcels",
+                    href: "/installations/cdp-7-3-2/on-premises/repos-and-parcels",
                   },
                   {
                     title: "Setup Cloudera Manager Server",
-                    href: "/installations/cdp-7-3-2/cdppvc/cm",
+                    href: "/installations/cdp-7-3-2/on-premises/cm",
                     children: [
                       {
                         title: "Setup Database for Cloudera Manager",
-                        href: "/installations/cdp-7-3-2/cdppvc/cm/database",
+                        href: "/installations/cdp-7-3-2/on-premises/cm/database",
                       },
                       {
                         title: "Install Cloudera Manager Server",
-                        href: "/installations/cdp-7-3-2/cdppvc/cm/server",
+                        href: "/installations/cdp-7-3-2/on-premises/cm/server",
                       },
-                      { title: "Enable Auto-TLS", href: "/installations/cdp-7-3-2/cdppvc/cm/auto-tls" },
-                      { title: "Enable Kerberos", href: "/installations/cdp-7-3-2/cdppvc/cm/kerberos" },
+                      { title: "Enable Auto-TLS", href: "/installations/cdp-7-3-2/on-premises/cm/auto-tls" },
+                      { title: "Enable Kerberos", href: "/installations/cdp-7-3-2/on-premises/cm/kerberos" },
                       {
                         title: "Setup Cloudera Management Services",
-                        href: "/installations/cdp-7-3-2/cdppvc/cm/mgmt-services",
+                        href: "/installations/cdp-7-3-2/on-premises/cm/mgmt-services",
                       },
                       {
                         title: "Configure CM for external authentication using LDAP",
-                        href: "/installations/cdp-7-3-2/cdppvc/cm/ldap-auth",
+                        href: "/installations/cdp-7-3-2/on-premises/cm/ldap-auth",
                       },
                     ],
                   },
                   {
-                    title: "Setup CDP PvC Base Cluster",
-                    href: "/installations/cdp-7-3-2/cdppvc/base",
+                    title: "Setup Cloudera Base on premises",
+                    href: "/installations/cdp-7-3-2/on-premises/base",
                     children: [
                       {
-                        title: "Install CDP PvC Base using the CM Web UI",
-                        href: "/installations/cdp-7-3-2/cdppvc/base/installation",
+                        title: "Install Cloudera Base on premises using the CM Web UI",
+                        href: "/installations/cdp-7-3-2/on-premises/base/installation",
                       },
                       {
                         title: "Data Lake Creation",
-                        href: "/installations/cdp-7-3-2/cdppvc/base/data-lake",
+                        href: "/installations/cdp-7-3-2/on-premises/base/data-lake",
                       },
                       {
                         title: "Additional Requirements and Details",
-                        href: "/installations/cdp-7-3-2/cdppvc/base/additional-requirements",
+                        href: "/installations/cdp-7-3-2/on-premises/base/additional-requirements",
                       },
                       {
                         title: "Configure services with SSL/TLS-enabled Metadata Database",
-                        href: "/installations/cdp-7-3-2/cdppvc/base/services-metadata-db-tls",
+                        href: "/installations/cdp-7-3-2/on-premises/base/services-metadata-db-tls",
                       },
                       {
                         title: "Scale the Cluster (Optional)",
-                        href: "/installations/cdp-7-3-2/cdppvc/base/scale-cluster",
+                        href: "/installations/cdp-7-3-2/on-premises/base/scale-cluster",
                       },
                       {
                         title: "Enable High Availability (Optional)",
-                        href: "/installations/cdp-7-3-2/cdppvc/base/high-availability",
+                        href: "/installations/cdp-7-3-2/on-premises/base/high-availability",
                       },
                       {
                         title: "Configure Services authentication for LDAP (Optional)",
-                        href: "/installations/cdp-7-3-2/cdppvc/base/ldap-auth",
+                        href: "/installations/cdp-7-3-2/on-premises/base/ldap-auth",
                       },
                       {
                         title: "Optimize Log Collection",
-                        href: "/installations/cdp-7-3-2/cdppvc/base/optimize-log-collection",
+                        href: "/installations/cdp-7-3-2/on-premises/base/optimize-log-collection",
                       },
                     ],
                   },
                 ],
               },
               {
-                title: "CDP Data Services Installation (ECS)",
+                title: "Cloudera Data Services Installation (ECS)",
                 href: "/installations/cdp-7-3-2/ds",
                 children: [
                   {
@@ -235,7 +235,7 @@ export const navigation: NavItem[] = [
                   },
                   { title: "Checklist", href: "/installations/cdp-7-3-2/ds/checklist" },
                   {
-                    title: "Install CDP Data Services using ECS",
+                    title: "Install Cloudera Data Services using ECS",
                     href: "/installations/cdp-7-3-2/ds/ecs",
                     children: [
                       {
@@ -255,8 +255,8 @@ export const navigation: NavItem[] = [
                 ],
               },
               {
-                title: "Accessing Cloudera",
-                href: "/installations/cdp-7-3-2/accessing-cloudera",
+                title: "Accessing Data Services",
+                href: "/installations/cdp-7-3-2/accessing-data-services",
               },
               { title: "Cloudera AI (CAI)", href: "/installations/cdp-7-3-2/cai" },
               { title: "Cloudera Data Warehouse (CDW)", href: "/installations/cdp-7-3-2/cdw" },
@@ -295,7 +295,7 @@ export const navigation: NavItem[] = [
     ],
   },
   {
-    title: "CDP Public Cloud",
-    href: "/cdp-public-cloud",
+    title: "Cloudera on cloud",
+    href: "/cloudera-on-cloud",
   },
 ];

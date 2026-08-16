@@ -92,7 +92,7 @@ find / -name kubernetes-dashboard*.tgz
 
 ```bash
 netstat -lntup|grep 6443
-openssl s_client -connect pvcbasemaster.cldrsetup.local:5432 -debug -msg
+openssl s_client -connect pvcbase-master.cldrsetup.local:5432 -debug -msg
 cp /etc/rancher/rke2/rke2.yaml .kube/config
 envsubst
 ```

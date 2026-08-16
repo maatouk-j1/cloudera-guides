@@ -1,10 +1,10 @@
 ---
-title: CDP Data Services Installation (ECS)
+title: Cloudera Data Services Installation (ECS)
 topicTitle: CDP 7.3.2
 topicSlug: cdp-7-3-2
-summary: Overview of the Cloudera on premises Data Services deployment - what Data Services are, what the Base cluster provides them, and the choice between a dedicated OpenShift cluster and the Embedded Container Service.
+summary: Overview of the Cloudera Data Services on premises deployment - what Data Services are, what the Base cluster provides them, and the choice between a dedicated OpenShift cluster and the Embedded Container Service.
 prevTitle: Optimize Log Collection
-prevSlug: /installations/cdp-7-3-2/cdppvc/base/optimize-log-collection
+prevSlug: /installations/cdp-7-3-2/on-premises/base/optimize-log-collection
 nextTitle: Embedded Container Service (ECS) Requirements
 nextSlug: /installations/cdp-7-3-2/ds/ecs-requirements
 ---
@@ -13,13 +13,13 @@ The Base cluster is built, hardened and healthy. Everything from here builds the
 
 ## Cloudera on premises (PvC) Data Services (DS) Installation
 
-Cloudera on premises Data Services lets you deploy and use the Cloudera Data Warehouse (CDW), Cloudera AI a.k.a. Cloudera Machine Learning (CML/CAI), and Cloudera Data Engineering (CDE) Data Services.
+Cloudera Data Services on premises lets you deploy and use the Cloudera Data Warehouse (CDW), Cloudera AI (CAI) and Cloudera Data Engineering (CDE) Data Services.
 
-This section summarizes Cloudera on premises Data Science v1.5.5 installation through Embedded Container Service on Cloudera on premises Base 7.3.2.
+This section summarizes Cloudera Data Services on premises v1.5.5 installation through Embedded Container Service on Cloudera Base on premises 7.3.2.
 
-A Cloudera on premises Data Services deployment includes an Environment, a Data Lake, the Management Console, and Data Services (Data Warehouse, Machine Learning, Data Engineering). Other tools and utilities include Replication Manager, Data Recovery Service, CDP CLI, and monitoring using Grafana.
+A Cloudera Data Services on premises deployment includes an Environment, a Data Lake, the Management Console, and Data Services (Data Warehouse, Machine Learning, Data Engineering). Other tools and utilities include Replication Manager, Data Recovery Service, CDP CLI, and monitoring using Grafana.
 
-To deploy Cloudera on premises Data Services you need a Cloudera on premises Base cluster, along with container-based clusters that run the Data Services. You can either use a dedicated **RedHat OpenShift container cluster (OCP)** or deploy an **Embedded Container Service (ECS)** container cluster.
+To deploy Cloudera Data Services on premises you need a Cloudera Base on premises cluster, along with container-based clusters that run the Data Services. You can either use a dedicated **RedHat OpenShift container cluster (OCP)** or deploy an **Embedded Container Service (ECS)** container cluster.
 
 <Banner type="info">
 This guide takes the **ECS** path throughout. OCP is named here for completeness only - none of the pages that follow cover an OpenShift deployment.
@@ -31,14 +31,14 @@ Platform Managers and Administrators can rapidly provision and deploy the data s
 
 ## What the Base cluster provides
 
-Cloudera on premises Base provides the following components and services that are used by Cloudera on premises Data Services:
+Cloudera Base on premises provides the following components and services that are used by Cloudera Data Services on premises:
 
 - SDX Data Lake cluster for security, metadata, and governance
 - HDFS and Ozone for storage
 - Powerful and open-source Cloudera Runtime services such as Ranger, Atlas, Hive Metastore (HMS), etc.
 - Networking infrastructure that supports network traffic between storage and compute environments.
 
-Every one of these was stood up over the previous chapter - the [Data Lake](/installations/cdp-7-3-2/cdppvc/base/data-lake) carries Ranger, Atlas, HMS, HDFS and Ozone, and the [preliminary work](/installations/cdp-7-3-2/post-os-work) laid down the DNS and network foundation the container cluster now depends on.
+Every one of these was stood up over the previous chapter - the [Data Lake](/installations/cdp-7-3-2/on-premises/base/data-lake) carries Ranger, Atlas, HMS, HDFS and Ozone, and the [preliminary work](/installations/cdp-7-3-2/post-os-work) laid down the DNS and network foundation the container cluster now depends on.
 
 ---
 
@@ -48,14 +48,14 @@ Every one of these was stood up over the previous chapter - the [Data Lake](/ins
 |:--|:--|
 | Prepare the ECS hosts - storage, cgroups, nfs-utils, iptables, optional GPU drivers | [Embedded Container Service (ECS) Requirements](/installations/cdp-7-3-2/ds/ecs-requirements) |
 | Walk the full pre-install checklist before touching the installer | [Checklist](/installations/cdp-7-3-2/ds/checklist) |
-| Install the ECS cluster from Cloudera Manager | [Install CDP Data Services using ECS](/installations/cdp-7-3-2/ds/ecs) |
+| Install the ECS cluster from Cloudera Manager | [Install Cloudera Data Services using ECS](/installations/cdp-7-3-2/ds/ecs) |
 
 ## Versions in this chapter
 
 | Component | Version |
 |:--|:--|
 | Data Services | **1.5.5 SP2** (1.5.5-h2000-b238) |
-| Cloudera on premises Base | **7.3.2.0** |
+| Cloudera Base on premises | **7.3.2.0** |
 | Cloudera Manager | **7.13.2.6** |
 
-The source names Data Services as *"Cloudera on premises Data Science v1.5.5"* on this page; the guide's own version table settles it as **1.5.5 SP2**, and that is what the rest of this chapter assumes.
+The source names Data Services as *"Cloudera Data Services on premises v1.5.5"* on this page; the guide's own version table settles it as **1.5.5 SP2**, and that is what the rest of this chapter assumes.
