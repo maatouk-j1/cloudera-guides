@@ -67,12 +67,10 @@ The **LDAP Distinguished Name Pattern** property is deprecated. Leave this field
     | LDAP URL | ldap://ipaserver.cldrsetup.local:389 |
     | LDAP Bind User Distinguished Name | uid=admin,cn=users,cn=accounts,dc=cldrsetup,dc=local |
     | LDAP Bind Password | `<ldap_bind_password>` (password for KDC admin, configured earlier) |
-    | Active Directory Domain (For AD Based LDAP) | `<ad_domain>` (e.g CLDRSETUP.LOCAL) |
-    | LDAP User Search filter (For Open LDAP Based) | `(&(uid={0})(objectClass=person))` |
-    | LDAP User Search filter (For AD Based) | `sAMAccountName={0}` |
+    | Active Directory Domain (For AD Setup only) | `<ad_domain>` (e.g CLDRSETUP.LOCAL) |
+    | LDAP User Search filter | For AD: `sAMAccountName={0}` — For LDAP: `(&(uid={0})(objectClass=person))` |
     | LDAP User Search Base | cn=users,cn=accounts,dc=cldrsetup,dc=local |
-    | LDAP Group Search filter (For Open LDAP Based) | `(&(member={1})(objectClass=posixgroup))` |
-    | LDAP Group Search filter (For AD Based) | `member={0}` |
+    | LDAP Group Search filter | For AD: `member={0}` — For LDAP: `(&(member={1})(objectClass=posixgroup))` |
     | LDAP Group Search Base | cn=groups,cn=accounts,dc=cldrsetup,dc=local |
 
 2. Below page will get open, select the appropriate options as mentioned below in the screenshot:
