@@ -17,13 +17,17 @@ export default function ScrollToTop() {
 
     // A hash is a scroll target, so leave it alone — scrolling to the top here
     // is what undid the browser's own jump to the heading on a reload.
-    const hash = window.location.hash
-    if (!hash) {
+    if (!window.location.hash) {
       window.scrollTo(0, 0)
       return
     }
 
+    // Read the hash on every re-anchor rather than capturing it once: the reader
+    // may pick another heading while the page is still settling, and that new
+    // target is the one to hold.
     const scrollToHash = () => {
+      const hash = window.location.hash
+      if (!hash) return
       const target = document.getElementById(decodeURIComponent(hash.slice(1)))
       target?.scrollIntoView({ behavior: 'instant' })
     }
@@ -42,7 +46,10 @@ export default function ScrollToTop() {
     }
 
     observer.observe(document.documentElement)
-    document.fonts.ready.then(scrollToHash)
+    // The font swap can land after we stop, so drop this one too once we have.
+    document.fonts.ready.then(() => {
+      if (!signal.aborted) scrollToHash()
+    })
 
     for (const event of ['wheel', 'touchstart', 'keydown', 'pointerdown']) {
       window.addEventListener(event, stop, { signal, passive: true })

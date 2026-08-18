@@ -198,21 +198,53 @@ Release: 9.5
 ```
 ````
 
-**Tag the fence for what is actually in it, and never mix two kinds in one fence.** `bash` is correct
-only when every line is a command to run. A file's contents are not bash, so they get their own fence
-in their own language — `ini` for `/etc/hosts` and key-value `.conf` files, `yaml`, `xml` or `sql`
-where those apply, `text` otherwise — split from the command that opened the file:
+**Tag the fence for what is actually in it.** `bash` is correct only when every line is a command to
+run. A file's contents are not bash, and a session that interleaves a prompt, a file and further
+commands is not bash either.
+
+**A file shown on its own gets its own file language** — `ini` for `/etc/hosts`, `.repo` files and
+key-value `.conf` files, `yaml`, `xml` or `sql` where those apply, `text` otherwise:
 
 ````md
-```bash
-sudo vi /etc/hosts
-```
-
 ```ini
 127.0.0.1   localhost localhost.localdomain localhost4
 10.0.0.10   master.example.local master
 ```
 ````
+
+**A file shown as part of a transcript stays in one fence with the command that opened it, tagged
+`text`.** Do not split the `vi` line off into a fence of its own. The reader is being shown a single
+session; two boxes read as two separate things to do, and the second one arrives with no indication
+of which file it belongs to. Separate the parts with a blank line:
+
+````md
+```text
+[root@ipaserver ~]# sudo vi /etc/hosts
+
+127.0.0.1   localhost localhost.localdomain localhost4
+10.0.0.10   master.example.local master
+
+[root@ipaserver ~]# scp /etc/hosts root@ipaserver:/etc/hosts
+```
+````
+
+`text` is the only tag that is right for the whole of such a block, and the reason is the prompt.
+Tag it `ini` and shiki reads `[root@ipaserver ~]` as a section header and everything from the `#`
+onward as a comment, so the command renders italic grey — the one thing on that line that is not a
+comment. The `#` in a root prompt is a prompt. Unlike the shell grammar (below), the INI grammar has
+no rule that stops it firing, because nothing about the preceding `]` marks the line as anything but
+a section header. `text` has no grammar at all, so no rule can fire and no token can be coloured
+wrongly.
+
+The cost is that genuine `#` comments inside the file — `# Free-IPA Server` in a hosts file, the
+trailing notes in `postgresql.conf` — lose their grey too. A fence carries one grammar, so a block
+holding both a prompt and a file gets either uniform text or misplaced emphasis, and uniform is the
+honest one. Blank lines carry the structure instead.
+
+Applied throughout the CDP 7.3.2 pages: `post-os-work.mdx` (`/etc/hosts`, `/etc/ansible/hosts`,
+`/etc/sysctl.conf`), `on-premises/repos-and-parcels.mdx` (both `cloudera-manager.repo` blocks),
+`on-premises/cm/database.mdx` (`pg_hba.conf`, `postgresql.conf`) and `on-premises/cm/server.mdx`
+(`db.properties`).
 
 Tagging pasted file contents `bash` does not merely fail to highlight them — it highlights them
 *wrongly*. Shiki reads the first word of each line as a command name, so in a `bash`-tagged hosts

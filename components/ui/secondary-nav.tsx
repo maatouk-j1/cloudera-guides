@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, type MouseEvent } from 'react'
 
 export default function SecondaryNav() {
 
@@ -52,6 +52,22 @@ export default function SecondaryNav() {
     scrollSpy()
   }, [links])
 
+  // Scroll to the heading ourselves rather than leaning on the browser's own
+  // jump to the fragment: a target the browser fails to resolve leaves the
+  // reader at the top of the page instead of at the section they picked.
+  const scrollToHeading = (event: MouseEvent<HTMLAnchorElement>, id: string) => {
+    // Let the reader open the link their own way (new tab, new window).
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+
+    const target = document.getElementById(id)
+    if (!target) return
+
+    event.preventDefault()
+    target.scrollIntoView({ behavior: 'smooth' })
+    // Keep the current router state so the entry stays a plain hash step.
+    window.history.pushState(window.history.state, '', `#${encodeURIComponent(id)}`)
+  }
+
   return (
     <div className={`w-48 shrink-0 ${links.length > 1 ? 'hidden xl:block' : 'hidden'}`}>
       {links.length > 1 &&
@@ -67,6 +83,7 @@ export default function SecondaryNav() {
                       data-scrollspy-link
                       className="relative block font-normal text-stone-600 pl-4 py-1.5 before:absolute before:-left-px before:top-2 before:bottom-2 before:w-0.5"
                       href={`#${link.id}`}
+                      onClick={(event) => scrollToHeading(event, link.id)}
                     >
                       {link.textContent}
                     </a>
