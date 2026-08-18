@@ -780,10 +780,6 @@ We will be using the Bastion host as the Ansible controller/admin node.
 
     Following the same pattern, the record for each machine is created in the reverse DNS zone.
 
-    ![Terminal running ipa dnsrecord-add against the 31.172.in-addr.arpa. zone and returning the PTR record for the IPA server](/images/cdp-7-3-2/post-os-work/ipa-dnsrecord-add-ptr-1.png)
-
-    ![Terminal running ipa dnsrecord-add for the base cluster node and returning its PTR record](/images/cdp-7-3-2/post-os-work/ipa-dnsrecord-add-ptr-2.png)
-
     ```text
     [root@ipaserver ~]# ipa dnsrecord-add 31.172.in-addr.arpa. 240.24   --ptr-rec ipaserver.cldrsetup.local.
       Record name: 240.24
