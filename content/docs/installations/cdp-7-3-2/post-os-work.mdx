@@ -692,8 +692,7 @@ We will be using the Bastion host as the Ansible controller/admin node.
 
     ```text
     [root@jump ~]# while IFS= read -r line; do
-      ansible all -m lineinfile -a "path=/etc/sysconfig/network-scripts/ifcfg-eth0 line='${line}' state=present
-    backup=true" --become
+      ansible all -m lineinfile -a "path=/etc/sysconfig/network-scripts/ifcfg-eth0 line='${line}' state=present backup=true" --become
     done < /tmp/dns_entries.txt
     ```
 
@@ -732,8 +731,6 @@ We will be using the Bastion host as the Ansible controller/admin node.
     ```
 
     Once you execute the above command, accept the default value by pressing Enter. It creates a reverse DNS zone named `16.172.in-addr.arpa.` (with a trailing dot).
-
-    ![Terminal output of ipa dnszone-add --name-from-ip=172.31.0.0/16 showing the created 31.172.in-addr.arpa. reverse zone and its SOA settings](/images/cdp-7-3-2/post-os-work/ipa-dnszone-add.png)
 
 7. Disable the krb5 ccache config and verify.
 
