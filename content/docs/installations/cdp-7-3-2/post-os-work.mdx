@@ -478,15 +478,13 @@ Enable password-less login across all the nodes when Red Hat Linux is installed 
     [root@ipaserver ~]# ssh 172.31.24.240
     ```
 
-2. Run the `ssh-keygen` command to create both the public and private SSH key pair on the Ansible controller node.
+2. Run the `ssh-keygen` command to create both the public and private SSH key pair on the Ansible controller node. `-N ''` leaves the key without a passphrase and `-f ~/.ssh/id_rsa` writes it to the default path, both of which the later steps and Ansible depend on.
 
     ```text
     [root@ipaserver ~]# ssh-keygen -N '' -f ~/.ssh/id_rsa
     [root@ipaserver ~]# ls -l /root/.ssh
     [root@ipaserver ~]# chmod 600 /root/.ssh/id_rsa
     ```
-
-    ![Terminal running ssh-keygen -t rsa -f /root/.ssh/id_rsa_new and prompting for a passphrase](/images/cdp-7-3-2/post-os-work/ssh-keygen-prompt.png)
 
 3. Run the following commands from the Ansible controller / `ipaserver` node to copy the public key `id_rsa.pub` to all the nodes of the cluster. `ssh-copy-id` appends the keys to the remote hosts' `.ssh/authorized_keys`.
 
