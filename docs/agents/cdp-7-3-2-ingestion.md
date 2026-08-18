@@ -11,7 +11,10 @@ guide](https://github.com/maatouk-j1/cloudera-guides/issues/10).
 
 ## 1. Source and tooling
 
-Source PDF: `sources/cloudera-on-premise-deployment-guide-ecs.pdf` — **255 pages**, git-ignored.
+Source PDF: `sources/cloudera-on-premise-deployment-guide-ecs-20260818.pdf` — **256 pages**, git-ignored.
+The 254-page edition the guide was first ingested from is kept beside it as
+`…-ecs-original.pdf`. The 255-page intermediate edition this playbook used to name is gone and
+cannot be re-derived. Full analysis of the differences: `docs/cdp-7-3-2-source-diff-20260818.md`.
 
 This is a later edition than the 254-page file the guide was originally ingested from, and its
 pagination drifts: the Ranger LDAP section that section 6 lists at 129-142 starts at **128** in this
@@ -60,10 +63,10 @@ Run `pdfimages -list -f N -l M` over your range *before* extracting, so you know
 
 | Component | Version |
 |:--|:--|
-| Cloudera Base on premises Runtime | **7.3.2.0** (`7.3.2-1.cdh7.3.2.p0.77083870`) — but **7.3.1 SP3 CHF2** if Cloudera AI is in play |
-| Data Services | **1.5.5 SP2** (`1.5.5-h2000-b238`) |
-| Cloudera Manager | **7.13.2.6** (`7.13.2.6-80024490`) — the build the install procedure pulls; the source's version table still names the earlier `7.13.2.0-77091850` |
-| OS | **RHEL 9.5** |
+| Cloudera Base on premises Runtime | **7.3.2.100** (`CDH-7.3.2-1.cdh7.3.2.p100.81274879`) — the Cloudera AI / 7.3.1 SP3 CHF2 caveat no longer exists in the source |
+| Data Services | **1.5.5 SP3 CHF1** (`1.5.5-h3200-b238`) |
+| Cloudera Manager | **7.13.2.100** (`7.13.2.100-81323056`) — the build the RPM listing shows; the source's version table still names the old `77091850` and its download script a third build, `80024490` |
+| OS | **RHEL 9.7** |
 
 The folder slug is `cdp-7-3-2` — no SP/CHF, because service packs churn. The nav title is
 "CDP 7.3.2". Precise product names and full version strings live on the version landing page.
@@ -168,6 +171,37 @@ page. The essentials it covers, in brief:
 - Touch **only** your own phase's `.mdx` files and your own `public/images/cdp-7-3-2/<section>/`
   folder. All 16 phases are disjoint by construction — that is what makes parallel execution safe.
 - Branch `feat/cdp-7-3-2-phase-N`, one PR per phase, linked to its ticket.
+
+### AD and LDAP tables stay merged — do not split them
+
+**Settled decision. Do not revert it, and do not propose splitting again without new
+information.** Where an LDAP property takes a different value depending on directory type,
+the site carries **one row holding both values, AD first**:
+
+```markdown
+| LDAP User Search Base | For AD: OU=cloudera,DC=cldrsetup,DC=local — For LDAP: cn=users,cn=accounts,dc=cldrsetup,dc=local |
+```
+
+Implemented in `1b6d6d2` (the two Ranger UserSync tables merged into one) and `c50f717`
+(the remaining paired rows). It affects exactly three pages —
+`on-premises/cm/ldap-auth.mdx`, `on-premises/base/ldap-auth.mdx` and
+`accessing-data-services.mdx`. Read both commit messages before editing any of them.
+
+Two things are deliberately **not** merged. Do not "finish the job" on them:
+
+- Rows where the AD field is a genuinely separate property rather than the same field
+  taking an AD value — the Ranger admin and Atlas tables on `on-premises/base/ldap-auth.mdx`.
+- The **Active Directory Domain** rows, which exist only for AD. On
+  `on-premises/cm/ldap-auth.mdx` that row is labelled "(For AD Setup only)".
+
+**The 2026-08-18 source edition pushes the other way — ignore it on this point.** It
+splits the AD variants back out into standalone tables: a new Table 8 *AD LDAP
+Integration* (p. 91) and a new Table 15 *LDAP AD Integration* (p. 195), with Tables 7
+and 14 retitled *FreeIPA*. Fold any genuinely new AD value out of those tables into the
+existing merged row instead of adding a table. The site's captions do not track the
+source's table numbering anyway — see the renumbering note in section 1.
+
+Full analysis of that edition: `docs/cdp-7-3-2-source-diff-20260818.md`.
 
 ## 6. The phase index (authoritative)
 
