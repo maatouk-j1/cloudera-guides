@@ -1011,8 +1011,6 @@ Configure the FreeIPA client on every other node so that it is managed by the `i
     The ipa-client-install command was successful
     ```
 
-    ![Terminal output of ipa-client-install showing realm discovery, CA certificate retrieval, enrollment in the IPA realm and the final "The ipa-client-install command was successful" line](/images/cdp-7-3-2/post-os-work/ipa-client-install-force-ntpd.png)
-
 3. Verify the KDC setup: check that Kerberos ticket generation is working fine by generating a ticket for the `admin` user from all individual hosts.
 
     Run the `kinit admin` command to authenticate as `admin` and enter the directory password provided during the FreeIPA server installation. The command generates the ticket, which `klist -e` then lists.
