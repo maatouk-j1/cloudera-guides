@@ -407,15 +407,6 @@ Please keep the same password for both the Directory Manager and the IPA admin s
     The ipa-server-install command was successful
     ```
 
-    Disable the firewall on the `ipaserver` node so the rest of the hosts can connect to it:
-
-    ```text
-    [root@ipaserver ~]# systemctl stop firewalld
-    [root@ipaserver ~]# systemctl disable firewalld
-    Removed "/etc/systemd/system/multi-user.target.wants/firewalld.service".
-    Removed "/etc/systemd/system/dbus-org.fedoraproject.FirewallD1.service".
-    ```
-
     <Banner type="warning">
     The setup will take 10-15 minutes.
 
@@ -426,6 +417,15 @@ Please keep the same password for both the Directory Manager and the IPA admin s
     [root@ipaserver ~]# ipa-server-install --setup-dns (again)
     ```
     </Banner>
+
+    Disable the firewall on the `ipaserver` node so the rest of the hosts can connect to it:
+
+    ```text
+    [root@ipaserver ~]# systemctl stop firewalld
+    [root@ipaserver ~]# systemctl disable firewalld
+    Removed "/etc/systemd/system/multi-user.target.wants/firewalld.service".
+    Removed "/etc/systemd/system/dbus-org.fedoraproject.FirewallD1.service".
+    ```
 
 2. Verify the KDC setup: check that the Kerberos ticket is working fine by generating a ticket for the `admin` user.
 
@@ -465,10 +465,6 @@ Please keep the same password for both the Directory Manager and the IPA admin s
     ipa-dnskeysyncd Service: RUNNING
     ipa: INFO: The ipactl command was successful
     ```
-
-    This command should return the below output:
-
-    ![Terminal showing kinit admin followed by klist -e, listing a valid krbtgt ticket for the admin principal](/images/cdp-7-3-2/post-os-work/kinit-klist-ipaserver.png)
 
 ## 3. Set up password-less login
 
