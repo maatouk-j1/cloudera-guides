@@ -62,14 +62,14 @@ export default function RootLayout({
               {/*  Page content */}
               <main className="grow">
                 <section className="relative">
-                  <div className="max-w-7xl mx-auto px-4 sm:px-6">
+                  <div className="w-full px-4 sm:px-6 lg:px-8">
                     {/* Main content */}
                     <div>
                       {/* Sidebar */}
                       <Sidebar />
 
                       {/* Page container */}
-                      <div className="md:grow md:pl-64 lg:pr-6 xl:pr-0">
+                      <div className="md:grow md:pl-64 lg:pr-6 xl:pr-0 min-w-0">
                         <div className="pt-24 md:pt-28 pb-8 md:pl-6 lg:pl-12">
                           {children}
                         </div>

@@ -53,7 +53,7 @@ export default async function DocPage(
       <article className="flex xl:space-x-12">
 
         {/* Main area */}
-        <div className="min-w-0">
+        <div className="min-w-0 grow">
 
           {/* Mobile hamburger + breadcrumbs */}
           <div className="md:hidden flex items-center mb-8">

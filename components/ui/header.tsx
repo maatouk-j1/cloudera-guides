@@ -12,7 +12,7 @@ export default function Header() {
         className="absolute inset-0 bg-white/70 border-b border-stone-200 backdrop-blur-sm -z-10 dark:bg-stone-950 dark:border-stone-800"
         aria-hidden="true"
       />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+      <div className="w-full px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Site branding */}
           <div className="grow">
