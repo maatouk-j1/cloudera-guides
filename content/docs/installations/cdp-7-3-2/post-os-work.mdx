@@ -1090,8 +1090,6 @@ If you are using an AD server as Kerberos instead of FreeIPA:
     nameserver 127.0.0.1
     ```
 
-    ![Contents of a generated /etc/resolv.conf showing the dhclient-script header, the search domain and the nameserver entry](/images/cdp-7-3-2/post-os-work/resolv-conf-dhclient.png)
-
 2. Verify the network configuration file `/etc/sysconfig/network` on the Bastion server, so that it uses the name server created in the previous steps.
 
     The changes in `/etc/resolv.conf` above are temporary and would get overwritten if the machine is rebooted. In order to keep the nameserver entry persistent, open the file `/etc/sysconfig/network` in edit mode and verify the entries below.
