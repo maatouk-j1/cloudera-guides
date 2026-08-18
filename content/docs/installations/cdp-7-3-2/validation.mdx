@@ -33,7 +33,6 @@ The MovieLens 20M dataset ships as a ZIP of CSV files, each carrying a header ro
 [root@pvcbase-master ~]# unzip ml-20m.zip
 [root@pvcbase-master ~]# cd ml-20m
 [root@pvcbase-master ml-20m]# sed -i 1d *
-[root@pvcbase-master ml-20m]#
 ```
 
 ### 2. Confirm that HDFS refuses you without a ticket
@@ -45,7 +44,6 @@ org.apache.hadoop.security.AccessControlException: Client cannot authenticate vi
 ls: DestHost:destPort pvcbase-master.cldrsetup.local:8020 , LocalHost:localPort
 pvcbase-master.cldrsetup.local/172.16.31.227:0. Failed on local exception: java.io.IOException:
 org.apache.hadoop.security.AccessControlException: Client cannot authenticate via:[TOKEN, KERBEROS]
-[root@pvcbase-master ml-20m]#
 ```
 
 ### 3. Locate a keytab and obtain a ticket
@@ -260,7 +258,6 @@ Space Quota set to -1
   "owner" : "s3g",
   "link" : false
 } ]
-[root@pvcbase-master ~]#
 ```
 
 A bucket listing that comes back with `bucketLayout : "FILE_SYSTEM_OPTIMIZED"` and the volume you just created is the end of the Ozone validation: authentication, the Ozone Manager, and the Storage Container Manager are all serving.

@@ -392,7 +392,6 @@ No resources found in the default namespace.
 [root@pvcecs-master ~]# kubectl get all
 NAME                  TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
 service/kubernetes    ClusterIP   10.43.0.1    <none>        443/TCP   13h
-[root@pvcecs-master ~]#
 ```
 
 ### Dashboard token: the documented command returns nothing
@@ -455,7 +454,6 @@ kubernetes-dashboard    kubernetes-dashboard-68876b7cb8-fl58c                   
 Error from server (NotFound): pods "kubernetes-dashboard" not found
 [root@pvcecs-master ~]# k delete pod kubernetes-dashboard-68876b7cb8-fl58c -n kubernetes-dashboard
 pod "kubernetes-dashboard-68876b7cb8-fl58c" deleted
-[root@pvcecs-master ~]#
 [root@pvcecs-master ~]# k delete ns kubernetes-dashboard
 ```
 

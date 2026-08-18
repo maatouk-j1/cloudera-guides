@@ -107,14 +107,13 @@ These steps require a Cloudera username and password to access: [https://archive
     -rw-r--r--. 1 root root 4901 Apr 23 06:51 allkeyssha256.asc
     -rw-r--r--. 1 root root   248 Apr 14 11:16 cloudera-manager-trial.repo
     -rw-r--r--. 1 root root   501 Apr 23 06:51 cloudera-manager.repo
-
-    [root@cldr-mngr cloudera-manager]#
     ```
 
 3. Edit `cloudera-manager.repo` file baseurl and GPG key with username and password provided by Cloudera and edit URL to match repository location **(OR)** Verify, if username and password are already present, so no action needed.
 
-    ```ini
-    ##### Verify if username and password are already present, so no action needed.
+    Verify whether the username and password are already present, in which case no action is needed.
+
+    ```text
     [root@cldr-mngr cloudera-manager]# vi cloudera-manager.repo
     [cloudera-manager]
     name=Cloudera Manager 7.13.2.6
@@ -134,8 +133,11 @@ These steps require a Cloudera username and password to access: [https://archive
     enabled=1
     gpgcheck=1
     module_hotfixes=true
+    ```
 
-    ##### If not, update the cloudera-manager.repo to look like below.
+    If they are not, update `cloudera-manager.repo` to look like the following.
+
+    ```text
     [root@cldr-mngr cloudera-manager]# vi cloudera-manager.repo
     [cloudera-manager]
     name=Cloudera Manager 7.13.2.6
@@ -190,7 +192,6 @@ These steps require a Cloudera username and password to access: [https://archive
     -rw-r--r--. 1 root root 1790367515 Apr 23 06:52 cloudera-manager-daemons-7.13.2.6-80024490.el9.x86_64.rpm
     -rw-r--r--. 1 root root      20933 Apr 23 06:52 cloudera-manager-server-7.13.2.6-80024490.el9.x86_64.rpm
     -rw-r--r--. 1 root root      20933 Apr 23 06:52 cloudera-manager-server-db-7.13.2.6-80024490.el9.x86_64.rpm
-    [root@cldr-mngr x86_64]#
     ```
 
 5. Run `createrepo` command to create a local repository.
@@ -213,14 +214,16 @@ These steps require a Cloudera username and password to access: [https://archive
 
 7. Edit `cloudera-manager.repo` file as per the customer repository location configuration in the step above. Copy the updated repo file to the `ipaserver` node so it can be copied to the rest of servers using ansible.
 
-    ```ini
+    ```text
     [root@cldr-mngr ~]# vi /etc/yum.repos.d/cloudera-manager.repo
+
     [cloudera-manager]
     name=Cloudera Manager 7.13.2.6
     baseurl=http://<cm_server_ip>/cloudera-repos/cloudera-manager/
     #Update IP of Repo/cldr-mngr server
     gpgcheck=0
     enabled=1
+
     [root@cldr-mngr ~]# scp -r /etc/yum.repos.d/cloudera-manager.repo root@ipaserver:/etc/yum.repos.d/cloudera-manager.repo
     ```
 
@@ -301,8 +304,6 @@ total 8453728
 -rw-r--r--. 1 root root         40 Aug 21 15:12 CDH-7.3.2-1.cdh7.3.2.p0.67986116-el9.parcel.sha1
 -rw-r--r--. 1 root root         64 Aug 21 15:12 CDH-7.3.2-1.cdh7.3.2.p0.67986116-el9.parcel.sha256
 -rw-r--r--. 1 root root      70985 Aug 21 15:12 manifest.json
-
-[root@cldr-mngr ~]#
 ```
 
 <Banner type="info">
@@ -373,8 +374,6 @@ This section could be skipped, as Spark3 is now bundled with the Cloudera RunTim
     -rw-r--r--. 1 root root         41 Aug 21 15:20 SPARK3-3.5.4.3.5.7191000.0-30-1.p0.68499982-el9.parcel.sha1
     -rw-r--r--. 1 root root         64 Aug 21 15:20 SPARK3-3.5.4.3.5.7191000.0-30-1.p0.68499982-el9.parcel.sha256
     -rw-r--r--. 1 root root       8962 Aug 21 15:20 manifest.json
-
-    [root@cldr-mngr ~]#
     ```
 
 3. In a web browser please check and verify cloudera manager repository created by entering baseurl: `http://13.251.65.11/cloudera-repos/spark3`

@@ -135,9 +135,11 @@ Stop at this stage. On base cluster nodes (for handling of a bug associated with
 ```text
 [root@jump ~]# ansible namenodes,datanodes -m shell -a "chown hdfs:hadoop /var/lib/hadoop-hdfs"
 [root@jump ~]# ansible namenodes,datanodes -m shell -a "ls -lart /var/lib/hadoop-hdfs"
+```
 
-##### Verify if links are good for the CM version for hadoop-hdfs filesystem JAR.
+Verify that the links are good for the Cloudera Manager version of the `hadoop-hdfs` filesystem JAR.
 
+```text
 [root@jump ~]# ansible namenodes,datanodes -m shell -a "namei -om
 /var/lib/hadoop-hdfs/ozone-filesystem-hadoop3.jar"
 ```

@@ -90,9 +90,11 @@ Click **Save**. Once you click on the Save button, it will tell you to restart t
 ```text
 [root@cldr-mngr ~]# systemctl restart cloudera-scm-server
 [root@cldr-mngr ~]# systemctl status cloudera-scm-server -l
+```
 
-##### Run the below command to check the logs of cloudera-scm-server starting up. Wait until you see the
-Started Jetty server message on the screen.
+Run the command below to check the logs of `cloudera-scm-server` starting up. Wait until you see the **Started Jetty server** message on the screen.
+
+```text
 [root@cldr-mngr ~]# sudo tail -f /var/log/cloudera-scm-server/cloudera-scm-server.log
 
 2024-08-21 03:14:10,007 INFO WebServerImpl:com.cloudera.server.cmf.ExternalAuthenticationHelper: Using
@@ -146,7 +148,6 @@ database, then LDAP
     2024-03-19 00:56:14,620 INFO
     pool-7-thread-1:com.cloudera.server.cmf.components.CmServerStateSynchronizer: (30 skipped) Cleaned
     up
-    [root@cldr-mngr ~]#
     ```
 
 4. Login to Cloudera Manager WebUI and assign Roles for new users. *(Only, If used a different user than admin, else skip this step.)*

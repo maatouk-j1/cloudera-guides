@@ -48,7 +48,6 @@ Work top-down, from the Cloudera Manager UI to the filesystem:
 4. **Clean up Cloudera Manager, the Base master and the worker nodes.** Run this on every Base cluster host. The `for` loop kills any process still running as a service account, `umount cm_processes` releases the tmpfs Cloudera Manager mounts for role process directories, and the final `rm -rvf` removes the parcels, configuration and agent state.
 
     ```bash
-    ##### Cleanup CDP-CM, Base Master and Worker nodes
     #/opt/cloudera/installer/uninstall-cloudera-manager.sh
     systemctl stop cloudera-scm-server cloudera-scm-agent cloudera-scm-server-db supervisord;
     dnf remove -y cloudera-manager-server cloudera-manager-server-db-2 cloudera-management-agent cloudera-management-daemon cloudera-manager-*; dnf clean all; systemctl daemon-reload;
@@ -60,7 +59,6 @@ Work top-down, from the Cloudera Manager UI to the filesystem:
 5. **Purge the data and configuration directories.** The first block is prefixed `#do not run` in the source and is reproduced here only so you can see what it would have deleted — it removes the service state directories the guide chooses to keep. The second block is the one that runs.
 
     ```bash
-    ##### Cleanup CDP-CM, Base Master and Worker nodes
     #do not run #sudo rm -rvf /var/lib/flume-ng /var/lib/hadoop* /var/lib/hue /var/lib/hbase /var/lib/navigator /var/lib/oozie /var/lib/solr /var/lib/sqoop* /var/lib/zookeeper /hadoop-ozone /impala /var/lib/{*ranger*,*oozie*,*ozone*,*tez*,*spark*,*nifi*,*hadoop*,*hdfs*}
 
     sudo rm -rvf /tmp/kafka-logs /tmp/.scm_prepare_node.lock /var/local/kafka/data/meta.properties /hdfs/* /dfs/* /hdfs/mapred/* /hdfs/yarn/* /var/lib/had*ozon* /yarn* /hadoop* /etc/{*atlas*,*hadoop*,*ranger*,hue,impala,knox,hbase,*hive*,hbase-solr,hadoop-kms,*ozone*,oozie,*kafka*,*zeppelin*,*spark*,sqoop*,schemaregistry,*solr*,hive-hcatalog,hive-webhcat,hue,*hbase*,*kudu*,*knox*,zookeeper,*tez*,streams*, *nifi*} /tmp/kafka-logs/* /var/lib/cloudera-scm-agent/cm_guid
@@ -71,7 +69,6 @@ Work top-down, from the Cloudera Manager UI to the filesystem:
 6. **Remove the service accounts and groups.** Run this on all hosts, and only if you are doing an end-to-end cleanup that includes Cloudera Manager and the PostgreSQL database. `userdel -r` also removes each account's home directory.
 
     ```bash
-    ##### Only If you are doing end-to-end cleanup, including cloudera-manager and postgres DB, run on all
     for user in hdfs httpfs sqoop kafka yarn hbase streamsrepmgr streamsmsgmgr livy kms atlas schemaregistry hue zookeeper accumulo phoenix mapred druid ranger zeppelin oozie kudu knox superset solr hive cruisecontrol impala rangerraz ozone tez dpprofiler flume nifi nifiregistry nifitoolkit spark flink rangerrms omid hadoop kraft; do userdel -r "$user" 2>/dev/null; done
 
     for group in hdfs hue httpfs sqoop kafka yarn hbase streamsrepmgr streamsmsgmgr livy kms atlas schemaregistry hue zookeeper accumulo phoenix mapred druid ranger zeppelin oozie kudu knox superset solr hive cruisecontrol impala rangerraz ozone tez dpprofiler flume nifi nifiregistry nifitoolkit spark flink rangerrms omid hadoop kraft; do groupdel "$group" 2>/dev/null; done

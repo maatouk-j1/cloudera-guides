@@ -15,11 +15,7 @@ The source guide does not open a new procedure here - it continues the numbering
 
 Setup the **Cloudera Management Services**: (Only if the status of hosts/services/charts are not visible / visible as (?) / or showing the errors on console.)
 
-```text
-##### Setup the Cloudera Management Services (need rman DB details), it will start service monitor and
-other services and enable charts view. If Cloudera Management Services are not installed/ enabled or not
-working properly, status of hosts, or installed services will not be updated on CM-UI.
-```
+Setting up the Cloudera Management Services requires the `rman` database details. It starts the service monitor and the other management services, and enables the charts view. If the Cloudera Management Services are not installed, not enabled or not working properly, the status of hosts and of installed services is not updated in the Cloudera Manager UI.
 
 The `rman` role and database were created earlier, in the `CREATE ROLE` / `CREATE DATABASE` block on the [Setup Database for Cloudera Manager](/installations/cdp-7-3-2/on-premises/cm/database) page.
 

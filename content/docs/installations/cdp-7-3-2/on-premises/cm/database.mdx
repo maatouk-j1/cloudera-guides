@@ -29,29 +29,33 @@ We will be installing the external PostgreSQL DB server on the `cldr-mngr` host.
 
 1. Login on **`cldr-mngr` server** and Install PostgreSQL as shown in the steps below.
 
+    <Banner type="warning">
+    When you restart any process in future, the configuration for each of the services is redeployed using information saved in the Cloudera Manager database. If this information is not available, your cluster cannot start or function correctly. So, you must schedule and maintain regular backups of the Cloudera Manager database to recover the cluster in the event of the loss of this database.
+    </Banner>
+
+    Install the repository RPM.
+
     ```text
-    ##### Install and configure POSTGRESQL DB on cldr-mngr server :
-    **** When you restart any process in future, the configuration for each of the services is redeployed
-    using information saved in the Cloudera Manager database. If this information is not available, your
-    cluster cannot start or function correctly. So, you must schedule and maintain regular backups of the
-    Cloudera Manager database to recover the cluster in the event of the loss of this database.
+    [root@cldr-mngr ~]# sudo dnf install -y https://download.postgresql.org/pub/repos/yum/reporpms/EL-9-x86_64/pgdg-redhat-repo-latest.noarch.rpm
+    ```
 
-    ##### Install the repository RPM:
-    [root@cldr-mngr ~]# sudo dnf install -y
-    https://download.postgresql.org/pub/repos/yum/reporpms/EL-9-x86_64/pgdg-redhat-repo-latest.noarch.rpm
+    Disable the built-in PostgreSQL module.
 
-    ##### Disable the built-in PostgreSQL module:
+    ```text
     [root@cldr-mngr ~]# sudo dnf -qy module disable postgresql
+    ```
 
-    ##### Install PostgreSQL:
+    Install PostgreSQL.
+
+    ```text
     [root@cldr-mngr ~]# sudo dnf install -y postgresql17 postgresql17-server postgresql17-libs
-    [root@cldr-mngr ~]#
     ```
 
 2. Install the PostgreSQL JDBC driver by running the following command on ansible-controller/ipaserver node. Rename the Postgres JDBC driver `.jar` file to `postgresql-connector-java.jar` and copy it to the `/usr/share/java` directory. The following copy command can be used if the Postgres JDBC driver `.jar` file is installed from the OS repositories: *(Skip this, as we already performed it in prior steps)*
 
+    Install the JDBC connector.
+
     ```text
-    ##### Install JDBC Connector
     [root@jump ~]# wget https://jdbc.postgresql.org/download/postgresql-42.7.7.jar
 
     [root@ipaserver ~]# mv -v postgresql-42.7.7.jar postgresql-connector-java.jar
@@ -66,8 +70,11 @@ We will be installing the external PostgreSQL DB server on the `cldr-mngr` host.
     [root@jump ~]# ansible all -m shell -a "sudo ls -l /usr/share/java/postgresql*.jar"
     ipaserver.cldrsetup.local | CHANGED | rc=0 >>
     -rw-r--r-- 1 root root 1089312 Jun 3 08:06 /usr/share/java/postgresql-connector-java.jar
+    ```
 
-    ##### Alternate way (Not recommended)
+    An alternate way, which is not recommended:
+
+    ```text
     [root@jump ~]# ansible all -m shell -a "sudo dnf install postgresql-jdbc -y"
     [root@jump ~]# ansible all -m shell -a "java -version"
     ```
@@ -87,7 +94,6 @@ We will be installing the external PostgreSQL DB server on the `cldr-mngr` host.
 5. Make sure the psycopg2 package dependencies for RHEL 9 is installed on all required hosts, by running the following commands:
 
     ```text
-    ##### Install the psycopg2-binary package as follows:
     [root@jump ~]# ansible all -m shell -a "pip3 install psycopg2-binary && pip3 list | grep psyc"
 
     ipaserver.cldrsetup.local | CHANGED | rc=0 >>
@@ -96,8 +102,6 @@ We will be installing the external PostgreSQL DB server on the `cldr-mngr` host.
     WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with
     the system package manager. It is recommended to use a virtual environment instead:
     https://pip.pypa.io/warnings/venv
-
-    [root@jump ~]#
     ```
 
 ## 2. Initialize and configure the database
@@ -105,20 +109,24 @@ We will be installing the external PostgreSQL DB server on the `cldr-mngr` host.
 1. Initialize the database:
 
     ```text
-    # Initialize the DB
     [root@cldr-mngr ~]# sudo /usr/pgsql-17/bin/postgresql-17-setup initdb
+    ```
 
-    # Verify PG Version
+    Verify the PostgreSQL version:
+
+    ```text
     [root@cldr-mngr ~]# cat /var/lib/pgsql/17/data/PG_VERSION
     17
+    ```
 
-    # Verify Psycopg Version
+    Verify the psycopg version:
+
+    ```text
     [root@cldr-mngr ~]# pip3 list |grep psycopg
     psycopg2-binary       2.9.10
-
-    # data directory is very critical, if you want to cleanup postgres simply rename or remove
-    /var/lib/pgsql/17/data directory
     ```
+
+    The data directory is very critical. If you want to clean up PostgreSQL, simply rename or remove the `/var/lib/pgsql/17/data` directory.
 
 2. Make sure that `LC_ALL` is set to `C.UTF-8` to enable UTF-8 CHARSET and initialize the database as follows:
 
@@ -130,27 +138,34 @@ We will be installing the external PostgreSQL DB server on the `cldr-mngr` host.
 
     *(Enable md5 auth to serve password authentication and TLS/SSL encryption from outside world)*
 
-    ```ini
+    ```text
     [root@cldr-mngr ~]# vi /var/lib/pgsql/17/data/pg_hba.conf
+
     host    all              all             0.0.0.0/0              md5 # Enable md5 authentication
-    host    ranger           rangeradmin     0.0.0.0/0              md5 # Allow ranger database connection
-    from any host
+    host    ranger           rangeradmin     0.0.0.0/0              md5 # Allow ranger database connection from any host
     hostssl all              all             0.0.0.0/0              md5 # Allow SSL connection from client(s)
     # replace 127.0.0.1 with host IP if PostgreSQL access from a different host is required.
     # Edit section for replication privilege. HA not documented in this solution.
+    ```
 
-    ##### Backup the config so you can use it in case of re-setup.
+    Back up the config so you can use it in case of a re-setup.
+
+    ```text
     [root@cldr-mngr ~]# cp /var/lib/pgsql/17/data/pg_hba.conf ~
+    ```
 
-    ##### If you have the file backed up, copy it
+    If you have the file backed up already, copy it.
+
+    ```text
     [root@cldr-mngr ~]# cp /var/lib/pgsql/17/data/pg_hba.conf /var/lib/pgsql/17/data/pg_hba.conf_orig
     [root@cldr-mngr ~]# cp ~/pg_hba.conf /var/lib/pgsql/17/data/pg_hba.conf
     ```
 
 4. Configure settings to ensure your system performs as expected. Update these settings in the `/var/lib/pgsql/17/data/postgresql.conf` file. Settings vary based on cluster size and resources as follows:
 
-    ```ini
+    ```text
     [root@cldr-mngr ~]# vi /var/lib/pgsql/17/data/postgresql.conf
+
     port = 5432                              # (change requires restart)    #### uncomment
     listen_addresses = '*'                   # what IP address(es) to listen on;
     max_connections = 1000                   # (change requires restart)
@@ -161,11 +176,17 @@ We will be installing the external PostgreSQL DB server on the `cldr-mngr` host.
     checkpoint_completion_target = 0.9       # checkpoint target duration, 0.0 - 1.0 #### uncomment
     standard_conforming_strings = off
     jit = off
+    ```
 
-    ##### Backup the config so you can use it in case of re-setup.
+    Back up the config so you can use it in case of a re-setup.
+
+    ```text
     [root@cldr-mngr ~]# cp /var/lib/pgsql/17/data/postgresql.conf ~
+    ```
 
-    ##### If you have the file backed up, copy it
+    If you have the file backed up already, copy it.
+
+    ```text
     [root@cldr-mngr ~]# cp /var/lib/pgsql/17/data/postgresql.conf /var/lib/pgsql/17/data/postgresql.conf_orig
     [root@cldr-mngr ~]# cp ~/postgresql.conf /var/lib/pgsql/17/data/postgresql.conf
     ```
@@ -210,7 +231,6 @@ Enable TLS 1.2 for PostgreSQL database before setting up Cloudera Manager.
 First, confirm TLS is *not* yet on:
 
 ```text
-##### Verify TLS is enabled or not:
 [root@cldr-mngr ~]# sudo -u postgres psql
 could not change directory to "/root": Permission denied
 psql (17.13)
@@ -235,25 +255,31 @@ Then generate the CA and the server certificate:
 
 ```text
 [root@cldr-mngr ~]# sudo dnf install -y mod_ssl
+```
 
-##### Stop Postgres DB service.
+Stop the PostgreSQL database service.
+
+```text
 [root@cldr-mngr ~]# systemctl stop postgresql-17
 
 [root@cldr-mngr ~]# cd /var/lib/pgsql/17/data/
+```
 
-##### Generate CA-signed certificates for clients to verify with openssl command line tool.
-##### Update value for "-days 3650". Currently set for 3650 days = 10 years.
+Generate CA-signed certificates for clients to verify, using the `openssl` command line tool. Update the value for `-days 3650`, currently set to 3650 days, which is 10 years.
 
-##### create a certificate signing request (CSR) and a public/private key file
-[root@cldr-mngr data]# openssl req -new -nodes -text -out root.csr -keyout root.key -subj
-'/C=US/ST=California/L=Santa Clara/O=Cloudera Inc/OU=CLDR/CN=cldr-mngr.cldrsetup.local'
+Create a certificate signing request (CSR) and a public/private key file.
 
-##### Output for above command
+```text
+[root@cldr-mngr data]# openssl req -new -nodes -text -out root.csr -keyout root.key -subj '/C=US/ST=California/L=Santa Clara/O=Cloudera Inc/OU=CLDR/CN=cldr-mngr.cldrsetup.local'
+```
+
+The above command returns the following output.
+
+```text
 [root@cldr-mngr data]# ls -ltr root*
 total 8
 -rw------- 1 root root 1704 Jun 3 07:43 root.key
 -rw-r--r-- 1 root root 3589 Jun 3 07:43 root.csr
-[root@cldr-mngr data]#
 
 [root@cldr-mngr data]# chmod 400 root.key
 
@@ -261,11 +287,12 @@ total 8
 total 8
 -r-------- 1 root root 1704 Jun 3 07:43 root.key
 -rw-r--r-- 1 root root 3589 Jun 3 07:43 root.csr
-[root@cldr-mngr data]#
+```
 
-##### create a root certificate authority
-[root@cldr-mngr data]# openssl x509 -req -in root.csr -text -days 3650 -extfile /etc/ssl/openssl.cnf
--extensions v3_ca -signkey root.key -out root.crt
+Create a root certificate authority.
+
+```text
+[root@cldr-mngr data]# openssl x509 -req -in root.csr -text -days 3650 -extfile /etc/ssl/openssl.cnf -extensions v3_ca -signkey root.key -out root.crt
 Certificate request self-signature ok
 subject=C = US, ST = California, L = Santa Clara, O = Cloudera Inc, OU = CLDR, CN =
 cldr-mngr.cldrsetup.local
@@ -275,7 +302,6 @@ total 16
 -r-------- 1 root root 1704 Jun                     3 07:43 root.key
 -rw-r--r-- 1 root root 3589 Jun                     3 07:43 root.csr
 -rw-r--r-- 1 root root 4592 Jun                     3 07:46 root.crt
-[root@cldr-mngr data]#
 
 # create a server certificate signed by the new root certificate authority
 [root@cldr-mngr data]# openssl req -new -nodes -text -out server.csr -keyout server.key -subj
@@ -288,7 +314,6 @@ total 24
 -rw-r--r-- 1 root root 4592 Jun 3 07:46 root.crt
 -rw------- 1 root root 1704 Jun 3 07:47 server.key
 -rw-r--r-- 1 root root 3388 Jun 3 07:47 server.csr
-[root@cldr-mngr data]#
 
 [root@cldr-mngr data]# chmod 400 server.key
 
@@ -299,7 +324,6 @@ total 24
 -rw-r--r-- 1 root root 4592 Jun 3 07:46 root.crt
 -r-------- 1 root root 1704 Jun 3 07:47 server.key
 -rw-r--r-- 1 root root 3388 Jun 3 07:47 server.csr
-[root@cldr-mngr data]#
 
 [root@cldr-mngr data]# openssl x509 -req -in server.csr -text -days 3650 -CA root.crt -CAkey root.key
 -CAcreateserial -out server.crt
@@ -315,13 +339,17 @@ total 32
 -rw-r--r-- 1 root root 3388 Jun 3 07:47 server.csr
 -rw-r--r-- 1 root root    41 Jun 3 07:51 root.srl
 -rw-r--r-- 1 root root 3933 Jun 3 07:51 server.crt
-[root@cldr-mngr data]#
+```
 
-##### The above steps will create a server.crt and server.key file in that location.
+The above steps create a `server.crt` and a `server.key` file in that location.
 
+```text
 [root@cldr-mngr data]# chown postgres:postgres server.crt server.key root.crt
+```
 
-##### Artifacts generated from above command:
+The command above generates the following artifacts.
+
+```text
 [root@cldr-mngr data]# ls -l server\.* root\.*
 -rw-r--r--. 1 postgres postgres 4586 Aug 9 14:34 root.crt
 -rw-r--r--. 1 root      root     3584 Aug 9 14:33 root.csr
@@ -330,13 +358,11 @@ total 32
 -rw-r--r--. 1 postgres postgres 3928 Aug 9 14:37 server.crt
 -rw-r--r--. 1 root      root     3388 Aug 9 14:35 server.csr
 -r--------. 1 postgres postgres 1704 Aug 9 14:35 server.key
-[root@cldr-mngr data]#
 ```
 
 Verify the key and certificate are well-formed. Both outputs are abridged in the guide:
 
 ```text
-##### Verify Key and Certs generated fine
 [root@cldr-mngr data]# openssl rsa -noout -text -in server.key
 Private-Key: (2048 bit, 2 primes)
 modulus:
@@ -379,8 +405,11 @@ Fix the permissions, switch SSL on in `postgresql.conf`, and restart:
 # Correct permissions for the private key file
 [root@cldr-mngr data]# chmod 644 server.crt root.crt
 [root@cldr-mngr data]# chmod 0600 /var/lib/pgsql/17/data/server.key
+```
 
-##### Edit Configuration file for PostgreSQL (postgresql.conf) to enable SSL
+Edit the PostgreSQL configuration file `postgresql.conf` to enable SSL.
+
+```text
 [root@cldr-mngr data]# cat <<EOF >> /var/lib/pgsql/17/data/postgresql.conf
 ssl = on
 ssl_ca_file = 'root.crt'
@@ -390,9 +419,11 @@ EOF
 
 # Find the location of the private key file, typically in the data directory
 [root@cldr-mngr data]# ls -l /var/lib/pgsql/17/data/server.key
+```
 
-##### Restart PostgreSQL database service to pick up the SSL related configuration changes and verify
-login with SSL
+Restart the PostgreSQL database service to pick up the SSL-related configuration changes, then verify that login works with SSL.
+
+```text
 [root@cldr-mngr data]# systemctl restart postgresql-17.service
 [root@cldr-mngr data]# systemctl status postgresql-17.service -l
 ```
@@ -419,7 +450,11 @@ postgres=# SHOW ssl;
 (1 row)
 
 postgres=#
-##### Verify SSL is actually applied for DB
+```
+
+Verify that SSL is actually applied for the database.
+
+```text
 postgres=# SELECT name, setting FROM pg_settings WHERE name LIKE '%ssl%';
                   name                  |          setting
 ----------------------------------------+--------------------------
@@ -444,18 +479,22 @@ postgres-# \q
 
 Distribute the CA certificate to every host, so clients can verify the server:
 
+Copy `/var/lib/pgsql/17/data/root.crt` to `/root/.postgresql/root.crt`.
+
 ```text
-##### Copy /var/lib/pgsql/17/data/root.crt to /root/.postgresql/root.crt
 [root@cldr-mngr data]# mkdir -p /root/.postgresql/
 [root@cldr-mngr data]# cp /var/lib/pgsql/17/data/root.crt /root/.postgresql/root.crt
+```
 
-##### Copy the root.crt to all other hosts with the help of ansible, for this copy the root.crt file to
-ipaserver/ansible control node
+The `root.crt` file is copied to all other hosts with the help of Ansible. To do that, first copy it to the `ipaserver` Ansible control node.
+
+```text
 [root@cldr-mngr data]# scp -r /root/.postgresql/root.crt root@jump:~/
+```
 
-##### Login to ipaserver and copy the root.crt Postgres DB certificate file to all other nodes at
-location /root/.postgresql/ with the help of ansible.
+Log in to the `ipaserver` node and copy the `root.crt` PostgreSQL database certificate file to `/root/.postgresql/` on all other nodes with the help of Ansible.
 
+```text
 [root@jump ~]# ls -l
 [root@jump ~]# chmod 644 root.crt
 [root@jump ~]# ansible all -m shell -a "mkdir -p /root/.postgresql/ && chmod -R 755 /root/.postgresql/"
@@ -482,7 +521,6 @@ SSL connection (protocol: TLSv1.3, cipher: TLS_AES_256_GCM_SHA384, bits: 256, co
 Type "help" for help.
 postgres=#
 postgres=# \q
-[root@cldr-mngr data]#
 ```
 
 ## 4. Create the databases and service accounts
@@ -500,8 +538,9 @@ The databases must be configured to support the PostgreSQL UTF8 character set en
 Record the values you enter for database names, usernames, and passwords. The Cloudera Manager installation wizard requires this information to correctly connect to these databases.
 </Banner>
 
+Create the Cloudera Manager databases and users.
+
 ```sql
-##### Create CM DB and USERS
 [root@cldr-mngr data]# sudo -u postgres psql
 
 CREATE ROLE scm LOGIN PASSWORD 'scm';

@@ -70,13 +70,13 @@ This is the longest single procedure in the guide - one wizard, **29 steps**, ru
     ```text
     [root@cldr-mngr ~]# mkdir -p /var/www/html/cloudera-repos/cdp-pvc-ds/
     [root@cldr-mngr ~]# cd /var/www/html/cloudera-repos/cdp-pvc-ds/
+    ```
 
-    ##### Download everything under https://archive.cloudera.com/p/cdp-pvc-ds/latest/ to your local
-    httpserver, e.g. http://your_local_repo/cdp-pvc-ds/latest/ using the below command
+    Download everything under `https://archive.cloudera.com/p/cdp-pvc-ds/latest/` to your local HTTP server - for example `http://your_local_repo/cdp-pvc-ds/latest/` - using the command below.
 
+    ```text
     [root@cldr-mngr cdp-pvc-ds]# wget -l 0 --recursive --no-parent -e robots=off -nH --cut-dirs=2
     --reject="index.html*" -t 10 https://<paywall_username>:<paywall_password>@archive.cloudera.com/p/cdp-pvc-ds/latest/
-    [root@cldr-mngr cdp-pvc-ds]#
 
     [root@cldr-mngr cdp-pvc-ds]# ls -lt 1.5.5-h2000/
     total 116300
@@ -85,14 +85,13 @@ This is the longest single procedure in the guide - one wizard, **29 steps**, ru
     drwxr-xr-x 2 root root       4096 Mar 15 10:13 parcels
     drwxr-xr-x 2 root root       4096 Mar 15 10:12 manifests
     drwxr-xr-x 2 root root      32768 Mar 15 10:12 images
-    [root@cldr-mngr ~]#
+    ```
 
-    ##### Modify the manifest.json file inside the downloaded directory. Change "http_url": "..." to
-    "http_url": "http://your_local_repo/cloudera-repos/cdp-pvc-ds/1.5.5-h2000/"
+    Modify the `manifest.json` file inside the downloaded directory. Change `"http_url": "..."` to `"http_url": "http://your_local_repo/cloudera-repos/cdp-pvc-ds/1.5.5-h2000/"`.
 
+    ```text
     [root@cldr-mngr ~]# vi manifest.json
     "http_url": "http://192.168.1.38/cloudera-repos/cdp-pvc-ds/1.5.5-h2000/"
-    [root@cldr-mngr ~]#
     ```
 
 3. Click **Custom Repository**. Add `http://your_local_repo/cloudera-repos/cdp-pvc-ds/1.5.5-h2000/` as a custom repository. Click on **Save Changes**. *(Skip this step, as we have chosen Internet method steps to Install)*
@@ -402,8 +401,9 @@ Since all hosts part of the ECS installation might not have NVIDIA GPU installed
 
 1. While the other steps for installing data services cluster (ECS) is running, login to the `pvcecs-master` node and create kubeconfig file by copying the `rke2.yaml` file on ecs master node, in order to be able to run the `kubectl` commands from master node:
 
+    Install K9s for troubleshooting purposes.
+
     ```text
-    ##### Install K9s for troubleshooting purpose
     [root@pvcecs-master ~]# dnf install wget -y
     [root@pvcecs-master ~]# rm -rvf ~/.kube && mkdir -p ~/.kube && cp /etc/rancher/rke2/rke2.yaml
     ~/.kube/config
@@ -412,25 +412,28 @@ Since all hosts part of the ECS installation might not have NVIDIA GPU installed
     [root@pvcecs-master ~]# tar -xzf k9s_Linux_amd64.tar.gz
     [root@pvcecs-master ~]# sudo mv k9s /usr/bin/
     [root@pvcecs-master ~]# k9s version
+    ```
 
-    ##### The kubectl binary path may vary, do whereis kubectl or use find or locate commands to find the
-    exact path of the kubectl binary on the node.
+    The `kubectl` binary path may vary. Run `whereis kubectl`, or use `find` or `locate`, to get the exact path of the `kubectl` binary on the node.
+
+    ```text
     [root@pvcecs-master ~]# export PATH=/var/lib/rancher/rke2/data/v1.30.12-rke2r1-328c510931ca/bin/:$PATH
     [root@pvcecs-master ~]# kubectl get pods
     No resources found in the default namespace.
     [root@pvcecs-master ~]# kubectl get all
     NAME                  TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
     service/kubernetes    ClusterIP   10.43.0.1    <none>        443/TCP   13h
-    [root@pvcecs-master ~]#
+    ```
 
-    ##### Create alias on node, to run the kubectl command
+    Create an alias on the node so you can run the `kubectl` command more briefly.
+
+    ```text
     [root@pvcecs-master ~]# echo "export
     PATH=/var/lib/rancher/rke2/data/v1.30.12-rke2r1-328c510931ca/bin/:$PATH" >> ~/.bashrc && source ~/.bashrc
     [root@pvcecs-master ~]# echo "alias k=kubectl" >> ~/.bashrc && source ~/.bashrc
-    #### You can copy the config file and set the above ~/.bashrc paths on any of ECS nodes to run kubectl
-    commands from there.
-    [root@pvcecs-master ~]#
     ```
+
+    You can copy the config file and set the `~/.bashrc` paths above on any of the ECS nodes, to run `kubectl` commands from there.
 
     <Banner type="info">
     Run `# kubectl get pods -A` to review all pods and their status as either running or completed.
@@ -438,11 +441,15 @@ Since all hosts part of the ECS installation might not have NVIDIA GPU installed
 
 2. After the **RKE2 installation step is completed**, keep the remaining steps running but immediately log in to *pvcecs-master* node and **update the config for coredns to point to private DNS** (ipaserver or AD server). The coredns config should look like similar to below one:
 
-    ```text
-    ##### Test the nslookup and dig from ubuntu image if it is able to resolve the IP from Private DNS
-    [root@pvcecs-master ~]# kubectl run -it ubuntu1 --image=ubuntu bash
+    Test `nslookup` and `dig` from the Ubuntu image to see whether it can resolve the IP from the private DNS.
 
-    ##### If not able to resolve the IP from Private DNS, we need to point coredns to PrivateDNS/ FreeIPA server
+    ```text
+    [root@pvcecs-master ~]# kubectl run -it ubuntu1 --image=ubuntu bash
+    ```
+
+    If it cannot resolve the IP from the private DNS, point coredns to the private DNS / FreeIPA server.
+
+    ```text
     [root@pvcecs-master ~]# kubectl get configmap -n kube-system | grep coredns
 
     [root@pvcecs-master ~]# kubectl edit configmap rke2-coredns-rke2-coredns -n kube-system
@@ -500,11 +507,17 @@ Since all hosts part of the ECS installation might not have NVIDIA GPU installed
 
     ```text
     [root@pvcecs-master ~]# kubectl rollout restart deployment rke2-coredns-rke2-coredns -n kube-system
+    ```
 
-    ##### Verify the status that deployment of coredns is updated with configmap changes
+    Verify that the coredns deployment is updated with the configmap changes.
+
+    ```text
     [root@pvcecs-master ~]# kubectl get pod -A |grep dns
+    ```
 
-    ##### Test the nslookup and dig from ubuntu image if it is actually able to resolve the IP from Private DNS
+    Test `nslookup` and `dig` from the Ubuntu image to confirm that it can now resolve the IP from the private DNS.
+
+    ```text
     [root@pvcecs-master ~]# kubectl run -it ubuntu1 --image=ubuntu bash
     root@ubuntu2:/# apt-get update && apt-get install net-tools dnsutils -y
 
@@ -672,7 +685,6 @@ connection refused
 
 [root@pvcecs-master ~]# kubectl logs -n dex-base-j95kjx9f cdp-cde-embedded-db-0
 Defaulted container "cdp-cde-embedded-db" out of: cdp-cde-embedded-db, k8tz (init)
-[root@pvcecs-master ~]#
 ```
 
 The stack trace in the source's `data-connectors` log is reproduced above with its Go frames elided; every frame points at the same failure, a refused connection to the CDE embedded database on port `3306`, whose pod (`cdp-cde-embedded-db-0`) is itself `Pending` and logging nothing.

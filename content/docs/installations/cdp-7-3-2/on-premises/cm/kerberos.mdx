@@ -125,18 +125,17 @@ In this setup, we used Kerberos authentication with **RedHat FreeIPA**.
 
     ![Command Details step of the Setup KDC for this Cloudera Manager wizard showing the Import KDC Account Manager Credentials command with status Finished in 5.01s and the message Successfully imported KDC Account Manager credentials](/images/cdp-7-3-2/on-premises/cm/kerberos/import-kdc-credentials-command-details.png)
 
-    ```text
-    ##### For Red Hat IdM, make sure that all cluster hosts are joined to the IPA domain, after freeipa-client
-    is installed.
-    ## Kerberos client OS-specific packages must be installed on all cluster hosts and client hosts that will
-    authenticate using Kerberos.
+    For Red Hat IdM, make sure that all cluster hosts are joined to the IPA domain once `freeipa-client` is installed. The Kerberos client OS-specific packages must be installed on all cluster hosts and on any client hosts that will authenticate using Kerberos.
 
+    ```text
     [root@ipaserver ~]# rpm -qa|grep ipa-client
     ipa-client-4.6.8-5.el7.centos.16.x86_64
     ipa-client-common-4.6.8-5.el7.centos.16.noarch
-    [root@ipaserver ~]#
+    ```
 
-    ##### If keytab error come up during kerberos configuration -- go to ipa server and run -
+    If a keytab error comes up during the Kerberos configuration, go to the FreeIPA server and run the following command.
+
+    ```text
     [root@ipaserver ~]# ipactl restart && ipactl status
     ```
 
@@ -158,5 +157,4 @@ In this setup, we used Kerberos authentication with **RedHat FreeIPA**.
     Valid starting       Expires                                        Service principal
     03/05/2024 20:35:11 03/06/2024 20:35:07                             krbtgt/CLDRSETUP.LOCAL@CLDRSETUP.LOCAL
             renew until 03/12/2024 21:35:07
-    [root@ipaserver ~]#
     ```
