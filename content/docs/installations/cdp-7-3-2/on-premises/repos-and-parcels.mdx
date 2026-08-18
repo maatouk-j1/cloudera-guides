@@ -58,8 +58,8 @@ These steps require a Cloudera username and password to access: [https://archive
     # 2. Define Cloudera Manager Version & Build
     # ================================
 
-    CM_VERSION="7.13.2.6"
-    BUILD_NUMBER="80024490"
+    CM_VERSION="7.13.2.100"
+    BUILD_NUMBER="81323056"
 
     # ================================
     # 3. Define Base URL
@@ -116,9 +116,9 @@ These steps require a Cloudera username and password to access: [https://archive
     ```text
     [root@cldr-mngr cloudera-manager]# vi cloudera-manager.repo
     [cloudera-manager]
-    name=Cloudera Manager 7.13.2.6
-    baseurl=https://archive.cloudera.com/p/cm7/7.13.2.6/redhat9/yum/
-    gpgkey=https://archive.cloudera.com/p/cm7/7.13.2.6/redhat9/yum/RPM-GPG-KEY-cloudera
+    name=Cloudera Manager 7.13.2.100
+    baseurl=https://archive.cloudera.com/p/cm7/7.13.2.100/redhat9/yum/
+    gpgkey=https://archive.cloudera.com/p/cm7/7.13.2.100/redhat9/yum/RPM-GPG-KEY-cloudera
     username=<paywall_username>
     password=<paywall_password>
     gpgcheck=1
@@ -140,9 +140,9 @@ These steps require a Cloudera username and password to access: [https://archive
     ```text
     [root@cldr-mngr cloudera-manager]# vi cloudera-manager.repo
     [cloudera-manager]
-    name=Cloudera Manager 7.13.2.6
-    baseurl=https://<paywall_username>:<paywall_password>@archive.cloudera.com/p/cm7/7.13.2.6/redhat9/yum/
-    gpgkey=https://<paywall_username>:<paywall_password>@archive.cloudera.com/p/cm7/7.13.2.6/redhat9/yum/RPM-GPG-KEY-cloudera
+    name=Cloudera Manager 7.13.2.100
+    baseurl=https://<paywall_username>:<paywall_password>@archive.cloudera.com/p/cm7/7.13.2.100/redhat9/yum/
+    gpgkey=https://<paywall_username>:<paywall_password>@archive.cloudera.com/p/cm7/7.13.2.100/redhat9/yum/RPM-GPG-KEY-cloudera
     gpgcheck=1
     enabled=1
     autorefresh=0
@@ -188,10 +188,10 @@ These steps require a Cloudera username and password to access: [https://archive
     /var/www/html/cloudera-repos/cloudera-manager/cm7.13.2/redhat9/yum/RPMS/x86_64
     [root@cldr-mngr x86_64]# ll
     total 1862092
-    -rw-r--r--. 1 root root 116384320 Apr 23 06:52 cloudera-manager-agent-7.13.2.6-80024490.el9.x86_64.rpm
-    -rw-r--r--. 1 root root 1790367515 Apr 23 06:52 cloudera-manager-daemons-7.13.2.6-80024490.el9.x86_64.rpm
-    -rw-r--r--. 1 root root      20933 Apr 23 06:52 cloudera-manager-server-7.13.2.6-80024490.el9.x86_64.rpm
-    -rw-r--r--. 1 root root      20933 Apr 23 06:52 cloudera-manager-server-db-7.13.2.6-80024490.el9.x86_64.rpm
+    -rw-r--r--. 1 root root 116384320 Apr 23 06:52 cloudera-manager-agent-7.13.2.100-81323056.el9.x86_64.rpm
+    -rw-r--r--. 1 root root 1790367515 Apr 23 06:52 cloudera-manager-daemons-7.13.2.100-81323056.el9.x86_64.rpm
+    -rw-r--r--. 1 root root      20933 Apr 23 06:52 cloudera-manager-server-7.13.2.100-81323056.el9.x86_64.rpm
+    -rw-r--r--. 1 root root      20933 Apr 23 06:52 cloudera-manager-server-db-7.13.2.100-81323056.el9.x86_64.rpm
     ```
 
 5. Run `createrepo` command to create a local repository.
@@ -218,7 +218,7 @@ These steps require a Cloudera username and password to access: [https://archive
     [root@cldr-mngr ~]# vi /etc/yum.repos.d/cloudera-manager.repo
 
     [cloudera-manager]
-    name=Cloudera Manager 7.13.2.6
+    name=Cloudera Manager 7.13.2.100
     baseurl=http://<cm_server_ip>/cloudera-repos/cloudera-manager/
     #Update IP of Repo/cldr-mngr server
     gpgcheck=0
@@ -255,8 +255,8 @@ PASSWORD="<paywall_password>"
 
 # CDH Version & Build
 CDH_VERSION="7.3.2"
-PARCEL_VERSION="7.3.2.0"
-BUILD_NUMBER="73534044"                # must match build ID from Cloudera archive
+PARCEL_VERSION="7.3.2.100"
+BUILD_NUMBER="81274879"                # must match build ID from Cloudera archive
 
 # Base URL
 BASE_URL="https://${USERNAME}:${PASSWORD}@archive.cloudera.com/p/cdh7/${PARCEL_VERSION}/parcels"
@@ -272,18 +272,18 @@ cd "${TARGET_DIR}"
 echo "Downloading CDH parcels for version ${CDH_VERSION}..."
 
 # CDH parcel + checksums
-wget -q ${BASE_URL}/CDH-${CDH_VERSION}-1.cdh${CDH_VERSION}.p${PARCEL_VERSION##*.}.${BUILD_NUMBER}-el9.parcel
-wget -q ${BASE_URL}/CDH-${CDH_VERSION}-1.cdh${CDH_VERSION}.p${PARCEL_VERSION##*.}.${BUILD_NUMBER}-el9.parcel.sha1
-wget -q ${BASE_URL}/CDH-${CDH_VERSION}-1.cdh${CDH_VERSION}.p${PARCEL_VERSION##*.}.${BUILD_NUMBER}-el9.parcel.sha256
+wget ${BASE_URL}/CDH-${CDH_VERSION}-1.cdh${CDH_VERSION}.p${PARCEL_VERSION##*.}.${BUILD_NUMBER}-el9.parcel
+wget ${BASE_URL}/CDH-${CDH_VERSION}-1.cdh${CDH_VERSION}.p${PARCEL_VERSION##*.}.${BUILD_NUMBER}-el9.parcel.sha1
+wget ${BASE_URL}/CDH-${CDH_VERSION}-1.cdh${CDH_VERSION}.p${PARCEL_VERSION##*.}.${BUILD_NUMBER}-el9.parcel.sha256
 
 # Key Trustee parcel + checksums
-wget -q ${BASE_URL}/KEYTRUSTEE_SERVER-${PARCEL_VERSION}-1.keytrustee${PARCEL_VERSION}.p0.${BUILD_NUMBER}-el9.parcel
-wget -q ${BASE_URL}/KEYTRUSTEE_SERVER-${PARCEL_VERSION}-1.keytrustee${PARCEL_VERSION}.p0.${BUILD_NUMBER}-el9.parcel.sha
-wget -q ${BASE_URL}/KEYTRUSTEE_SERVER-${PARCEL_VERSION}-1.keytrustee${PARCEL_VERSION}.p0.${BUILD_NUMBER}-el9.parcel.sha1
-wget -q ${BASE_URL}/KEYTRUSTEE_SERVER-${PARCEL_VERSION}-1.keytrustee${PARCEL_VERSION}.p0.${BUILD_NUMBER}-el9.parcel.sha256
+#wget -q ${BASE_URL}/KEYTRUSTEE_SERVER-${PARCEL_VERSION}-1.keytrustee${PARCEL_VERSION}.p0.${BUILD_NUMBER}-el9.parcel
+#wget -q ${BASE_URL}/KEYTRUSTEE_SERVER-${PARCEL_VERSION}-1.keytrustee${PARCEL_VERSION}.p0.${BUILD_NUMBER}-el9.parcel.sha
+#wget -q ${BASE_URL}/KEYTRUSTEE_SERVER-${PARCEL_VERSION}-1.keytrustee${PARCEL_VERSION}.p0.${BUILD_NUMBER}-el9.parcel.sha1
+#wget -q ${BASE_URL}/KEYTRUSTEE_SERVER-${PARCEL_VERSION}-1.keytrustee${PARCEL_VERSION}.p0.${BUILD_NUMBER}-el9.parcel.sha256
 
 # Manifest
-wget -q ${BASE_URL}/manifest.json
+wget ${BASE_URL}/manifest.json
 
 # ================================
 # Set permissions
@@ -298,12 +298,12 @@ ls -lah "${TARGET_DIR}"
 ```
 
 ```text
-[root@cldr-mngr ~]# ll /var/www/html/cloudera-repos/cdh7/7.3.2.0/
-total 8453728
--rw-r--r--. 1 root root 8656532124 Aug 21 15:12 CDH-7.3.2-1.cdh7.3.2.p0.67986116-el9.parcel
--rw-r--r--. 1 root root         40 Aug 21 15:12 CDH-7.3.2-1.cdh7.3.2.p0.67986116-el9.parcel.sha1
--rw-r--r--. 1 root root         64 Aug 21 15:12 CDH-7.3.2-1.cdh7.3.2.p0.67986116-el9.parcel.sha256
--rw-r--r--. 1 root root      70985 Aug 21 15:12 manifest.json
+[root@cldr-mngr ~]# ll /var/www/html/cloudera-repos/cdh7/7.3.2.100/
+total 14234192
+-rw-r--r--. 1 root root 14575729622 Aug 6 09:15 CDH-7.3.2-1.cdh7.3.2.p100.81274879-el9.parcel
+-rw-r--r--. 1 root root         40 Aug 6 09:29 CDH-7.3.2-1.cdh7.3.2.p100.81274879-el9.parcel.sha1
+-rw-r--r--. 1 root root         64 Aug 6 09:25 CDH-7.3.2-1.cdh7.3.2.p100.81274879-el9.parcel.sha256
+-rw-r--r--. 1 root root      73091 Aug 6 09:10 manifest.json
 ```
 
 <Banner type="info">
