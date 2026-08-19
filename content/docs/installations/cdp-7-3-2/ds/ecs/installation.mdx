@@ -78,27 +78,27 @@ This is the longest single procedure in the guide - one wizard, **29 steps**, ru
     [root@cldr-mngr cdp-pvc-ds]# wget -l 0 --recursive --no-parent -e robots=off -nH --cut-dirs=2
     --reject="index.html*" -t 10 https://<paywall_username>:<paywall_password>@archive.cloudera.com/p/cdp-pvc-ds/latest/
 
-    [root@cldr-mngr cdp-pvc-ds]# ls -lt 1.5.5-h2000/
+    [root@cldr-mngr cdp-pvc-ds]# ls -lt 1.5.5-h3200/
     total 116300
     -rw-r--r-- 1 root root     284820 Mar 15 10:13 manifest.json
-    -rw-r--r-- 1 root root 118747085 Mar 15 10:13 cdp-private-1.5.5-h2000-b238.tgz
+    -rw-r--r-- 1 root root 118747085 Mar 15 10:13 cdp-private-1.5.5-h3200-b238.tgz
     drwxr-xr-x 2 root root       4096 Mar 15 10:13 parcels
     drwxr-xr-x 2 root root       4096 Mar 15 10:12 manifests
     drwxr-xr-x 2 root root      32768 Mar 15 10:12 images
     ```
 
-    Modify the `manifest.json` file inside the downloaded directory. Change `"http_url": "..."` to `"http_url": "http://your_local_repo/cloudera-repos/cdp-pvc-ds/1.5.5-h2000/"`.
+    Modify the `manifest.json` file inside the downloaded directory. Change `"http_url": "..."` to `"http_url": "http://your_local_repo/cloudera-repos/cdp-pvc-ds/1.5.5-h3200/"`.
 
     ```text
     [root@cldr-mngr ~]# vi manifest.json
-    "http_url": "http://192.168.1.38/cloudera-repos/cdp-pvc-ds/1.5.5-h2000/"
+    "http_url": "http://192.168.1.38/cloudera-repos/cdp-pvc-ds/1.5.5-h3200/"
     ```
 
-3. Click **Custom Repository**. Add `http://your_local_repo/cloudera-repos/cdp-pvc-ds/1.5.5-h2000/` as a custom repository. Click on **Save Changes**. *(Skip this step, as we have chosen Internet method steps to Install)*
+3. Click **Custom Repository**. Add `http://your_local_repo/cloudera-repos/cdp-pvc-ds/1.5.5-h3200/` as a custom repository. Click on **Save Changes**. *(Skip this step, as we have chosen Internet method steps to Install)*
 
     ![Configuration dialog for CDP Private Cloud Repository URLs with a second row holding a local mirror URL on 192.168.1.38, and Cancel and Save Changes buttons](/images/cdp-7-3-2/ds/ecs/installation/11-custom-repository-saved.png)
 
-4. Click the **Select Repository** drop-down and select `http://your_local_repo/cloudera-repos/cdp-pvc-ds/1.5.5-h2000/` *(Skip this step, as we will chosen Internet method steps to Install)*
+4. Click the **Select Repository** drop-down and select `http://your_local_repo/cloudera-repos/cdp-pvc-ds/1.5.5-h3200/` *(Skip this step, as we will chosen Internet method steps to Install)*
 
     ![Getting Started page with Air Gapped selected and the Select Repository drop-down now holding the local mirror URL, with the line You are about to install CDP Private Cloud Data Services version 1.5.4-h2-b25 below it](/images/cdp-7-3-2/ds/ecs/installation/12-getting-started-air-gapped-repo-selected.png)
 
@@ -180,7 +180,7 @@ The **Install Agents** page appears and displays a progress indicator showing th
 
 ## Assign Roles
 
-1. Next on the **Assign Roles** page, ensure that the roles assignment for your new **Private Cloud Containerized Cluster** is as follows. You can customize the role assignment for your cluster. But, Cloudera does not recommend altering assignments unless you have specific requirements such as having selected a specific host for a specific role.
+1. Next on the **Assign Roles** page, ensure that the roles assignment for your new **Cloudera on premises Containerized Cluster** is as follows. You can customize the role assignment for your cluster. But, Cloudera does not recommend altering assignments unless you have specific requirements such as having selected a specific host for a specific role.
 
     <Banner type="warning">
     Single node ECS installation is supported, but is only intended to enable CDSW to CAI migration. If you are installing ECS on a single node, only the Docker and ECS Server roles are assigned. The ECS Agent role is not required for single node installation.

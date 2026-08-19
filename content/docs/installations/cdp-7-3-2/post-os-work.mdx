@@ -2,7 +2,7 @@
 title: Post OS Installation
 topicTitle: CDP 7.3.2
 topicSlug: cdp-7-3-2
-summary: Prepare the freshly installed RHEL 9.5 hosts - hostnames, FreeIPA, password-less login, Ansible, DNS zones, OS tuning and a local repository host - before installing Cloudera Base on premises and Data Services.
+summary: Prepare the freshly installed RHEL 9.7 hosts - hostnames, FreeIPA, password-less login, Ansible, DNS zones, OS tuning and a local repository host - before installing Cloudera Base on premises and Data Services.
 prevTitle: Solution Summary
 prevSlug: /installations/cdp-7-3-2/summary
 nextTitle: Install Cloudera on premises
@@ -46,18 +46,18 @@ Choose one of the nodes of the cluster or a separate node as the Ansible Admin/C
     Python 3 can be installed manually on the bare minimum (`ipaserver` / Ansible admin) and can later be installed using Ansible on the rest of the nodes, if you do not want to install it on each individual node.
 
     <Banner type="warning">
-    By default, running `dnf update` on RHEL may upgrade the system to the latest minor release (for example, 9.6). If you want to stay on RHEL 9.5 and receive only security and bug-fix updates, lock the system to your current minor version.
+    By default, running `dnf update` on RHEL may upgrade the system to the latest minor release. If you want to stay on RHEL 9.7 and receive only security and bug-fix updates, lock the system to your current minor version.
     </Banner>
 
-    Solution 1 - Lock to your current minor version (RHEL 9.5). Run the following:
+    Solution 1 - Lock to your current minor version (RHEL 9.7). Run the following:
 
     ```text
-    [root@<hostname> ~]# sudo subscription-manager release --set=9.5
+    [root@<hostname> ~]# sudo subscription-manager release --set=9.7
     [root@<hostname> ~]# sudo subscription-manager release --show
-    Release: 9.5
+    Release: 9.7
     ```
 
-    This locks your system repositories to RHEL 9.5 content - updates will stay within 9.5 and not move to 9.6.
+    This locks your system repositories to RHEL 9.7 content - updates will stay within 9.7 and not move to a later minor version.
 
     ```text
     [root@ipaserver ~]# sudo dnf -y update
@@ -160,12 +160,12 @@ Choose one of the nodes of the cluster or a separate node as the Ansible Admin/C
     ```text
     [root@ipaserver ~]# cat /etc/*rel* |grep -E 'NAME|VERSION'
     NAME="Red Hat Enterprise Linux"
-    VERSION="9.4 (Plow)"
-    VERSION_ID="9.4"
-    PRETTY_NAME="Red Hat Enterprise Linux 9.4 (Plow)"
+    VERSION="9.7 (Plow)"
+    VERSION_ID="9.7"
+    PRETTY_NAME="Red Hat Enterprise Linux 9.7 (Plow)"
     CPE_NAME="cpe:/o:redhat:enterprise_linux:9::baseos"
-    REDHAT_BUGZILLA_PRODUCT_VERSION=9.4
-    REDHAT_SUPPORT_PRODUCT_VERSION="9.4"
+    REDHAT_BUGZILLA_PRODUCT_VERSION=9.7
+    REDHAT_SUPPORT_PRODUCT_VERSION="9.7"
     ```
 
     Verify the hostname and IP addresses:
@@ -184,6 +184,7 @@ Choose one of the nodes of the cluster or a separate node as the Ansible Admin/C
         inet 10.0.2.2/24 brd 10.0.2.255 scope global dynamic noprefixroute eth0
         inet6 fe80::c3:16ff:fe00:9/64 scope link noprefixroute
 
+    # please ignore if the below command fails due to instance having single network interface attached
     [root@ipaserver ~]# ip addr show eth1 | grep -e inet
         inet 172.31.24.240/24 brd 172.31.1.255 scope global dynamic noprefixroute eth1
         inet6 fe80::65b3:25c6:8b2a:b4ae/64 scope link noprefixroute
@@ -1058,13 +1059,13 @@ If you are using an AD server as Kerberos instead of FreeIPA:
 1. Run the following command on all the client machines and skip the `ipa-client-install` steps.
 
     ```text
-    [root@pvcbase-master ~]# realm join --user=administrator ntnxlab.local
+    [root@pvcbase-master ~]# realm join --user=administrator cldrsetup.local
     ```
 
     Use the following non-interactive form to supply the password on the command line:
 
     ```text
-    [root@pvcbase-master ~]# echo '<ad_admin_password>' | realm join --user=administrator ntnxlab.local
+    [root@pvcbase-master ~]# echo '<ad_admin_password>' | realm join --user=administrator cldrsetup.local
     ```
 
 2. Verify the KDC setup: check that Kerberos ticket generation is working fine by generating a ticket for the `administrator` user from all individual hosts.
@@ -1145,7 +1146,7 @@ If you are using an AD server as Kerberos instead of FreeIPA:
     ;; OPT PSEUDOSECTION:
     --
     ;; ANSWER SECTION:
-    pvcbase-master.ntnxlab.local. 3600 IN                               A     10.8.16.132
+    pvcbase-master.cldrsetup.local. 3600 IN                             A     10.8.16.132
     ```
 
     For a reverse lookup, `dig -x <private_ip_of_server>` should return the hostname of the machine in the answer section - for example, `dig -x 172.31.40.119`:
@@ -1157,7 +1158,7 @@ If you are using an AD server as Kerberos instead of FreeIPA:
     ;; OPT PSEUDOSECTION:
     --
     ;; ANSWER SECTION:
-    132.16.8.10.in-addr.arpa. 3600                        IN            PTR   pvcbase-master.ntnxlab.local.
+    132.16.8.10.in-addr.arpa. 3600                        IN            PTR   pvcbase-master.cldrsetup.local.
     ```
 
 7. Log in to the `ipaserver`, then configure and validate that the wildcard DNS record is working fine and resolvable. This is required later for the ECS Data Services cluster - if it is not set properly, there is a good chance the ECS installation gets corrupted.
@@ -1209,9 +1210,9 @@ If you are using an AD server as Kerberos instead of FreeIPA:
 8. Download and copy the PostgreSQL JDBC driver to all hosts.
 
     ```text
-    [root@jump ~]# wget https://jdbc.postgresql.org/download/postgresql-42.7.7.jar
-    [root@jump ~]# chmod 644 postgresql-42.7.7.jar
-    [root@jump ~]# ansible all -m copy -a "src=postgresql-42.7.7.jar
+    [root@jump ~]# wget https://jdbc.postgresql.org/download/postgresql-42.7.13.jar
+    [root@jump ~]# chmod 644 postgresql-42.7.13.jar
+    [root@jump ~]# ansible all -m copy -a "src=postgresql-42.7.13.jar
     dest=/usr/share/java/postgresql-connector-java.jar"
     [root@jump ~]# ansible all -m shell -a "sudo ls -l /usr/share/java/postgresql-connector-java.jar"
     ```

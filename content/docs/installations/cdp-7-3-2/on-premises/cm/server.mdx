@@ -42,7 +42,7 @@ update agent config (before start scm-server)
 
 ## 2. Point Cloudera Manager at the SSL-enabled database
 
-1. Enable TLS 1.2 on Cloudera Manager Server. [https://docs.cloudera.com/cloudera-manager/7.11.3/installation/topics/cdpdc-enable-tls-12-cm-server.html](https://docs.cloudera.com/cloudera-manager/7.11.3/installation/topics/cdpdc-enable-tls-12-cm-server.html)
+1. Enable TLS 1.2 on Cloudera Manager Server. [https://docs.cloudera.com/cloudera-manager/7.13.2/cloudera-manager-installation/topics/cdpdc-enable-tls-12-cm-server.html](https://docs.cloudera.com/cloudera-manager/7.13.2/cloudera-manager-installation/topics/cdpdc-enable-tls-12-cm-server.html)
 
 2. Import the PostgreSQL root certificate in step 4 below.
 
@@ -139,9 +139,9 @@ update agent config (before start scm-server)
 1. Start the Cloudera Manager Server:
 
     ```text
-    [root@cldr-mngr ~]# systemctl start cloudera-scm-server cloudera-scm-agent
+    [root@cldr-mngr ~]# systemctl start cloudera-scm-server
     [root@cldr-mngr ~]# systemctl enable cloudera-scm-server cloudera-scm-agent
-    [root@cldr-mngr ~]# systemctl status cloudera-scm-server cloudera-scm-agent -l
+    [root@cldr-mngr ~]# systemctl status cloudera-scm-server -l
     ```
 
     Run the command below to check the logs of `cloudera-scm-server` starting up. Wait until you see the **Started Jetty server** message on the screen.
@@ -150,9 +150,18 @@ update agent config (before start scm-server)
     [root@cldr-mngr ~]# sudo tail -f /var/log/cloudera-scm-server/cloudera-scm-server.log
     ```
 
+    Only once that message appears, start the Cloudera Manager agent.
+
+    ```text
+    [root@cldr-mngr ~]# systemctl start cloudera-scm-agent
+    ```
+
 2. The Cloudera Manager should show the below logs before the UI actually comes up.
 
-    ![Cloudera Manager server log showing the two INFO lines from WebServerImpl - jetty.server.Server started, then Started Jetty server](/images/cdp-7-3-2/on-premises/cm/server/jetty-started-log.png)
+    ```text
+    INFO WebServerImpl:org.eclipse.jetty.server.Server: Started @89711ms
+    INFO WebServerImpl:com.cloudera.server.cmf.WebServerImpl: Started Jetty server.
+    ```
 
 3. Once the Cloudera-Manager(CM) installation is completed, open the endpoint URL `http://<cm_server_ip>:7180/` of the Cloudera Manager WebUI and login to the CM using default credentials.
 
@@ -182,6 +191,10 @@ Verify the same by running the command below. It should return output stating th
 
 ```text
 [root@cldr-mngr ~]# systemctl status cloudera-scm-agent -l
+● cloudera-scm-agent.service - Cloudera Manager Agent Service
+   Loaded: loaded (/usr/lib/systemd/system/cloudera-scm-agent.service; enabled; vendor preset: disabled)
+   Active: active (running) since Sat 2023-04-08 02:24:22 UTC; 9s ago
+ Main PID: 3062 (cmagent)
+   CGroup: /system.slice/cloudera-scm-agent.service
+           └─3062 /usr/bin/python2 /opt/cloudera/cm-agent/bin/cm agent
 ```
-
-![Terminal output of systemctl status cloudera-scm-agent showing the Cloudera Manager Agent Service loaded, enabled and active (running)](/images/cdp-7-3-2/on-premises/cm/server/scm-agent-status.png)

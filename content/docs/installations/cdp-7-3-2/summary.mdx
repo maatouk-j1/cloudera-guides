@@ -194,7 +194,7 @@ In case we are not going with FreeIPA, an external Kerberos/KDC is required.
 | Role | HostName | CPU | RAM | Disk | Partitions (recommended but not mandatory) |
 |:--|:--|:--|:--|:--|:--|
 | ipaserver/AD +ansible-controller | ipaserver | 16 | 32GB | OS disk (250GB) | root partition |
-| cldr-mngr, postgres db, bits | cldr-mngr | 32 | 64GB | 800GB | root partition, /var=600GB, /opt=600GB |
+| cldr-mngr, postgres db, bits | cldr-mngr | 32 | 64GB | 800GB | root partition, /var=400GB, /opt=400GB |
 | Bastion server | jump | 8 | 16GB | 200GB | root partition |
 
 <Banner type="warning">
@@ -280,15 +280,15 @@ The table below lists the software components and versions required for a single
 
 | Software Component | Version or Release | Host to be Installed |
 |:--|:--|:--|
-| OS: Red Hat Enterprise Linux Server (RHEL) | 9.5 (Verify with SupportMatrix first) | All Servers |
+| OS: Red Hat Enterprise Linux Server (RHEL) | 9.7 (Verify with SupportMatrix first) | All Servers |
 | OpenJDK | 17.0.14.0.7-1 >= | All Servers |
 | Python3 | 3.9.22 >= | All Servers |
 | PostgreSQL DB | 14 >= | Cldr-Mngr |
-| Psycopg2-binary | 2.9.11 >= | All Servers |
-| Postgres-JDBC-Connector | 42.7.7 >= | All Servers |
-| Cloudera Manager | 7.13.2.6 (7.13.2.6-80024490) | Cldr-Mngr |
-| Cloudera Base on premises (RunTime) | 7.3.2.0 (7.3.2-1.cdh7.3.2.p0.77083870). Install Base Runtime 7.3.2 **only if you are not planning to use CAI** (Data Service), otherwise install **7.3.1 SP3 CHF2** | PvC Base Cluster Nodes |
-| Cloudera Data Services on premises | 1.5.5 SP2 (1.5.5-h2000-b238) | PvC Data Service Cluster Nodes |
+| Psycopg2-binary | 2.9.12 >= | All Servers |
+| Postgres-JDBC-Connector | 42.7.13 >= | All Servers |
+| Cloudera Manager | 7.13.2.100 (7.13.2.100-81323056) | Cldr-Mngr |
+| Cloudera Base on premises (RunTime) | 7.3.2.100 (CDH-7.3.2-1.cdh7.3.2.p100.81274879) | PvC Base Cluster Nodes |
+| Cloudera Data Services on premises | 1.5.5 SP3 CHF1 (1.5.5-h3200-b238) | PvC Data Service Cluster Nodes |
 | Hadoop (Includes YARN and HDFS) | 3.4.2.7.3.2.0-957 | PvC Base Cluster Nodes |
 | Spark3 | 3.5.4.7.3.2.0-957 | PvC Base Cluster Nodes |
 | Ozone | 2.0.0.7.3.2.0-957 | PvC Base Cluster Nodes |
