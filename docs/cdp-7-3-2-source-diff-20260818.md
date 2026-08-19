@@ -44,14 +44,6 @@ deliberately; a later ingestion pass must not "fix" the site back to match the P
 
 ## Outstanding — content
 
-### `on-premises/cm/ldap-auth.mdx` and `accessing-data-services.mdx`
-
-New AD values only — read the source's new Tables 8 (p. 91) and 15 (p. 195) and fold
-any genuinely new value into the existing merged rows, per ruling 1 above.
-
-**Table 15 uses a different lab from the rest of the document**: `ldap://dc.ntnxlab.local:389/`,
-`Administrator@ntnxlab.local`, `OU=cloudera,DC=ntnxlab,DC=local`. It is not a drop-in.
-
 ### `ds/ecs-requirements.mdx`
 
 `nvidia-container-runtime` wording was reordered on p. 147. Not yet checked against the

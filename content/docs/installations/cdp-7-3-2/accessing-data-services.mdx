@@ -54,14 +54,16 @@ nextSlug: /installations/cdp-7-3-2/cai
     | Authentication Backend Order | Database then EXTERNAL |
     | Authorization Backend Order | Database and EXTERNAL |
     | External Authentication Type | LDAP |
-    | LDAP URL | ldap://ipaserver.cldrsetup.local:389/ |
-    | LDAP Bind User Distinguished Name | uid=admin,cn=users,cn=accounts,dc=cldrsetup,dc=local |
+    | LDAP URL | For AD: ldap://dc.cldrsetup.local:389/ — For LDAP: ldap://ipaserver.cldrsetup.local:389/ |
+    | LDAP Bind User Distinguished Name | For AD: Administrator@cldrsetup.local — For LDAP: uid=admin,cn=users,cn=accounts,dc=cldrsetup,dc=local |
     | LDAP Bind Password | `<ldap_bind_password>` (password for KDC admin, configured earlier) |
     | Active Directory Domain (For AD Based LDAP) | `<ad_domain>` |
-    | LDAP User Search filter | For AD: (sAMAccountName=*) — For LDAP: `(&(uid={0})(objectClass=person))` |
+    | LDAP User Search filter | For AD: `(sAMAccountName={0})` — For LDAP: `(&(uid={0})(objectClass=person))` |
     | LDAP User Search Base | For AD: OU=cloudera,DC=cldrsetup,DC=local — For LDAP: cn=users,cn=accounts,dc=cldrsetup,dc=local |
-    | LDAP Group Search filter | `(&(member={1})(objectClass=posixgroup))` |
+    | LDAP Group Search filter | For AD: `(&(member={1})(objectClass=group))` — For LDAP: `(&(member={1})(objectClass=posixgroup))` |
     | LDAP Group Search Base | For AD: OU=cloudera,DC=cldrsetup,DC=local — For LDAP: cn=groups,cn=accounts,dc=cldrsetup,dc=local |
+    | Username Mapping Attribute (For AD Based LDAP) | sAMAccountName |
+    | Email Mapping Attribute (For AD Based LDAP) | userPrincipalName |
 
     ![Management Console Administration LDAP settings form with Sync Groups on Login enabled, the LDAP URL, Bind Type set to Use Bind DN and Password, the Bind DN and Bind Password fields, and the User and Group search base and filter fields, ending in a Test LDAP Connection button](/images/cdp-7-3-2/accessing-data-services/step7-ldap-settings-form.png)
 

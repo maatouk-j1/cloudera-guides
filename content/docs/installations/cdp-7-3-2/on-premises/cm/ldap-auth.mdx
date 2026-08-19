@@ -65,13 +65,13 @@ The **LDAP Distinguished Name Pattern** property is deprecated. Leave this field
     | Authorization Backend Order | Database and EXTERNAL |
     | External Authentication Type | LDAP |
     | LDAP URL | ldap://ipaserver.cldrsetup.local:389 |
-    | LDAP Bind User Distinguished Name | uid=admin,cn=users,cn=accounts,dc=cldrsetup,dc=local |
+    | LDAP Bind User Distinguished Name | For AD: CN=Administrator,CN=users,DC=cldrsetup,DC=local — For LDAP: uid=admin,cn=users,cn=accounts,dc=cldrsetup,dc=local |
     | LDAP Bind Password | `<ldap_bind_password>` (password for KDC admin, configured earlier) |
     | Active Directory Domain (For AD Setup only) | `<ad_domain>` (e.g CLDRSETUP.LOCAL) |
     | LDAP User Search filter | For AD: `sAMAccountName={0}` — For LDAP: `(&(uid={0})(objectClass=person))` |
-    | LDAP User Search Base | cn=users,cn=accounts,dc=cldrsetup,dc=local |
+    | LDAP User Search Base | For AD: DC=cldrsetup,DC=local — For LDAP: cn=users,cn=accounts,dc=cldrsetup,dc=local |
     | LDAP Group Search filter | For AD: `member={0}` — For LDAP: `(&(member={1})(objectClass=posixgroup))` |
-    | LDAP Group Search Base | cn=groups,cn=accounts,dc=cldrsetup,dc=local |
+    | LDAP Group Search Base | For AD: DC=cldrsetup,DC=local — For LDAP: cn=groups,cn=accounts,dc=cldrsetup,dc=local |
 
 2. Below page will get open, select the appropriate options as mentioned below in the screenshot:
 
