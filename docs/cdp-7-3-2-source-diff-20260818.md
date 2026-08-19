@@ -44,19 +44,6 @@ deliberately; a later ingestion pass must not "fix" the site back to match the P
 
 ## Outstanding — content
 
-### `on-premises/cm/database.mdx`
-
-- **`postgresql.conf` is now configured by script** (p. 66–67). A new block defines
-  `PG_PORT`, `PG_MAX_CONNECTIONS`, `PG_SHARED_BUFFERS`, `PG_WAL_BUFFERS`,
-  `PG_MAX_WAL_SIZE`, `PG_MIN_WAL_SIZE`, `PG_CHECKPOINT_COMPLETION_TARGET`,
-  `PG_STANDARD_CONFORMING_STRINGS` and `PG_JIT`, backs the file up with a timestamp,
-  applies them with `sed -i -E`, and verifies with `grep -E`. The old manual `vi`
-  walkthrough is retained below it in the source but commented out and marked
-  *"already covered in above, hence commented – ignore / skip this"*. The site
-  currently carries only the manual walkthrough.
-- Two config-restore steps gained the qualifier *"(only applicable in case of
-  resetup)"* (p. 66, p. 67).
-
 ### `on-premises/cm/server.mdx`
 
 - **CM agent start is now a separate step** (p. 75). The site still runs
