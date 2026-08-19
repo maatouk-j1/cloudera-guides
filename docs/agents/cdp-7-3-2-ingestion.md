@@ -14,13 +14,36 @@ guide](https://github.com/maatouk-j1/cloudera-guides/issues/10).
 Source PDF: `sources/cloudera-on-premise-deployment-guide-ecs-20260818.pdf` — **256 pages**, git-ignored.
 The 254-page edition the guide was first ingested from is kept beside it as
 `…-ecs-original.pdf`. The 255-page intermediate edition this playbook used to name is gone and
-cannot be re-derived. Full analysis of the differences: `docs/cdp-7-3-2-source-diff-20260818.md`.
+cannot be re-derived. The two editions were diffed with Poppler and everything that came out of it
+is folded into this playbook; the worklist that tracked the diff was deleted once empty and is
+recoverable with `git log --diff-filter=D -- docs/cdp-7-3-2-source-diff-20260818.md`.
 
-This is a later edition than the 254-page file the guide was originally ingested from, and its
-pagination drifts: the Ranger LDAP section that section 6 lists at 129-142 starts at **128** in this
-file. **Treat every page range in section 6 as approximate** — confirm with `pdftotext` before
-extracting. Table numbers shifted too (old Table 8 is Table 9 here), so the table captions in the
-MDX no longer match the source numbering.
+**Section 6's page ranges are this edition's** — re-derived by aligning the two files page by page,
+then spot-checked against the section headings themselves. Keep confirming with `pdftotext` before
+extracting anyway: the ranges were aligned, not re-read line by line, and a section boundary does
+not always fall on a page break.
+
+The two-page growth is three old pages with no counterpart here (22, 81, 209) against five new ones
+(66, 94, 140, 195, 227). The drift they cause never exceeds ±2 and is already folded into section 6.
+
+Table numbers shifted too, and **two tables are new**. The MDX carries no table numbers of its own,
+so this affects extraction only — but a caption is the fastest way to confirm you are on the page
+you meant to be on.
+
+| Old | New | Page | Caption |
+|:--|:--|:--|:--|
+| Table 7 | Table 7 | 90 | LDAP Integration → **FreeIPA** LDAP Integration (retitled) |
+| — | **Table 8** | 91 | **AD LDAP Integration** (new) |
+| Table 8 | Table 9 | 129 | User LDAP Integration (Ranger admin) |
+| Table 9 | Table 10 | 133 | UserSync LDAP Integration |
+| Table 10 | Table 11 | 134 | UserSync AD Integration |
+| Table 11 | Table 12 | 141 | Atlas LDAP Integration |
+| Table 12 | Table 13 | 143 | LDAP Integration-Hive |
+| Table 13 | Table 14 | 194 | LDAP Integration → LDAP **FreeIPA** Integration (retitled) |
+| — | **Table 15** | 195 | **LDAP AD Integration** (new) |
+
+Tables 1–4 keep their numbers. Neither edition has a Table 5 or Table 6 — the caption sequence skips
+them, and the "see Table 6" on p. 82 points at the table captioned Table 4 on that same page.
 
 ### macOS toolchain
 
@@ -45,28 +68,55 @@ Run `pdfimages -list -f N -l M` over your range *before* extracting, so you know
 
 ### Known source quirks
 
+- **No monospace font anywhere.** The 254-page edition embedded `CourierNew`, `Consolas`, `FreeMono`
+  and `RobotoMono`; **this one embeds none**. Every shell command, config snippet and terminal
+  transcript renders in Calibri or Arial, so a code block is not visually distinguishable from prose
+  in a page render — the boxed border is the only cue. `pdftotext -layout` is unaffected because it
+  works from glyph positions, which makes **the verbatim-extraction rule below more important than
+  ever**: you cannot tell by eye where a command starts and ends.
 - **Header banner on every page.** A 700×7 decorative rule is embedded on every page and always
   extracts as `p-NNN-000.png` at ~134 bytes. It is never content — delete it. Note `find -size -1k`
   does not match it on macOS (BSD `find` rounds up); use `-size -200c`.
 - **Correction crops are overlaid on screenshots.** Where the source fixes a wrong value in a
   capture, it pastes a magnified crop over the offending row rather than re-shooting it. `pdfimages`
-  extracts the two as separate objects, so the base capture alone shows the **wrong** value — p. 129
+  extracts the two as separate objects, so the base capture alone shows the **wrong** value — p. 130
   shows `ranger.ldap.ad.referral` as `ignore` under a crop reading `follow`. Always check the
   `pdftoppm` page render before trusting an extracted capture, and stitch the composite from renders.
-- **A figure can straddle a page break.** The same image object is then placed on both pages (it
-  appears twice in `pdfimages -list` with identical size). Render and concatenate both halves.
+- **One image object can be placed on several pages.** Usually that means a figure straddling a page
+  break — the object appears twice in `pdfimages -list` with identical size, so render and
+  concatenate both halves. But reuse is not always adjacent: object 213 is placed on both p. 34 and
+  p. 46. Both editions carry **306 placements from 232 distinct objects**, so any script that counts
+  figures by unique object ID undercounts by 74. **Count placements, not objects.**
 - **Screenshots can show stale versions.** Some captures are recycled from an older lab build
-  (p. 98 shows Cloudera Manager `7.11.3`; p. 159 shows Data Services `1.5.4-h5-b104`). Prose and
+  (p. 98 shows Cloudera Manager `7.11.3`; p. 160 shows Data Services `1.5.4-h5-b104`). Prose and
   the version table win over what a screenshot displays. Never transcribe a version out of an image.
 
-### Versions (from the guide's own version table, ~p. 26; corrected in P1)
+### Versions (from the guide's own version table, p. 25; corrected in P1)
 
 | Component | Version |
 |:--|:--|
 | Cloudera Base on premises Runtime | **7.3.2.100** (`CDH-7.3.2-1.cdh7.3.2.p100.81274879`) — the Cloudera AI / 7.3.1 SP3 CHF2 caveat no longer exists in the source |
 | Data Services | **1.5.5 SP3 CHF1** (`1.5.5-h3200-b238`) |
-| Cloudera Manager | **7.13.2.100** (`7.13.2.100-81323056`) — the build the RPM listing shows; the source's version table still names the old `77091850` and its download script a third build, `80024490` |
+| Cloudera Manager | **7.13.2.100** (`7.13.2.100-81323056`) |
 | OS | **RHEL 9.7** |
+
+**The source contradicts itself on all three, and the site does not.** These are settled; do not
+"fix" the site back to match a page of the PDF.
+
+| | Site uses | Source also says |
+|:--|:--|:--|
+| Cloudera Manager build | `81323056` **everywhere, including the download script** | `77091850` in the version table (p. 25) and `80024490` in the download script (p. 59). `81323056` is what the RPM listing on p. 61 shows, so the script fetches the files the listing names. |
+| Data Services | `h3200` **everywhere** | `1.5.5-h2000` in the download procedure (p. 161–162), against `1.5.5-h3200-b238` in the version table (p. 25). |
+| OS | `9.7` **everywhere** | 9.7 in the requirements table and the lock commands (pp. 25, 27); 9.5 in the surrounding prose, the "Solution 1" heading, the closing sentence, and the sample `cat /etc/*rel*` output (pp. 27–29). |
+
+**One value cannot be read out of either PDF.** The Ranger Database JDBC URL Override on p. 125
+overflows its table cell and is clipped mid-string — the new edition loses
+`…verify-full&sslrootcert=/var/lib/ranger/root.crt`, the old edition wrapped it and lost a different
+span. The intended value is:
+
+```text
+jdbc:postgresql://cldr-mngr.cldrsetup.local:5432/ranger?ssl=true&sslmode=verify-full&sslrootcert=/var/lib/ranger/root.crt
+```
 
 The folder slug is `cdp-7-3-2` — no SP/CHF, because service packs churn. The nav title is
 "CDP 7.3.2". Precise product names and full version strings live on the version landing page.
@@ -201,8 +251,6 @@ and 14 retitled *FreeIPA*. Fold any genuinely new AD value out of those tables i
 existing merged row instead of adding a table. The site's captions do not track the
 source's table numbering anyway — see the renumbering note in section 1.
 
-Full analysis of that edition: `docs/cdp-7-3-2-source-diff-20260818.md`.
-
 ## 6. The phase index (authoritative)
 
 Paths are relative to `content/docs/installations/cdp-7-3-2/`; URLs are prefixed
@@ -211,18 +259,18 @@ Paths are relative to `content/docs/installations/cdp-7-3-2/`; URLs are prefixed
 | Phase | Section | Pages | File | URL suffix |
 |:--|:--|:--|:--|:--|
 | 1 | 0) VM Creation | 7-15 | `vm.mdx` | `/vm` |
-| 1 | 1) Solution Summary | 16-27 | `summary.mdx` | `/summary` |
-| 2 | 2) Post OS Installation - Preliminary Work | 28-58 | `post-os-work.mdx` | `/post-os-work` |
-| 3 | 3) Install CDP Private Cloud - Overview | 58 | `on-premises.mdx` | `/on-premises` |
-| 3 | 3-1) Prerequisites Overview | 58-59 | `on-premises/prerequisites.mdx` | `/on-premises/prerequisites` |
-| 3 | 3-2) Setup Repositories and Parcels | 60-65 | `on-premises/repos-and-parcels.mdx` | `/on-premises/repos-and-parcels` |
-| 4 | 3-3) Setup Cloudera Manager Server - Overview | 65 | `on-premises/cm.mdx` | `/on-premises/cm` |
-| 4 | 3-3-1) Setup Database for Cloudera Manager | 65-73 | `on-premises/cm/database.mdx` | `/on-premises/cm/database` |
+| 1 | 1) Solution Summary | 16-26 | `summary.mdx` | `/summary` |
+| 2 | 2) Post OS Installation - Preliminary Work | 27-57 | `post-os-work.mdx` | `/post-os-work` |
+| 3 | 3) Install CDP Private Cloud - Overview | 57 | `on-premises.mdx` | `/on-premises` |
+| 3 | 3-1) Prerequisites Overview | 57-58 | `on-premises/prerequisites.mdx` | `/on-premises/prerequisites` |
+| 3 | 3-2) Setup Repositories and Parcels | 59-64 | `on-premises/repos-and-parcels.mdx` | `/on-premises/repos-and-parcels` |
+| 4 | 3-3) Setup Cloudera Manager Server - Overview | 64 | `on-premises/cm.mdx` | `/on-premises/cm` |
+| 4 | 3-3-1) Setup Database for Cloudera Manager | 64-73 | `on-premises/cm/database.mdx` | `/on-premises/cm/database` |
 | 4 | 3-3-2) Install Cloudera Manager Server | 73-76 | `on-premises/cm/server.mdx` | `/on-premises/cm/server` |
 | 5 | 3-3-3) Enable Auto-TLS | 77-80 | `on-premises/cm/auto-tls.mdx` | `/on-premises/cm/auto-tls` |
-| 5 | 3-3-4) Enable Kerberos | 80-86 | `on-premises/cm/kerberos.mdx` | `/on-premises/cm/kerberos` |
-| 5 | 3-3-5) Setup Cloudera Management Services | 87-89 | `on-premises/cm/mgmt-services.mdx` | `/on-premises/cm/mgmt-services` |
-| 5 | 3-3-6) Configure CM for external authentication using LDAP | 90-95 | `on-premises/cm/ldap-auth.mdx` | `/on-premises/cm/ldap-auth` |
+| 5 | 3-3-4) Enable Kerberos | 80-85 | `on-premises/cm/kerberos.mdx` | `/on-premises/cm/kerberos` |
+| 5 | 3-3-5) Setup Cloudera Management Services | 86-88 | `on-premises/cm/mgmt-services.mdx` | `/on-premises/cm/mgmt-services` |
+| 5 | 3-3-6) Configure CM for external authentication using LDAP | 89-95 | `on-premises/cm/ldap-auth.mdx` | `/on-premises/cm/ldap-auth` |
 | 6 | 3-4) Setup CDP PvC Base Cluster - Overview | 96 | `on-premises/base.mdx` | `/on-premises/base` |
 | 6 | 3-4-1) Install CDP PvC Base using the CM Web UI | 96-105 | `on-premises/base/installation.mdx` | `/on-premises/base/installation` |
 | 7 | 3-4-2) Data Lake Creation | 105-119 | `on-premises/base/data-lake.mdx` | `/on-premises/base/data-lake` |
@@ -230,31 +278,35 @@ Paths are relative to `content/docs/installations/cdp-7-3-2/`; URLs are prefixed
 | 8 | 3-4-4) Configure services with SSL/TLS-enabled Metadata Database | 125-127 | `on-premises/base/services-metadata-db-tls.mdx` | `/on-premises/base/services-metadata-db-tls` |
 | 8 | 3-4-5) Scale the Cluster (Optional) | 128 | `on-premises/base/scale-cluster.mdx` | `/on-premises/base/scale-cluster` |
 | 8 | 3-4-6) Enable High Availability (Optional) | 128 | `on-premises/base/high-availability.mdx` | `/on-premises/base/high-availability` |
-| 8 | 3-4-7) Configure Services authentication for LDAP (Optional) | 129-142 | `on-premises/base/ldap-auth.mdx` | `/on-premises/base/ldap-auth` |
-| 8 | 3-4-8) Optimize Log Collection | 143 | `on-premises/base/optimize-log-collection.mdx` | `/on-premises/base/optimize-log-collection` |
-| 9 | 4) CDP Data Services Installation (ECS) - Overview | 144 | `ds.mdx` | `/ds` |
-| 9 | 4-1) Embedded Container Service (ECS) Requirements | 144-147 | `ds/ecs-requirements.mdx` | `/ds/ecs-requirements` |
-| 9 | 4-2) Checklist **(table only)** | 147-154 | `ds/checklist.mdx` | `/ds/checklist` |
-| 10 | 4-3) Install CDP Data Services using ECS - Overview | 155 | `ds/ecs.mdx` | `/ds/ecs` |
-| 10 | 4-3-1) Install ECS Cluster | 156-185 | `ds/ecs/installation.mdx` | `/ds/ecs/installation` |
-| 11 | 4-3-2) Additional Steps for ECS Cluster Setup | 186-188 | `ds/ecs/additional-steps.mdx` | `/ds/ecs/additional-steps` |
-| 11 | 4-3-3) Dedicating ECS Nodes for Specific Workloads (Optional) | 189-190 | `ds/ecs/specific-workloads.mdx` | `/ds/ecs/specific-workloads` |
-| 12 | 5) Accessing Cloudera | 191-198 | `accessing-data-services.mdx` | `/accessing-data-services` |
-| 13 | 6) Cloudera AI (CAI) | 199-215 | `cai.mdx` | `/cai` |
-| 14 | 7) Cloudera Data Warehouse (CDW) | 216-219 | `cdw.mdx` | `/cdw` |
-| 14 | 8) Cloudera Data Engineering (CDE) | 220-225 | `cde.mdx` | `/cde` |
-| 15 | 9) Appendix - Overview | 226 | `appendix.mdx` | `/appendix` |
-| 15 | 9-1) References Used in Guide | 226 | `appendix/references.mdx` | `/appendix/references` |
-| 15 | 9-2) Glossary of Terms | 226-228 | `appendix/glossary-terms.mdx` | `/appendix/glossary-terms` |
-| 15 | 9-3) Glossary of Acronyms | 228-229 | `appendix/glossary-acronyms.mdx` | `/appendix/glossary-acronyms` |
-| 15 | 9-4) FreeIPA Reference | 229-232 | `appendix/freeipa.mdx` | `/appendix/freeipa` |
-| 16 | 10) Cluster Validation | 233-236 | `validation.mdx` | `/validation` |
-| 16 | 11) Cluster Cleanup | 237-240 | `cleanup.mdx` | `/cleanup` |
-| 16 | 12) Error Handling | 241-252 | `error-handling.mdx` | `/error-handling` |
-| 16 | 13) Kubernetes Command Reference | 253 | `kubernetes-commands.mdx` | `/kubernetes-commands` |
-| 16 | 14) Acknowledgements | 254 | `acknowledgements.mdx` | `/acknowledgements` |
+| 8 | 3-4-7) Configure Services authentication for LDAP (Optional) | 129-143 | `on-premises/base/ldap-auth.mdx` | `/on-premises/base/ldap-auth` |
+| 8 | 3-4-8) Optimize Log Collection | 144 | `on-premises/base/optimize-log-collection.mdx` | `/on-premises/base/optimize-log-collection` |
+| 9 | 4) CDP Data Services Installation (ECS) - Overview | 145 | `ds.mdx` | `/ds` |
+| 9 | 4-1) Embedded Container Service (ECS) Requirements | 145-148 | `ds/ecs-requirements.mdx` | `/ds/ecs-requirements` |
+| 9 | 4-2) Checklist **(table only)** | 148-155 | `ds/checklist.mdx` | `/ds/checklist` |
+| 10 | 4-3) Install CDP Data Services using ECS - Overview | 156 | `ds/ecs.mdx` | `/ds/ecs` |
+| 10 | 4-3-1) Install ECS Cluster | 157-186 | `ds/ecs/installation.mdx` | `/ds/ecs/installation` |
+| 11 | 4-3-2) Additional Steps for ECS Cluster Setup | 187-189 | `ds/ecs/additional-steps.mdx` | `/ds/ecs/additional-steps` |
+| 11 | 4-3-3) Dedicating ECS Nodes for Specific Workloads (Optional) | 190-191 | `ds/ecs/specific-workloads.mdx` | `/ds/ecs/specific-workloads` |
+| 12 | 5) Accessing Cloudera | 192-200 | `accessing-data-services.mdx` | `/accessing-data-services` |
+| 13 | 6) Cloudera AI (CAI) | 201-216 | `cai.mdx` | `/cai` |
+| 14 | 7) Cloudera Data Warehouse (CDW) | 217-220 | `cdw.mdx` | `/cdw` |
+| 14 | 8) Cloudera Data Engineering (CDE) | 221-226 | `cde.mdx` | `/cde` |
+| 15 | 9) Appendix - Overview | 228 | `appendix.mdx` | `/appendix` |
+| 15 | 9-1) References Used in Guide | 228 | `appendix/references.mdx` | `/appendix/references` |
+| 15 | 9-2) Glossary of Terms | 228-230 | `appendix/glossary-terms.mdx` | `/appendix/glossary-terms` |
+| 15 | 9-3) Glossary of Acronyms | 230-231 | `appendix/glossary-acronyms.mdx` | `/appendix/glossary-acronyms` |
+| 15 | 9-4) FreeIPA Reference | 231-234 | `appendix/freeipa.mdx` | `/appendix/freeipa` |
+| 16 | 10) Cluster Validation | 235-238 | `validation.mdx` | `/validation` |
+| 16 | 11) Cluster Cleanup | 239-242 | `cleanup.mdx` | `/cleanup` |
+| 16 | 12) Error Handling | 243-254 | `error-handling.mdx` | `/error-handling` |
+| 16 | 13) Kubernetes Command Reference | 255 | `kubernetes-commands.mdx` | `/kubernetes-commands` |
+| 16 | 14) Acknowledgements | 256 | `acknowledgements.mdx` | `/acknowledgements` |
 
 **43 pages across 16 phases.**
+
+Page ranges are the **256-page 2026-08-18 edition's**. 33 of the 43 rows shifted from the 254-page
+edition the guide was first ingested from, by at most ±2; section 1 covers how they were derived and
+what that does not guarantee.
 
 ## 7. Definition of done (identical for all 16 tickets)
 
