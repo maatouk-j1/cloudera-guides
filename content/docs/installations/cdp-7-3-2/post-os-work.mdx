@@ -1059,13 +1059,13 @@ If you are using an AD server as Kerberos instead of FreeIPA:
 1. Run the following command on all the client machines and skip the `ipa-client-install` steps.
 
     ```text
-    [root@pvcbase-master ~]# realm join --user=administrator ntnxlab.local
+    [root@pvcbase-master ~]# realm join --user=administrator cldrsetup.local
     ```
 
     Use the following non-interactive form to supply the password on the command line:
 
     ```text
-    [root@pvcbase-master ~]# echo '<ad_admin_password>' | realm join --user=administrator ntnxlab.local
+    [root@pvcbase-master ~]# echo '<ad_admin_password>' | realm join --user=administrator cldrsetup.local
     ```
 
 2. Verify the KDC setup: check that Kerberos ticket generation is working fine by generating a ticket for the `administrator` user from all individual hosts.
@@ -1146,7 +1146,7 @@ If you are using an AD server as Kerberos instead of FreeIPA:
     ;; OPT PSEUDOSECTION:
     --
     ;; ANSWER SECTION:
-    pvcbase-master.ntnxlab.local. 3600 IN                               A     10.8.16.132
+    pvcbase-master.cldrsetup.local. 3600 IN                             A     10.8.16.132
     ```
 
     For a reverse lookup, `dig -x <private_ip_of_server>` should return the hostname of the machine in the answer section - for example, `dig -x 172.31.40.119`:
@@ -1158,7 +1158,7 @@ If you are using an AD server as Kerberos instead of FreeIPA:
     ;; OPT PSEUDOSECTION:
     --
     ;; ANSWER SECTION:
-    132.16.8.10.in-addr.arpa. 3600                        IN            PTR   pvcbase-master.ntnxlab.local.
+    132.16.8.10.in-addr.arpa. 3600                        IN            PTR   pvcbase-master.cldrsetup.local.
     ```
 
 7. Log in to the `ipaserver`, then configure and validate that the wildcard DNS record is working fine and resolvable. This is required later for the ECS Data Services cluster - if it is not set properly, there is a good chance the ECS installation gets corrupted.
