@@ -23,7 +23,7 @@ The guide reproduces that checklist in full on the [next page](/installations/cd
 
 3. Set up Kerberos on these clusters.
 
-4. Ensure that all of the hosts in the ECS cluster have more than **300 GiB** of free space in the each `/var/lib` and `/docker` directories, on each host in a Private Cloud Containerized Cluster, at the time of installation. The default docker service uses `/docker` folder. Whether you wish to retain `/docker` or override `/docker` with any other folder, you **must have a minimum of 300 GiB free space**. The hosts in a Private Cloud Containerized Cluster that have GPUs are required to have nVidia Drivers and `nvidia-container-runtime` installed.
+4. Ensure that all of the hosts in the ECS cluster have more than **300 GiB** of free space in the each `/var/lib` and `/docker` directories, on each host in a Cloudera on premises Containerized Cluster, at the time of installation. The default docker service uses `/docker` folder. Whether you wish to retain `/docker` or override `/docker` with any other folder, you **must have a minimum of 300 GiB free space**. The hosts in a Cloudera on premises Containerized Cluster that have GPUs are required to have nVidia Drivers and `nvidia-container-runtime` installed.
 
     ![Cloudera Manager Check Prerequisites wizard step showing Host Prerequisites failed with two errors - a minimum of 16 cores required for hosts in a Private Cloud Containerized Cluster, and a minimum of 300 GiB of storage required in the /var/lib directory and 300 GiB in the /ecs/docker directory, with /var/lib/longhorn not permitted to be a symbolic link](/images/cdp-7-3-2/ds/ecs-requirements/check-prerequisites-errors.png)
 
