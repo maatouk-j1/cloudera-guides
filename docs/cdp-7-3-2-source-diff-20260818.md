@@ -44,12 +44,6 @@ deliberately; a later ingestion pass must not "fix" the site back to match the P
 
 ## Outstanding — content
 
-### `on-premises/cm/kerberos.mdx`
-
-The KDC setup table (p. 82–83) now fills in two values that were blank before: Active
-Directory Suffix `OU=cloudera,DC=cldrsetup,DC=local` and credentials
-`Administrator / Cloudera@123`. The site still carries the clipped row.
-
 ### `on-premises/cm/ldap-auth.mdx` and `accessing-data-services.mdx`
 
 New AD values only — read the source's new Tables 8 (p. 91) and 15 (p. 195) and fold

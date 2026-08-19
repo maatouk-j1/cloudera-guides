@@ -97,13 +97,13 @@ This page continues the procedure begun on [Install Cloudera Base on premises us
 
 2. Wait at the parameter screen, enter the required parameters. For all the remaining parameters, set a common password so that it becomes easier while using those services. This password must have 1 lowercase, 1 uppercase, and 1 numeric value. Failing to adhere to this, the final step in the cluster setup would fail. Please see the required inputs below:
 
-    - *Knox Master Secret:* **`Cloudera@123`**
-    - *Knox IDBroker Master Secret:* **`Cloudera@123`**
+    - *Knox Master Secret:* **`<knox_master_secret>`**
+    - *Knox IDBroker Master Secret:* **`<knox_idbroker_master_secret>`**
     - *Enter a suitable name for Ozone Service ID. i.e.:* **`ozone11`**
-    - Ranger Admin: **`Cloudera@123`**
-    - Ranger Usersync: **`Cloudera@123`**
-    - Ranger Tagsync: **`Cloudera@123`**
-    - Ranger KMS Keyadmin: **`Cloudera@123`**
+    - Ranger Admin: **`<ranger_admin_password>`**
+    - Ranger Usersync: **`<ranger_usersync_password>`**
+    - Ranger Tagsync: **`<ranger_tagsync_password>`**
+    - Ranger KMS Keyadmin: **`<ranger_kms_keyadmin_password>`**
 
     ![Enter Required Parameters stage listing Knox Master Secret, Ozone Service ID set to ozone11, and the Ranger Admin, Usersync, Tagsync and KMS Keyadmin initial passwords, with a 1 - 6 of 6 row count](/images/cdp-7-3-2/on-premises/base/data-lake/enter-required-parameters.png)
 
@@ -117,7 +117,7 @@ This page continues the procedure begun on [Install Cloudera Base on premises us
 
 1. The **Review Changes** page appears. Set a **password** for **Atlas**. You can set it to the same value set for Ranger above.
 
-    - Atlas Admin password: **`Cloudera@123`**
+    - Atlas Admin password: **`<atlas_admin_password>`**
 
     ![Admin Password row on the Review Changes page, showing the atlas.admin.password property for Cluster 1 - Atlas Server Default Group with a masked value entered](/images/cdp-7-3-2/on-premises/base/data-lake/atlas-admin-password.png)
 
