@@ -44,15 +44,6 @@ deliberately; a later ingestion pass must not "fix" the site back to match the P
 
 ## Outstanding — content
 
-### `on-premises/cm/server.mdx`
-
-- **CM agent start is now a separate step** (p. 75). The site still runs
-  `systemctl start cloudera-scm-server cloudera-scm-agent`. In the new edition the
-  server is started and tailed first, and `systemctl start cloudera-scm-agent` follows
-  only after the *Started Jetty server* message.
-- **TLS 1.2 doc link.** `/cloudera-manager/7.11.3/installation/topics/…` →
-  `/cloudera-manager/7.13.2/cloudera-manager-installation/topics/…`
-
 ### `on-premises/cm/kerberos.mdx`
 
 The KDC setup table (p. 82–83) now fills in two values that were blank before: Active
