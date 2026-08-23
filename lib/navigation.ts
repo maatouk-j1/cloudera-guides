@@ -230,7 +230,7 @@ export const navigation: NavItem[] = [
                 href: "/installations/cdp-7-3-2/ds",
                 children: [
                   {
-                    title: "Embedded Container Service (ECS) Requirements",
+                    title: "ECS Requirements",
                     href: "/installations/cdp-7-3-2/ds/ecs-requirements",
                   },
                   { title: "Checklist", href: "/installations/cdp-7-3-2/ds/checklist" },

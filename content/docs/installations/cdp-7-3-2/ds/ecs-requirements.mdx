@@ -1,8 +1,8 @@
 ---
-title: Embedded Container Service (ECS) Requirements
+title: ECS Requirements
 topicTitle: Cloudera Data Services Installation (ECS)
 topicSlug: cdp-7-3-2/ds
-summary: The seventeen software requirements every ECS host must satisfy before the installer runs - storage layout, cgroup v1, nfs-utils, iptables, NVIDIA drivers - plus the RHEL 8/9 NetworkManager step and the upstream checklists.
+summary: The fifteen software requirements every ECS host must satisfy before the installer runs - storage layout, cgroup v1, nfs-utils, iptables, NVIDIA drivers - plus the RHEL 8/9 NetworkManager step and the upstream checklists.
 prevTitle: Cloudera Data Services Installation (ECS)
 prevSlug: /installations/cdp-7-3-2/ds
 nextTitle: Checklist
@@ -45,28 +45,36 @@ The guide reproduces that checklist in full on the [next page](/installations/cd
 
 11. Enable cgroup v1 in Red Hat Enterprise Linux 9. *(optional, skip this step)*
 
+    RHEL 9 enables cgroup v2 by default. To switch back to cgroup v1, first check what is currently mounted:
+
     ```text
-    # In RHEL 9 cgroup-v2 is enabled by default, follow steps below to enable cgroup v1:
-
-    # Check if the cgroup-v2 is mounted currently as default.
     [root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "mount | grep cgroup"
+    ```
 
-    # Add the kernel command line parameter systemd.unified_cgroup_hierarchy=0 &
-    systemd.legacy_systemd_cgroup_controller.
+    Add the kernel command line parameters `systemd.unified_cgroup_hierarchy=0` and `systemd.legacy_systemd_cgroup_controller`:
 
-    [root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a 'grubby --update-kernel=/boot/vmlinuz-$(uname -r)
-    --args="systemd.unified_cgroup_hierarchy=0 systemd.legacy_systemd_cgroup_controller"'
+    ```text
+    [root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a 'grubby --update-kernel=/boot/vmlinuz-$(uname -r) --args="systemd.unified_cgroup_hierarchy=0 systemd.legacy_systemd_cgroup_controller"'
+    ```
 
-    # Reboot jump system for changes to take effect.
+    Reboot the nodes for the changes to take effect:
+
+    ```text
     [root@ipaserver ~]# ansible ecsmasternodes,ecsnodes -m shell -a "systemctl reboot"
+    ```
 
-    # Verify the changes after reboot:
+    Verify the changes after the reboot:
+
+    ```text
     [root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "cat /proc/cmdline"
     BOOT_IMAGE=(hd0,gpt2)/vmlinuz-5.14.0-162.23.1.el9_1.x86_64 root=/dev/mapper/rhel-root ro
     crashkernel=1G-4G:192M,4G-64G:256M,64G-:512M resume=/dev/mapper/rhel-swap rd.lvm.lv=rhel/root
     rd.lvm.lv=rhel/swap rhgb quiet systemd.unified_cgroup_hierarchy=0 systemd.legacy_systemd_cgroup_controller
+    ```
 
-    # Mount shows legacy cgroup-v1 mounted now.
+    `mount` now shows legacy cgroup v1:
+
+    ```text
     [root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "mount | grep cgroup"
     [root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "ll /sys/fs/cgroup"
     ```
@@ -83,22 +91,21 @@ The guide reproduces that checklist in full on the [next page](/installations/cd
     [root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "iptables -L"
     ```
 
-14. If `iptables` is not working as expected or giving command not found error then remove the package on all ecs nodes and re-install.
+    If `iptables` is not working as expected, or gives a command not found error, remove the package on all ECS nodes and reinstall it.
 
     ```text
-    [root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "dnf remove -y iptables && dnf install -y iptables &&
-    iptables -L"
+    [root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "dnf remove -y iptables && dnf install -y iptables && iptables -L"
     ```
 
-15. If `iptables` is not present on ecs cluster nodes, then Install `iptables`, and verify if it is working as expected.
+    If `iptables` is not present on the ECS cluster nodes, install it and verify it works as expected.
 
     ```text
     [root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "dnf install -y iptables && iptables -L"
     ```
 
-16. For nodes with NVIDIA GPU *(if applicable)*, ensure that the GPU hosts have nVidia Drivers and `nvidia-container-runtime` installed. You must confirm that drivers are properly loaded on the host by executing the command `nvidia-smi`. You must also install the `nvidia-container-toolkit` package. *(skip this step)*
+14. For nodes with NVIDIA GPU *(if applicable)*, ensure that the GPU hosts have nVidia Drivers and `nvidia-container-runtime` installed. You must confirm that drivers are properly loaded on the host by executing the command `nvidia-smi`. You must also install the `nvidia-container-toolkit` package. *(skip this step)*
 
-17. You must install `nvidia-container-toolkit` *(if applicable)*. (`nvidia-container-runtime` is migrated to `nvidia-container-toolkit`, see Migration Notice.) The steps for this are shown in the [NVIDIA Installation Guide](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html#installing-with-yum-or-dnf). If using Red Hat Enterprise Linux (RHEL), use dnf to install the package. See Installing the [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/edge/latest/nvidia-gpu-with-device-edge.html#installing-the-nvidia-container-toolkit). *(skip this step)*
+15. You must install `nvidia-container-toolkit` *(if applicable)*. (`nvidia-container-runtime` is migrated to `nvidia-container-toolkit`, see Migration Notice.) The steps for this are shown in the [NVIDIA Installation Guide](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html#installing-with-yum-or-dnf). If using Red Hat Enterprise Linux (RHEL), use dnf to install the package. See Installing the [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/edge/latest/nvidia-gpu-with-device-edge.html#installing-the-nvidia-container-toolkit). *(skip this step)*
 
     Verify the Linux version.
 
