@@ -9,8 +9,6 @@ nextTitle: Data Lake Creation
 nextSlug: /installations/cdp-7-3-2/on-premises/base/data-lake
 ---
 
-**Procedure 8. Install Cloudera Base on premises using the Cloudera Manager WebUI**
-
 The wizard runs in eight stages - Cluster Basics, Specify Hosts, Select Repository, Select JDK, Enter Login Credentials, Install Agents, Install Parcels and Inspect Cluster. Two of the steps below (13 and 15) deliberately **stop** the wizard to work around a known parcel bug; do not click through them.
 
 ---
@@ -60,10 +58,9 @@ The wizard runs in eight stages - Cluster Basics, Specify Hosts, Select Reposito
 
     ![Other Software section with Install Method set to Use Parcels (Recommended) and a Parcel Repositories and Network Settings link below it](/images/cdp-7-3-2/on-premises/base/installation/other-software-install-method.png)
 
-3. Enter custom repository URL for CDH7 and CDS 3.3 parcels. Click on **Save and Verify Configuration**. Close the Parcel Repository & Network Settings wizard.
+3. Enter custom repository URL for the CDH7 parcels. Click on **Save and Verify Configuration**. Close the Parcel Repository & Network Settings wizard.
 
     ```text
-    http://13.251.65.11/cloudera-repos/spark3/3.3.7191000.4/
     http://13.251.65.11/cloudera-repos/cdh7.3.2/
     ```
 
@@ -226,14 +223,8 @@ For the latest update on this issue see the corresponding Knowledge Article: TSB
 
     ![Inspect Cluster step with Inspect Network Performance and Host Inspector both Finished, each offering Show Inspector Results and Run Again, and a checkbox to continue without running the inspections](/images/cdp-7-3-2/on-premises/base/installation/inspect-cluster.png)
 
-    If java path mismatch error occurs in network/host inspection:
-
-    ```text
-    Take - Java Path from the host ( /usr/lib/jvm/java-17-openjdk-17.0.13.0.11-4.el9.x86_64/ ), goto CM,
-    open a new tab of CM-UI on browser and search for JAVA PATH in search bar present at left hand side:
-    # Override JAVA PATH in CM-UI> Search JAVA PATH> Override the value> Save Changes>              Restart
-    Cloudera-SCM-Server
-    Re-run the inspect tools, this time all checks should be green.
-    ```
+    <Banner type="warning">
+    If a Java path mismatch error occurs in the network or host inspection, take the Java path from the host — for example `/usr/lib/jvm/java-17-openjdk-17.0.13.0.11-4.el9.x86_64/`. Open a new Cloudera Manager tab, search for **JAVA PATH** in the search bar on the left, override the value and click **Save Changes**, then restart `cloudera-scm-server`. Re-run the inspect tools; this time all checks should be green.
+    </Banner>
 
 2. Click **Continue**.

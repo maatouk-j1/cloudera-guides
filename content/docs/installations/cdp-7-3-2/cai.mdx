@@ -45,10 +45,9 @@ To get started with CAI, follow the steps below.
         - **Environment**: Select the default environment from the drop down.
         - **Namespace**: This will be the kubernetes namespace under which the pods would be spinned up. By default, it is set to CAI. You can change it if you wish to.
         - **NFS server**: Select **Internal**.
-        - If you choose **External NFS Server**, perform on **all ECS nodes**. *(Skip this, as we are not using it in current setup)*
+        - If you choose **External NFS Server**, create the export directory and hand it to UID/GID `8536` on **all ECS nodes**, then enter its address — here `nfs://172.31.30.239:/lhdata/nfs_storage/ptgty-cai-wb` — in the **Existing NFS** field. *(Skip this, as we are not using it in current setup)*
 
         ```text
-        #### nfs://172.31.30.239:/lhdata/nfs_storage/ptgty-cai-wb
         [root@pvcecs-master ~]# mkdir -p /lhdata/nfs_storage/ptgty-cai-wb
         [root@pvcecs-master ~]# chown 8536:8536 /lhdata/nfs_storage/ptgty-cai-wb
         ```

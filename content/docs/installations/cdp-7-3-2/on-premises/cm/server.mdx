@@ -32,61 +32,70 @@ Install the Cloudera Manager Server packages by running following command:
 
 ```text
 [root@cldr-mngr data]# dnf install -y cloudera-manager-agent cloudera-manager-daemons cloudera-manager-server
+```
 
-# Recommendation: Always install agents via CM-UI only. Never install manually as it generates agent
-config as localhost and leads to heartbeat error. If HeartBeat error comes up, then run below command to
-update agent config (before start scm-server)
-[root@cldr-mngr data]# sed -i 's/server_host=localhost/server_host=cldr-mngr.cldrsetup.local/g'
-/etc/cloudera-scm-agent/config.ini
+<Banner type="warning">
+On the remaining cluster hosts, install agents through the Cloudera Manager wizard, never manually — a manual install writes the agent config with `server_host=localhost`, which leads to a heartbeat error.
+</Banner>
+
+If a heartbeat error does come up, update the agent config before starting `scm-server`:
+
+```text
+[root@cldr-mngr data]# sed -i 's/server_host=localhost/server_host=cldr-mngr.cldrsetup.local/g' /etc/cloudera-scm-agent/config.ini
 ```
 
 ## 2. Point Cloudera Manager at the SSL-enabled database
 
-1. Enable TLS 1.2 on Cloudera Manager Server. [https://docs.cloudera.com/cloudera-manager/7.13.2/cloudera-manager-installation/topics/cdpdc-enable-tls-12-cm-server.html](https://docs.cloudera.com/cloudera-manager/7.13.2/cloudera-manager-installation/topics/cdpdc-enable-tls-12-cm-server.html)
+Reference: [https://docs.cloudera.com/cloudera-manager/7.13.2/cloudera-manager-installation/topics/cdpdc-enable-tls-12-cm-server.html](https://docs.cloudera.com/cloudera-manager/7.13.2/cloudera-manager-installation/topics/cdpdc-enable-tls-12-cm-server.html)
 
-2. Import the PostgreSQL root certificate in step 4 below.
+1. Import the PostgreSQL root certificate so Cloudera Manager can verify the database certificate. The database and the Cloudera Manager Server run on the same host in this deployment, so the certificate is copied locally from the path where PostgreSQL stores it — by default `/var/lib/pgsql/17/data/`. If your database is on a separate host, copy `root.crt` across from that host first.
 
-3. If the Database host and Cloudera Manager Server host are located on the same machine, then perform the following steps to import the PostgreSQL database root certificate, as mentioned below in step 4:
-
-4. Go to the path where root certificates are stored. By default it is `/var/lib/pgsql/17/data/`.
-
-    Configure Cloudera to use the SSL-enabled database.
+    Create a new directory for the certificate:
 
     ```text
-    # Create a new directory in the following path by running the following command:
     [root@cldr-mngr data]# mkdir -p /var/lib/cloudera-scm-server/.postgresql
     [root@cldr-mngr data]# chmod 755 /var/lib/cloudera-scm-server/.postgresql
     [root@cldr-mngr data]# cd /var/lib/cloudera-scm-server/.postgresql
+    ```
 
-    # Copy the PostgreSQL root certificate to the new directory on the Cloudera Manager server host by running
-    the following command:
+    Copy the PostgreSQL root certificate to the new directory on the Cloudera Manager server host:
+
+    ```text
     [root@cldr-mngr data]# cp /var/lib/pgsql/17/data/root.crt root.crt
+    ```
 
-    # Change the ownership of the root certificate by running the following command:
+    Change the ownership of the root certificate:
+
+    ```text
     [root@cldr-mngr data]# chown cloudera-scm: root.crt
     [root@cldr-mngr data]# ls -lt
     total 8
     -rw-r--r-- 1 cloudera-scm cloudera-scm 4639 Mar 5 16:59 root.crt
+    ```
 
-    # Include this root certificate path in the JDBC URL as follows:
-    # jdbc:postgresql://<db_host>:<db_port>/<db_name>?ssl=true&sslmode=verify-ca&sslrootcert=<path_to_root_certificate>
-    #
-    jdbc:postgresql://cldr-mngr.cldrsetup.local:5432/scm?ssl=true&sslmode=verify-ca&sslrootcert=/var/lib/cloudera
-    -scm-server/.postgresql/root.crt
+    Include this root certificate path in the JDBC URL, which takes the form:
+
+    ```text
+    jdbc:postgresql://<db_host>:<db_port>/<db_name>?ssl=true&sslmode=verify-ca&sslrootcert=<path_to_root_certificate>
+    ```
+
+    For this deployment it becomes:
+
+    ```text
+    jdbc:postgresql://cldr-mngr.cldrsetup.local:5432/scm?ssl=true&sslmode=verify-ca&sslrootcert=/var/lib/cloudera-scm-server/.postgresql/root.crt
     ```
 
     Make the changes required for Ranger SSL.
 
     ```text
-    [root@cldr-mngr data]# cp /usr/share/java/postgresql-connector-java.jar
-    /opt/cloudera/cm/lib/postgresql-connector.jar
+    [root@cldr-mngr data]# cp /usr/share/java/postgresql-connector-java.jar /opt/cloudera/cm/lib/postgresql-connector.jar
     [root@cldr-mngr data]# unlink /opt/cloudera/cm/lib/postgresql-42.*.jar
     [root@cldr-mngr data]# ls -ltr /opt/cloudera/cm/lib/*postgres*
     [root@cldr-mngr data]# chmod 755 /var/lib/cloudera-scm-server/
     [root@cldr-mngr data]# ls -ltr /var/lib/cloudera-scm-server/.postgresql/*.crt
     ```
 
-5. Run the `scm_prepare_database.sh` script to check and generate database configuration file for cloudera-manager i.e. `db.properties` and test the database connection between cloudera-manager and database server:
+2. Run the `scm_prepare_database.sh` script to check and generate database configuration file for cloudera-manager i.e. `db.properties` and test the database connection between cloudera-manager and database server:
 
     Run the script to configure PostgreSQL with TLS 1.2 enabled. The generic form of the command is as follows.
 
@@ -115,7 +124,7 @@ update agent config (before start scm-server)
     All done, your SCM database is configured correctly!
     ```
 
-6. Upon successful connection, the `scm_prepare_database.sh` script writes the content of `/etc/cloudera-scm-server/db.properties` file as shown below, verify the content, should look like below:
+3. Upon successful connection, the `scm_prepare_database.sh` script writes the content of `/etc/cloudera-scm-server/db.properties` file as shown below, verify the content, should look like below:
 
     ```text
     [root@cldr-mngr ~]# cat /etc/cloudera-scm-server/db.properties

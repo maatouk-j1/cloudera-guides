@@ -168,7 +168,7 @@ Choose one of the nodes of the cluster or a separate node as the Ansible Admin/C
     REDHAT_SUPPORT_PRODUCT_VERSION="9.7"
     ```
 
-    Verify the hostname and IP addresses:
+    Verify the hostname and IP addresses. The `ip addr show eth1` command fails if the instance has only a single network interface attached — ignore it if so:
 
     ```text
     [root@ipaserver ~]# hostname -f
@@ -184,7 +184,6 @@ Choose one of the nodes of the cluster or a separate node as the Ansible Admin/C
         inet 10.0.2.2/24 brd 10.0.2.255 scope global dynamic noprefixroute eth0
         inet6 fe80::c3:16ff:fe00:9/64 scope link noprefixroute
 
-    # please ignore if the below command fails due to instance having single network interface attached
     [root@ipaserver ~]# ip addr show eth1 | grep -e inet
         inet 172.31.24.240/24 brd 172.31.1.255 scope global dynamic noprefixroute eth1
         inet6 fe80::65b3:25c6:8b2a:b4ae/64 scope link noprefixroute

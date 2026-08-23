@@ -639,16 +639,18 @@ to requested target
 
 **Solution.** The CDW Data Catalog creation failed due to a certificate validation error between the Hive metastore and the PostgreSQL backend. This was caused by an invalid or missing truststore certificate (`hms-root.crt`). To fix this, extract the correct certificate, validate it, and reapply the secret before restarting the metastore pod.
 
-```bash
-# Backup current file if needed
-kubectl get secret pg-hms-db-certs -n warehouse-cldrsetup -o yaml > pg-hms-db-certs-backup.yaml
+Back up the current secret first, if you want a copy to fall back to:
 
-# Recreate the secret with the expected key
+```bash
+kubectl get secret pg-hms-db-certs -n warehouse-cldrsetup -o yaml > pg-hms-db-certs-backup.yaml
+```
+
+Then recreate it with the expected key:
+
+```bash
 kubectl delete secret pg-hms-db-certs -n warehouse-cldrsetup
 
-kubectl create secret generic pg-hms-db-certs \
-  --from-file=TRUSTSTORE_PEM=root.crt \
-  -n warehouse-cldrsetup
+kubectl create secret generic pg-hms-db-certs --from-file=TRUSTSTORE_PEM=root.crt -n warehouse-cldrsetup
 ```
 
 ### Websocket connection failed

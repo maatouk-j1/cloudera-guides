@@ -138,15 +138,19 @@ We will be installing the external PostgreSQL DB server on the `cldr-mngr` host.
 
     *(Enable md5 auth to serve password authentication and TLS/SSL encryption from outside world)*
 
+    In the entries already in the file, replace `127.0.0.1` with the host IP if PostgreSQL has to be reachable from a different host.
+
     ```text
     [root@cldr-mngr ~]# vi /var/lib/pgsql/17/data/pg_hba.conf
 
     host    all              all             0.0.0.0/0              md5 # Enable md5 authentication
     host    ranger           rangeradmin     0.0.0.0/0              md5 # Allow ranger database connection from any host
     hostssl all              all             0.0.0.0/0              md5 # Allow SSL connection from client(s)
-    # replace 127.0.0.1 with host IP if PostgreSQL access from a different host is required.
-    # Edit section for replication privilege. HA not documented in this solution.
     ```
+
+    <Banner type="info">
+    The section for replication privilege needs the same edit. HA is not documented in this solution.
+    </Banner>
 
     Back up the config so you can use it in case of a re-setup.
 
@@ -345,10 +349,12 @@ total 16
 -r-------- 1 root root 1704 Jun                     3 07:43 root.key
 -rw-r--r-- 1 root root 3589 Jun                     3 07:43 root.csr
 -rw-r--r-- 1 root root 4592 Jun                     3 07:46 root.crt
+```
 
-# create a server certificate signed by the new root certificate authority
-[root@cldr-mngr data]# openssl req -new -nodes -text -out server.csr -keyout server.key -subj
-"/CN=cldr-mngr.cldrsetup.local"
+Create a server certificate signed by the new root certificate authority.
+
+```text
+[root@cldr-mngr data]# openssl req -new -nodes -text -out server.csr -keyout server.key -subj "/CN=cldr-mngr.cldrsetup.local"
 
 [root@cldr-mngr data]# ls -ltr root* server*
 total 24
@@ -368,8 +374,7 @@ total 24
 -r-------- 1 root root 1704 Jun 3 07:47 server.key
 -rw-r--r-- 1 root root 3388 Jun 3 07:47 server.csr
 
-[root@cldr-mngr data]# openssl x509 -req -in server.csr -text -days 3650 -CA root.crt -CAkey root.key
--CAcreateserial -out server.crt
+[root@cldr-mngr data]# openssl x509 -req -in server.csr -text -days 3650 -CA root.crt -CAkey root.key -CAcreateserial -out server.crt
 Certificate request self-signature ok
 subject=CN = cldr-mngr.cldrsetup.local
 
@@ -442,10 +447,9 @@ cldr-mngr.cldrsetup.local
                      ...
 ```
 
-Fix the permissions, switch SSL on in `postgresql.conf`, and restart:
+Fix the permissions, switch SSL on in `postgresql.conf`, and restart. First, correct the permissions for the certificates and the private key file:
 
 ```text
-# Correct permissions for the private key file
 [root@cldr-mngr data]# chmod 644 server.crt root.crt
 [root@cldr-mngr data]# chmod 0600 /var/lib/pgsql/17/data/server.key
 ```
@@ -459,8 +463,11 @@ ssl_ca_file = 'root.crt'
 ssl_cert_file = 'server.crt'
 ssl_key_file = 'server.key'
 EOF
+```
 
-# Find the location of the private key file, typically in the data directory
+Find the location of the private key file, typically in the data directory.
+
+```text
 [root@cldr-mngr data]# ls -l /var/lib/pgsql/17/data/server.key
 ```
 

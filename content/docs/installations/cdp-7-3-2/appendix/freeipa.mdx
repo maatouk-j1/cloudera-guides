@@ -62,69 +62,87 @@ Last login: Thu Mar 21 01:00:40 PDT 2024 on pts/0
 
 The same four steps, written out for a user named `cdptest`:
 
-```bash
-# 1. Add the user 'cdptest'
-ipa user-add cdptest \
-     --first=cdp \
-     --last=test \
-     --password
-# (You'll be prompted to set and confirm a password for cdptest.)
+1. Add the user `cdptest`. You'll be prompted to set and confirm a password.
 
-# 2. Authenticate as an IPA admin
-kinit admin
+    ```bash
+    ipa user-add cdptest --first=cdp --last=test --password
+    ```
 
-# 3. Generate a keytab for cdptest@CLDRSETUP.LOCAL
-ipa-getkeytab \
-  --principal=cdptest@CLDRSETUP.LOCAL \
-  --keytab=/tmp/cdptest.keytab
+2. Authenticate as an IPA admin.
 
-# 4. Verify the keytab contents
-klist -k /tmp/cdptest.keytab
-```
+    ```bash
+    kinit admin
+    ```
+
+3. Generate a keytab for `cdptest@CLDRSETUP.LOCAL`.
+
+    ```bash
+    ipa-getkeytab --principal=cdptest@CLDRSETUP.LOCAL --keytab=/tmp/cdptest.keytab
+    ```
+
+4. Verify the keytab contents.
+
+    ```bash
+    klist -k /tmp/cdptest.keytab
+    ```
 
 ## Service principal variant
 
-If instead you need a **service principal** named `cdptest` (for example, to run as an SPN on a host), you would:
+If instead you need a **service principal** named `cdptest` (for example, to run as an SPN on a host):
 
-```bash
-# Create a service principal
-ipa service-add cdptest/your-host.cldrsetup.local
+1. Create the service principal.
 
-# Pull its keytab
-ipa-getkeytab \
-  --principal=cdptest/your-host.cldrsetup.local@CLDRSETUP.LOCAL \
-  --keytab=/tmp/cdptest.keytab
+    ```bash
+    ipa service-add cdptest/your-host.cldrsetup.local
+    ```
 
-# Verify
-klist -k /tmp/cdptest.keytab
-```
+2. Pull its keytab.
+
+    ```bash
+    ipa-getkeytab --principal=cdptest/your-host.cldrsetup.local@CLDRSETUP.LOCAL --keytab=/tmp/cdptest.keytab
+    ```
+
+3. Verify the keytab contents.
+
+    ```bash
+    klist -k /tmp/cdptest.keytab
+    ```
 
 ## List and slice keytabs
 
 Commands to list the principals in a keytab and extract individual keytab entries:
 
-```bash
-# 1. List all principals in the keytab
-klist -k /tmp/cdptest.keytab
+1. List all principals in the keytab.
 
-# Example output:
-# Keytab name: FILE:/tmp/cdptest.keytab
-# KVNO Principal
-# ---- ------------------------------------------------------
-#    1 cdptest@CLDRSETUP.LOCAL
+    ```bash
+    klist -k /tmp/cdptest.keytab
+    ```
 
-# 2. Extract a specific principal's keys into a new keytab
-#    (useful if you want to split out one principal from a multi-principal keytab)
-ktutil <<EOF
-  rkt /tmp/cdptest.keytab
-  l
-  wkt /tmp/cdptest-single.keytab Principal:cdptest@CLDRSETUP.LOCAL
-  quit
-EOF
+    The output looks like this:
 
-# 3. Verify the newly created single-principal keytab
-klist -k /tmp/cdptest-single.keytab
-```
+    ```text
+    Keytab name: FILE:/tmp/cdptest.keytab
+    KVNO Principal
+    ---- ------------------------------------------------------
+       1 cdptest@CLDRSETUP.LOCAL
+    ```
+
+2. Extract a specific principal's keys into a new keytab. This is useful if you want to split out one principal from a multi-principal keytab.
+
+    ```bash
+    ktutil <<EOF
+      rkt /tmp/cdptest.keytab
+      l
+      wkt /tmp/cdptest-single.keytab Principal:cdptest@CLDRSETUP.LOCAL
+      quit
+    EOF
+    ```
+
+3. Verify the newly created single-principal keytab.
+
+    ```bash
+    klist -k /tmp/cdptest-single.keytab
+    ```
 
 `klist -k` shows you all principals stored in a keytab file. `ktutil` can read (`rkt`) an existing keytab, list (`l`) its entries, and write (`wkt`) only the entries matching a given principal into a new keytab. This way you can both inspect and slice your keytab as needed.
 

@@ -13,7 +13,7 @@ With the Base cluster and the Data Services cluster both standing, validate that
 
 Both validations run on the Base cluster master and both start the same way — with a Kerberos ticket. Every "cannot authenticate via:[TOKEN, KERBEROS]" failure below is deliberate: it is what the commands look like *before* you `kinit`, and it is the single most common reason a validation step fails on a freshly Kerberised cluster.
 
-The guide's references for this section:
+References:
 
 - [https://training-team.gitbook.io/setting-up-cloudera-data-platform-cdp/hive-validation](https://training-team.gitbook.io/setting-up-cloudera-data-platform-cdp/hive-validation)
 - [https://www.quora.com/How-do-you-load-data-into-a-Hive-external-table](https://www.quora.com/How-do-you-load-data-into-a-Hive-external-table)
@@ -50,23 +50,33 @@ org.apache.hadoop.security.AccessControlException: Client cannot authenticate vi
 
 Cloudera Manager regenerates service keytabs into each role's process directory, so the path carries a process id and changes on every restart. Find it rather than hardcoding it.
 
+Locate the Hive keytab:
+
 ```text
-# Locate the HDFS keytab
 [root@pvcbase-master ml-20m]# find / -name hive.keytab
 /run/cloudera-scm-agent/process/1546340988-hive_on_tez-HIVESERVER2/hive.keytab
 /run/cloudera-scm-agent/process/1546340973-hive-HIVEMETASTORE/hive.keytab
+```
 
-# List its contents
+List its contents:
+
+```text
 [root@pvcbase-master ml-20m]# klist -kt /run/cloudera-scm-agent/process/1546340973-hive-HIVEMETASTORE/hive.keytab
 Keytab name: FILE:/run/cloudera-scm-agent/process/1546340973-hive-HIVEMETASTORE/hive.keytab
 KVNO Timestamp          Principal
 ---- ----------------- --------------------------------------------------------
    1 06/10/25 11:29:34 hive/pvcbase-master.redhat.local@REDHAT.LOCAL
+```
 
-# Obtain a Kerberos ticket for the HDFS principal
+Obtain a Kerberos ticket for the Hive principal:
+
+```text
 [root@pvcbase-master ml-20m]# kinit -kt /run/cloudera-scm-agent/process/1546340973-hive-HIVEMETASTORE/hive.keytab hive/pvcbase-master.redhat.local@REDHAT.LOCAL
+```
 
-# Verify your ticket cache
+Verify your ticket cache:
+
+```text
 [root@pvcbase-master ml-20m]# klist
 Ticket cache: FILE:/tmp/krb5cc_0
 Default principal: hive/pvcbase-master.redhat.local@REDHAT.LOCAL
@@ -76,7 +86,7 @@ Valid starting     Expires            Service principal
         renew until 07/08/25 06:17:08
 ```
 
-The guide's own comments say *HDFS keytab* and *HDFS principal*, but the commands use the **Hive** keytab and the Hive service principal. Follow the commands, not the comments — the Hive principal is what the `LOAD DATA` steps below need.
+The upstream guide labels these steps *HDFS*, but the commands use the **Hive** keytab and service principal. That is what the `LOAD DATA` steps below need.
 
 ### 4. Stage the CSV files in HDFS
 
