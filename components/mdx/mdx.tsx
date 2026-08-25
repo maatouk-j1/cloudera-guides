@@ -10,6 +10,7 @@ import PostTable, { TableHead, TableBody, TableHeadRow, TableBodyRow, TableTh, T
 
 import rehypePrettyCode from "rehype-pretty-code";
 import remarkGfm from "remark-gfm";
+import { getTranscriptHighlighter } from "./transcript";
 
 const transformToSlug = (input: string) => {
   return input
@@ -71,6 +72,9 @@ export function CustomMDX(props: any) {
   const rehypePrettyCodeOptions = {
     theme: "one-dark-pro",
     keepBackground: false,
+    // Adds the `transcript` language, which colours the command in a prompted
+    // session line and leaves the prompt and the output alone.
+    getHighlighter: getTranscriptHighlighter,
     onVisitLine(node: any) {
       // Prevent lines from collapsing in `display: grid` mode, and
       // allow empty lines to be copy/pasted

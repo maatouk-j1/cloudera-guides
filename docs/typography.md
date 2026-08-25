@@ -273,6 +273,53 @@ tokenises the prompt itself as the command: `root@host:~#` renders blue as `enti
 and the actual command after it renders green as `string.unquoted.argument.shell`. The prompt is
 emphasised and the command is not. Tagging transcripts `text` avoids both cases.
 
+**Pilot — `cleanup.mdx` only.** The rules above still hold everywhere else in `content/`. The cleanup
+page tests two ways of colouring a prompted command; do not roll either out further, and do not
+"correct" that page back to `text`. Every block on it now uses the second.
+
+*The `transcript` fence* colours a session without touching its text. Shiki cannot do this on its
+own: the shell grammar only opens a command at the start of a line or straight after `;`, `|`, `&`,
+`!`, `(`, `{` or a backtick, and a consumed prompt leaves a space in front of the command, so the
+rule never fires. `components/mdx/transcript.ts` splits each line and hands only the command to the
+`bash` grammar, where it starts a fresh string and tokenises normally; it is wired in through
+`rehype-pretty-code`'s `getHighlighter` (`mdx.tsx:77`). The prompt renders `#7f848e`, the command
+colours as bash, and output lines and pasted file contents stay plain.
+
+**No page uses it.** `cleanup.mdx` did, until every one of its blocks turned out to be commands end
+to end and moved to the run-on header below. The mechanism is kept because it is the only thing that
+colours a block that *cannot* drop its prompts — a session with `dnf` output, a `kubectl get pods`
+table or a pasted file in it, which is most of the prompted blocks in the rest of `content/`. Reach
+for it there, not here.
+
+Note the local exception it creates where it is used: inside a `transcript` fence `#7f848e` marks the
+*prompt*. The grey-means-comment test above still applies to `bash` fences.
+
+*The `bash` fence with a run-on header* drops the prompts instead. The block opens with a single
+`# Run on` line naming every host it applies to, comma-separated, then a blank line, then bare
+commands:
+
+````md
+```bash
+# Run on cldr-mngr, pvcbase-master, pvcbase-worker[1-n]
+
+sudo umount cm_processes
+```
+````
+
+Hosts are named exactly as `cldr-mngr`, `ipaserver`, `pvcbase-master`, `pvcbase-worker[1-n]`,
+`pvcecs-master`, `pvcecs-worker[1-n]`. This says what a prompt cannot — a prompt can only ever show
+one host, so a block that runs on every worker had to say so in the prose. It also makes the block
+copy-pasteable. It only suits blocks that are commands end to end; a session with output or pasted
+file contents in it cannot use this form, and stays `transcript` or `text`.
+
+**Do not mark the commands with a `$` sigil.** It is the loud failure of the unbracketed prompt
+(above) in miniature. Shiki reads the bare `$` as the command name and gives it
+`entity.name.command.shell` blue, which demotes the real command to a green
+`string.unquoted.argument.shell`: in `$ systemctl stop postgresql-17` the `$` is emphasised and
+`systemctl` is not. Without it the same line colours correctly. The sigil also re-breaks the
+copy-paste that dropping the prompts just fixed, and once the prompts are gone there is no output
+left in the block to distinguish the commands from.
+
 **Always fence shell content.** An unfenced line beginning with `#` — common when pasting a root
 prompt or a shell comment — is parsed as a markdown heading and renders as enormous page-width text.
 
