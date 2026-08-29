@@ -37,7 +37,7 @@ For **Active Directory**, you must have administrative privileges to the Active 
 
 Before proceeding further with KDC setup, we need to ensure that the changes to `krb5.conf` related to the default cache is not reversed. View the contents of the file `/etc/krb5.conf` after logging in to both **ipaserver** node and **cldr-mngr** node and check whether the property **default_ccache_name** is commented out. If not, then open the file and comment it out.
 
-```text
+```transcript
 [root@ipaserver ~]# sudo vi /etc/krb5.conf
 #default_ccache_name = KEYRING:persistent:%{uid}
 ```
@@ -46,7 +46,7 @@ Before proceeding further with KDC setup, we need to ensure that the changes to 
 
 If you have made any changes, only then run the below commands to restart all the IPA services. If not, skip to the next step.
 
-```text
+```transcript
 [root@ipaserver ~]# ipactl restart
 ```
 
@@ -76,7 +76,7 @@ If you have made any changes, only then run the below commands to restart all th
 
     *(Skip the below command execution step, as we already installed the dependencies in prior steps.)*
 
-    ```text
+    ```transcript
     [root@jump ~]# ansible all -m command -a "dnf install -y openldap-clients krb5-workstation krb5-libs"
     ```
 
@@ -127,7 +127,7 @@ In this setup, we used Kerberos authentication with **RedHat FreeIPA**.
 
     For Red Hat IdM, make sure that all cluster hosts are joined to the IPA domain once `freeipa-client` is installed. The Kerberos client OS-specific packages must be installed on all cluster hosts and on any client hosts that will authenticate using Kerberos.
 
-    ```text
+    ```transcript
     [root@ipaserver ~]# rpm -qa|grep ipa-client
     ipa-client-4.6.8-5.el7.centos.16.x86_64
     ipa-client-common-4.6.8-5.el7.centos.16.noarch
@@ -135,7 +135,7 @@ In this setup, we used Kerberos authentication with **RedHat FreeIPA**.
 
     If a keytab error comes up during the Kerberos configuration, go to the FreeIPA server and run the following command.
 
-    ```text
+    ```transcript
     [root@ipaserver ~]# ipactl restart && ipactl status
     ```
 
@@ -147,7 +147,7 @@ In this setup, we used Kerberos authentication with **RedHat FreeIPA**.
 
 2. Verify Kerberos configuration. (You can run this on any server to verify.)
 
-    ```text
+    ```transcript
     [root@ipaserver ~]# kinit admin@CLDRSETUP.LOCAL
     Password for admin@CLDRSETUP.LOCAL: <ipa_admin_password>
     [root@ipaserver ~]# klist -e

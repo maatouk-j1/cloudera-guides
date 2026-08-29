@@ -79,7 +79,7 @@ from host: Received fatal alert: internal_error
 
 **Solution.** Change the `server_host` in the agent config from `localhost` to the DNS name and restart all agents.
 
-```text
+```transcript
 openssl s_client -connect pvcbase-master.cldrsetup.local:7183
 
 [root@pvcbase-master cloudera-scm-agent]# cat /etc/cloudera-scm-agent/config.ini|grep server
@@ -126,7 +126,7 @@ In Cloudera Manager: **Tez > Actions > Upload Tez file to HDFS**, then **Hive > 
 
 The Queue Manager store directory is missing or owned by the wrong account:
 
-```text
+```transcript
 [root@pvcbase-master ~]# sudo mkdir /var/lib/hadoop-yarn/
 [root@pvcbase-master ~]# sudo chmod +077 /var/lib/hadoop-yarn/
 [root@pvcbase-master ~]# sudo chown yarn:hadoop /var/lib/hadoop-yarn/
@@ -152,7 +152,7 @@ Make sure that `hdfs_service` is enabled in the Ozone configuration. With this e
 
 ### HDDS error in Ozone
 
-```text
+```transcript
 [root@pvcbase-master ~]# systemctl restart cloudera-scm-supervisord
 ```
 
@@ -160,7 +160,7 @@ Make sure that `hdfs_service` is enabled in the Ozone configuration. With this e
 
 **Solution.** Perform a proper cleanup on the NameNode and the DataNodes.
 
-```text
+```transcript
 [root@pvcbase-master ~]# rm -rvf /hdfs/*had*oz* /var/lib/had*oz* /etc/had*oz*
 ```
 
@@ -168,7 +168,7 @@ Make sure that `hdfs_service` is enabled in the Ozone configuration. With this e
 
 Ranger stores the admin password as an MD5 hash in `x_portal_user`. Generate the hash for the password you want, then update the row directly. Verify first that you can reach PostgreSQL over TLS at all:
 
-```text
+```transcript
 [root@pvcbase-master ~]# sudo -u postgres psql -U postgres -p 5432 -h $(hostname)
 Password for user postgres:
 psql (17.11)
@@ -183,7 +183,7 @@ postgres=# \q
 
 Then update the row and read it back:
 
-```text
+```transcript
 [root@pvcbase-master data]# sudo -u postgres psql -U postgres -p 5432 -h $(hostname)
 Password for user postgres:
 psql (17.11)
@@ -204,7 +204,7 @@ ranger=# \q
 
 Finally, confirm the Ranger service account itself can connect:
 
-```text
+```transcript
 [root@pvcbase-master data]# sudo -u postgres psql -U rangeradmin -p 5432 -d ranger -h $(hostname)
 Password for user rangeradmin:
 psql (17.11)
@@ -219,7 +219,7 @@ The hash written by the `update` (`9746e5â€¦`) is not the hash printed by `md5su
 
 Follow the Ranger admin access log while reproducing:
 
-```text
+```transcript
 [root@pvcbase-master ~]# tail -f /var/log/ranger/admin/access_log-pvcbase-master.cldrsetup.local-2024-03-21.log
 ```
 
@@ -293,7 +293,7 @@ vertex_index
 
 ### Solr and ZooKeeper client access
 
-```text
+```transcript
 [root@pvcbase-master ~]# klist -kt /run/cloudera-scm-agent/process/1546342867-SolrServerGracefulShutDown/solr.keytab
 [root@pvcbase-master ~]# kinit -kt /run/cloudera-scm-agent/process/1546342867-SolrServerGracefulShutDown/solr.keytab solr/pvcbase-master.cldrsetup.local@CLDRSETUP.LOCAL
 [root@pvcbase-master ~]# /opt/cloudera/parcels/CDH/bin/zookeeper-client
@@ -380,7 +380,7 @@ Port 8080 and no TLS means `kubectl` found no kubeconfig at all and fell back to
 
 **Solution.** kubeconfig error.
 
-```text
+```transcript
 [root@pvcecs-master ~]# journalctl -xeu kubelet
 [root@pvcecs-master ~]# mkdir -p ~/.kube && cp /etc/rancher/rke2/rke2.yaml ~/.kube/config
 [root@pvcecs-master ~]# mkdir -p ~/.kube && cp /etc/rancher/rke2/rke2.yaml ~/.kube/config
@@ -447,7 +447,7 @@ kubectl delete ns kubernetes-dashboard
 
 If deleting the namespace alone does not clear it, delete the running pod first, then the namespace:
 
-```text
+```transcript
 [root@pvcecs-master ~]# k get pods -A|grep dashboard
 kubernetes-dashboard    kubernetes-dashboard-68876b7cb8-fl58c                   1/1     Running   0             4m13s
 [root@pvcecs-master ~]# k delete pod kubernetes-dashboard
@@ -468,14 +468,14 @@ The first `delete pod` fails because the pod name carries the ReplicaSet hash â€
 
 ### x509: certificate signed by unknown authority
 
-```text
+```transcript
 [root@pvcecs-master ~]# kubectl get pods
 Unable to connect to the server: tls: failed to verify certificate: x509: certificate signed by unknown authority
 ```
 
 **Solution.** After a proper cleanup and reinstall the issue will be solved.
 
-```text
+```transcript
 [root@pvcecs-master ~]# mkdir -p ~/.kube
 [root@pvcecs-master opt]# cp /etc/rancher/rke2/rke2.yaml ~/.kube/config
 cp: overwrite '/root/.kube/config'? Yes
@@ -490,7 +490,7 @@ Cleanup was not done properly; after a proper cleanup by script, it started runn
 
 ### Environment creation fails to resolve the console hostname
 
-```text
+```transcript
 [root@pvcecs-master ~]# k logs cli-v2m7w -n cdp
 
 HTTPSConnectionPool(host='console-cdp.apps.cldrsetup.local', port=443): Max retries exceeded with

@@ -47,25 +47,25 @@ The guide reproduces that checklist in full on the [next page](/installations/cd
 
     RHEL 9 enables cgroup v2 by default. To switch back to cgroup v1, first check what is currently mounted:
 
-    ```text
+    ```transcript
     [root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "mount | grep cgroup"
     ```
 
     Add the kernel command line parameters `systemd.unified_cgroup_hierarchy=0` and `systemd.legacy_systemd_cgroup_controller`:
 
-    ```text
+    ```transcript
     [root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a 'grubby --update-kernel=/boot/vmlinuz-$(uname -r) --args="systemd.unified_cgroup_hierarchy=0 systemd.legacy_systemd_cgroup_controller"'
     ```
 
     Reboot the nodes for the changes to take effect:
 
-    ```text
+    ```transcript
     [root@ipaserver ~]# ansible ecsmasternodes,ecsnodes -m shell -a "systemctl reboot"
     ```
 
     Verify the changes after the reboot:
 
-    ```text
+    ```transcript
     [root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "cat /proc/cmdline"
     BOOT_IMAGE=(hd0,gpt2)/vmlinuz-5.14.0-162.23.1.el9_1.x86_64 root=/dev/mapper/rhel-root ro
     crashkernel=1G-4G:192M,4G-64G:256M,64G-:512M resume=/dev/mapper/rhel-swap rd.lvm.lv=rhel/root
@@ -74,32 +74,32 @@ The guide reproduces that checklist in full on the [next page](/installations/cd
 
     `mount` now shows legacy cgroup v1:
 
-    ```text
+    ```transcript
     [root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "mount | grep cgroup"
     [root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "ll /sys/fs/cgroup"
     ```
 
 12. For CAI, you must install `nfs-utils` in order to mount longhorn-nfs provisioned mounts. The `nfs-utils` package is required on every node of the ECS cluster. Run this command `"dnf install nfs-utils"` to install `nfs-utils`.
 
-    ```text
+    ```transcript
     [root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "dnf install -y nfs-utils iscsi-initiator-utils"
     ```
 
 13. Check `iptables` is installed and working fine.
 
-    ```text
+    ```transcript
     [root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "iptables -L"
     ```
 
     If `iptables` is not working as expected, or gives a command not found error, remove the package on all ECS nodes and reinstall it.
 
-    ```text
+    ```transcript
     [root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "dnf remove -y iptables && dnf install -y iptables && iptables -L"
     ```
 
     If `iptables` is not present on the ECS cluster nodes, install it and verify it works as expected.
 
-    ```text
+    ```transcript
     [root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "dnf install -y iptables && iptables -L"
     ```
 
@@ -109,26 +109,26 @@ The guide reproduces that checklist in full on the [next page](/installations/cd
 
     Verify the Linux version.
 
-    ```text
+    ```transcript
     [root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "uname -m && cat /etc/*release"
     [root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "uname -a"
     ```
 
     Verify the GCC installation and version.
 
-    ```text
+    ```transcript
     [root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "gcc --version"
     ```
 
     Verify which nodes have an NVIDIA GPU installed.
 
-    ```text
+    ```transcript
     [root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "lspci -nnv | grep -i nvidia"
     ```
 
     Set the subscription to RHEL 9.x.
 
-    ```text
+    ```transcript
     [root@jump ~]# ansible all -m shell -a "subscription-manager release --set=9.4"
     [root@jump ~]# ansible all -m shell -a "subscription-manager release --show"
     [root@jump ~]# ansible all -m shell -a "sudo dnf clean all"
@@ -137,7 +137,7 @@ The guide reproduces that checklist in full on the [next page](/installations/cd
 
     Enable the optional repositories, on RHEL 9 Linux only. This is optional if it was not completed prior.
 
-    ```text
+    ```transcript
     [root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "subscription-manager repos
     --enable=rhel-9-for-x86_64-appstream-rpms"
     [root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "subscription-manager repos
@@ -148,20 +148,20 @@ The guide reproduces that checklist in full on the [next page](/installations/cd
 
     Install the kernel headers and development packages for the currently running kernel.
 
-    ```text
+    ```transcript
     [root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "sudo dnf install kernel-devel-$(uname -r)
     kernel-headers-$(uname -r)"
     ```
 
     Remove the outdated signing key.
 
-    ```text
+    ```transcript
     [root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "sudo rpm --erase gpg-pubkey-7fa2af80*"
     ```
 
     Download and install the NVIDIA CUDA Toolkit. This exercise is documented with CUDA 12.3.2 for RHEL 9, installed from a local rpm.
 
-    ```text
+    ```transcript
     [root@ipaserver ~]# wget
     https://developer.download.nvidia.com/compute/cuda/12.2.2/local_installers/cuda-repo-rhel9-12-2-local-12.2.2_535.104.05-1.x86_64.rpm
     [root@jump ~]# ansible ecsmasternodes,ecsnodes -m copy -a
@@ -173,7 +173,7 @@ The guide reproduces that checklist in full on the [next page](/installations/cd
 
     From the [NVIDIA Driver Downloads page](https://www.nvidia.com/download/index.aspx), download the NVIDIA driver that matches your GPU, OS and NVIDIA CUDA version.
 
-    ```text
+    ```transcript
     [root@jump ~]# wget https://nvidia.github.io/libnvidia-container/stable/rpm/nvidia-container-toolkit.repo
 
     [root@jump ~]# ansible ecsmasternodes,ecsnodes -m copy -a
@@ -190,26 +190,26 @@ The guide reproduces that checklist in full on the [next page](/installations/cd
 
     Enable the `nvidia-persistenced` services.
 
-    ```text
+    ```transcript
     [root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "sudo systemctl enable
     nvidia-persistenced.service"
     ```
 
     Reboot the machine.
 
-    ```text
+    ```transcript
     [root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "sudo reboot"
     ```
 
     After the machine boots, verify that the NVIDIA drivers are installed properly.
 
-    ```text
+    ```transcript
     [root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "sudo nvidia-smi"
     ```
 
     Install with `dnf`, configuring the production repository first.
 
-    ```text
+    ```transcript
     [root@jump ~]# ansible ecsmasternodes,ecsnodes -m copy -a "src=/root/nvidia-container-toolkit.repo
     dest=/etc/yum.repos.d/nvidia-container-toolkit.repo"
     [root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "sudo dnf config-manager --enable
@@ -223,14 +223,14 @@ The guide reproduces that checklist in full on the [next page](/installations/cd
 
 Run the following command to check whether the `nm-cloud-setup.service` and `nm-cloud-setup.timer` services are enabled.
 
-```text
+```transcript
 [root@jump ~]# ansible ecsmasternodes,ecsnodes -m copy -a "systemctl status nm-cloud-setup.service
 nm-cloud-setup.timer"
 ```
 
 If the `nm-cloud-setup.service` and `nm-cloud-setup.timer` services are enabled, disable them by running the following command on each host you added.
 
-```text
+```transcript
 [root@jump ~]# ansible ecsmasternodes,ecsnodes -m copy -a "systemctl disable nm-cloud-setup.service
 nm-cloud-setup.timer && systemctl stop nm-cloud-setup.service nm-cloud-setup.timer"
 ```

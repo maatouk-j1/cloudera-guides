@@ -30,7 +30,7 @@ These steps require a Cloudera username and password to access: [https://archive
 
 1. From a host connected to the Internet, download the Cloudera's repositories as shown below and transfer it to the `cldr-mngr` node. We will directly login to `cldr-mngr` and perform below steps:
 
-    ```text
+    ```transcript
     [root@jump ~]# ssh root@cldr-mngr
     [root@cldr-mngr ~]# mkdir -p /var/www/html/cloudera-repos/cloudera-manager/
     [root@cldr-mngr ~]# cd /var/www/html/cloudera-repos/cloudera-manager/
@@ -96,7 +96,7 @@ These steps require a Cloudera username and password to access: [https://archive
     ls -lah
     ```
 
-    ```text
+    ```transcript
     [root@cldr-mngr cloudera-manager]# pwd
     /var/www/html/cloudera-repos/cloudera-manager
 
@@ -113,7 +113,7 @@ These steps require a Cloudera username and password to access: [https://archive
 
     Verify whether the username and password are already present, in which case no action is needed.
 
-    ```text
+    ```transcript
     [root@cldr-mngr cloudera-manager]# vi cloudera-manager.repo
     [cloudera-manager]
     name=Cloudera Manager 7.13.2.100
@@ -137,7 +137,7 @@ These steps require a Cloudera username and password to access: [https://archive
 
     If they are not, update `cloudera-manager.repo` to look like the following.
 
-    ```text
+    ```transcript
     [root@cldr-mngr cloudera-manager]# vi cloudera-manager.repo
     [cloudera-manager]
     name=Cloudera Manager 7.13.2.100
@@ -183,7 +183,7 @@ These steps require a Cloudera username and password to access: [https://archive
     ls -alh
     ```
 
-    ```text
+    ```transcript
     [root@cldr-mngr x86_64]# pwd
     /var/www/html/cloudera-repos/cloudera-manager/cm7.13.2/redhat9/yum/RPMS/x86_64
     [root@cldr-mngr x86_64]# ll
@@ -196,7 +196,7 @@ These steps require a Cloudera username and password to access: [https://archive
 
 5. Run `createrepo` command to create a local repository.
 
-    ```text
+    ```transcript
     [root@cldr-mngr ~]# createrepo --baseurl http://$(hostname -i)/cloudera-repos/cloudera-manager/
     /var/www/html/cloudera-repos/cloudera-manager/
     ```
@@ -207,14 +207,14 @@ These steps require a Cloudera username and password to access: [https://archive
 
 6. Copy `cloudera-manager.repo` file to `/etc/yum.repos.d/` on all nodes to enable it to find the packages that are locally hosted on the admin node.
 
-    ```text
+    ```transcript
     [root@cldr-mngr ~]# cp /var/www/html/cloudera-repos/cloudera-manager/cloudera-manager.repo
     /etc/yum.repos.d/cloudera-manager.repo
     ```
 
 7. Edit `cloudera-manager.repo` file as per the customer repository location configuration in the step above, replacing `<cm_server_ip>` in `baseurl` with the IP of the repository host — `cldr-mngr` in this setup.
 
-    ```text
+    ```transcript
     [root@cldr-mngr ~]# vi /etc/yum.repos.d/cloudera-manager.repo
 
     [cloudera-manager]
@@ -226,13 +226,13 @@ These steps require a Cloudera username and password to access: [https://archive
 
     Copy the updated repo file to the `ipaserver` node so it can be copied to the rest of servers using ansible.
 
-    ```text
+    ```transcript
     [root@cldr-mngr ~]# scp -r /etc/yum.repos.d/cloudera-manager.repo root@ipaserver:/etc/yum.repos.d/cloudera-manager.repo
     ```
 
 8. From the ansible control node copy the repo files to `/etc/yum.repos.d/` of all the nodes of the cluster:
 
-    ```text
+    ```transcript
     [root@ipaserver ~]# ansible all -m copy -a "src=/etc/yum.repos.d/cloudera-manager.repo
     dest=/etc/yum.repos.d/cloudera-manager.repo"
     ```
@@ -309,7 +309,7 @@ echo "Downloaded parcels:"
 ls -lah "${TARGET_DIR}"
 ```
 
-```text
+```transcript
 [root@cldr-mngr ~]# ll /var/www/html/cloudera-repos/cdh7/7.3.2.100/
 total 14234192
 -rw-r--r--. 1 root root 14575729622 Aug 6 09:15 CDH-7.3.2-1.cdh7.3.2.p100.81274879-el9.parcel

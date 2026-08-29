@@ -22,7 +22,7 @@ ipa user-add --password <user_name>
 
 The guide's worked example creates the user `kdsahu`:
 
-```text
+```transcript
 [root@ipaserver ~]# ipa
 ipa: ERROR: Ticket expired
 [root@ipaserver ~]# kinit admin && klist -e
@@ -167,7 +167,7 @@ The last two lines are not pipelines — they are the guide's shorthand for the 
 
 A user created with `--password` gets a pre-expired password, so the first `kinit` forces a change:
 
-```text
+```transcript
 [kdsahu@pvcbase-master ~]$ kinit kdsahu
 Password for kdsahu@CLDRSETUP.LOCAL:
 Password expired.  You must change it now.
@@ -229,7 +229,7 @@ result: 0 Success
 
 ## Verify reverse DNS records
 
-```text
+```transcript
 [root@ipaserver ~]# ipa dnsrecord-find 16.172.in-addr.arpa.
   Record name: @
   NS record: ipaserver.cldrsetup.local.

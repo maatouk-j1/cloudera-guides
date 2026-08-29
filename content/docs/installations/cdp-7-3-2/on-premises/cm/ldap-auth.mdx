@@ -87,14 +87,14 @@ The **LDAP Distinguished Name Pattern** property is deprecated. Leave this field
 
 Click **Save**. Once you click on the Save button, it will tell you to restart the CM Server, in order to bring the changes in effect. When you restart the CM Server from Backend. You will see the below entries in the logs.
 
-```text
+```transcript
 [root@cldr-mngr ~]# systemctl restart cloudera-scm-server
 [root@cldr-mngr ~]# systemctl status cloudera-scm-server -l
 ```
 
 Run the command below to check the logs of `cloudera-scm-server` starting up. Wait until you see the **Started Jetty server** message on the screen.
 
-```text
+```transcript
 [root@cldr-mngr ~]# sudo tail -f /var/log/cloudera-scm-server/cloudera-scm-server.log
 
 2024-08-21 03:14:10,007 INFO WebServerImpl:com.cloudera.server.cmf.ExternalAuthenticationHelper: Using
@@ -129,7 +129,7 @@ database, then LDAP
 
 3. Login to the `cldr-mngr` server at backend and restart the Cloudera Manager Server.
 
-    ```text
+    ```transcript
     [root@cldr-mngr ~]# systemctl restart cloudera-scm-server
     [root@cldr-mngr ~]# systemctl status cloudera-scm-server -l
     [root@cldr-mngr ~]# sudo tail -f /var/log/cloudera-scm-server/cloudera-scm-server.log

@@ -114,7 +114,7 @@ The **Install Agents** section appears showing the progress of the installation.
 
 Stop at this stage. Create a directory on base cluster nodes (for handling of a bug associated with p1000)
 
-```text
+```transcript
 [root@jump ~]# ansible namenodes,datanodes -m shell -a "mkdir /var/lib/hadoop-hdfs"
 [root@jump ~]# ansible namenodes,datanodes -m shell -a "ls -lart /var/lib/hadoop-hdfs"
 ```
@@ -129,14 +129,14 @@ After the agents are installed, the **Install Parcels** section appears showing 
 
 Stop at this stage. On base cluster nodes (for handling of a bug associated with p1000). Once Parcels are activated, follow below steps: **(Failed to execute command Install YARN MapReduce Framework JARs on service YARN)**
 
-```text
+```transcript
 [root@jump ~]# ansible namenodes,datanodes -m shell -a "chown hdfs:hadoop /var/lib/hadoop-hdfs"
 [root@jump ~]# ansible namenodes,datanodes -m shell -a "ls -lart /var/lib/hadoop-hdfs"
 ```
 
 Verify that the links are good for the Cloudera Manager version of the `hadoop-hdfs` filesystem JAR.
 
-```text
+```transcript
 [root@jump ~]# ansible namenodes,datanodes -m shell -a "namei -om
 /var/lib/hadoop-hdfs/ozone-filesystem-hadoop3.jar"
 ```
@@ -151,7 +151,7 @@ oop3/1.1.0.7.2.15.0-147/hadoop-ozone-filesystem-hadoop3-1.1.0.7.2.15.0-147.jar
 
 If links are not working fine, deactivate and activate the parcel from CM Parcel Manager. Then Perform Below steps:
 
-```text
+```transcript
 [root@cldr-mngr ~]# ansible namenodes,datanodes -m shell -a "unlink
 /etc/alternatives/ozone-filesystem-hadoop3.jar; unlink
 /var/lib/hadoop-hdfs/ozone-filesystem-hadoop3.jar"

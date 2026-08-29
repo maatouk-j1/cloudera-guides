@@ -27,7 +27,7 @@ References:
 
 The MovieLens 20M dataset ships as a ZIP of CSV files, each carrying a header row. `sed -i 1d *` strips those headers, because the Hive tables below are plain delimited text tables with no header-skipping property set.
 
-```text
+```transcript
 [root@pvcbase-master ~]# dnf install -y wget unzip
 [root@pvcbase-master ~]# wget https://files.grouplens.org/datasets/movielens/ml-20m.zip
 [root@pvcbase-master ~]# unzip ml-20m.zip
@@ -37,7 +37,7 @@ The MovieLens 20M dataset ships as a ZIP of CSV files, each carrying a header ro
 
 ### 2. Confirm that HDFS refuses you without a ticket
 
-```text
+```transcript
 [root@pvcbase-master ml-20m]# hdfs dfs -ls /
 24/03/21 04:32:28 WARN ipc.Client: Exception encountered while connecting to the server :
 org.apache.hadoop.security.AccessControlException: Client cannot authenticate via:[TOKEN, KERBEROS]
@@ -52,7 +52,7 @@ Cloudera Manager regenerates service keytabs into each role's process directory,
 
 Locate the Hive keytab:
 
-```text
+```transcript
 [root@pvcbase-master ml-20m]# find / -name hive.keytab
 /run/cloudera-scm-agent/process/1546340988-hive_on_tez-HIVESERVER2/hive.keytab
 /run/cloudera-scm-agent/process/1546340973-hive-HIVEMETASTORE/hive.keytab
@@ -60,7 +60,7 @@ Locate the Hive keytab:
 
 List its contents:
 
-```text
+```transcript
 [root@pvcbase-master ml-20m]# klist -kt /run/cloudera-scm-agent/process/1546340973-hive-HIVEMETASTORE/hive.keytab
 Keytab name: FILE:/run/cloudera-scm-agent/process/1546340973-hive-HIVEMETASTORE/hive.keytab
 KVNO Timestamp          Principal
@@ -70,13 +70,13 @@ KVNO Timestamp          Principal
 
 Obtain a Kerberos ticket for the Hive principal:
 
-```text
+```transcript
 [root@pvcbase-master ml-20m]# kinit -kt /run/cloudera-scm-agent/process/1546340973-hive-HIVEMETASTORE/hive.keytab hive/pvcbase-master.redhat.local@REDHAT.LOCAL
 ```
 
 Verify your ticket cache:
 
-```text
+```transcript
 [root@pvcbase-master ml-20m]# klist
 Ticket cache: FILE:/tmp/krb5cc_0
 Default principal: hive/pvcbase-master.redhat.local@REDHAT.LOCAL
@@ -90,7 +90,7 @@ The upstream guide labels these steps *HDFS*, but the commands use the **Hive** 
 
 ### 4. Stage the CSV files in HDFS
 
-```text
+```transcript
 [root@pvcbase-master ml-20m]# hdfs dfs -mkdir /tmp/movielens
 [root@pvcbase-master ml-20m]# hdfs dfs -put * /tmp/movielens/
 [root@pvcbase-master ml-20m]# hdfs dfs -chown -R hdfs:supergroup /tmp/movielens
@@ -139,7 +139,7 @@ Ozone validation follows the same shape: watch it fail without a ticket, `kinit`
 
 ### 1. Confirm that Ozone refuses you without a ticket
 
-```text
+```transcript
 [root@pvcbase-master ~]# ozone sh bucket list ozone11
 24/05/26 07:32:42 WARN ipc.Client: Exception encountered while connecting to the server :
 org.apache.hadoop.security.AccessControlException: Client cannot authenticate via:[TOKEN, KERBEROS]
@@ -154,7 +154,7 @@ org.apache.hadoop.security.AccessControlException: Client cannot authenticate vi
 
 A ticket for `admin` is not enough — Ozone wants the service principal:
 
-```text
+```transcript
 [root@pvcbase-master ~]# klist -e
 Ticket cache: FILE:/tmp/krb5cc_0
 Default principal: admin@CLDRSETUP.LOCAL
@@ -169,7 +169,7 @@ aes256-cts-hmac-sha384-192
 
 Ozone roles are spread across several process directories, so `find` returns one keytab per role instance. The guide uses the **S3 gateway** one.
 
-```text
+```transcript
 [root@pvcbase-master ~]# find / -name ozone.keytab
 /run/cloudera-scm-agent/process/1546347521-ozone-S3_GATEWAY/ozone.keytab
 /run/cloudera-scm-agent/process/1546347511-ozone-OZONE_RECON/ozone.keytab
@@ -187,7 +187,7 @@ Ozone roles are spread across several process directories, so `find` returns one
 
 Each S3 gateway keytab holds two principals — the SPNEGO `HTTP/` principal and the `s3g/` service principal:
 
-```text
+```transcript
 [root@pvcbase-master ~]# klist -kt /run/cloudera-scm-agent/process/1546347521-ozone-S3_GATEWAY/ozone.keytab
 Keytab name: FILE:/run/cloudera-scm-agent/process/1546347521-ozone-S3_GATEWAY/ozone.keytab
 KVNO Timestamp            Principal
@@ -210,7 +210,7 @@ Valid starting       Expires                                        Service prin
 
 An empty `[ ]` from `ozone sh volume list` on a fresh cluster is the expected starting point.
 
-```text
+```transcript
 [root@pvcbase-master ~]# ozone sh volume list
 [ ]
 
@@ -243,7 +243,7 @@ The volume is owned by whichever principal you authenticated as — here `s3g`, 
 
 ### 4. Create a bucket and list it
 
-```text
+```transcript
 [root@pvcbase-master ~]# ozone sh bucket create ozone11/testkdbkt1
 24/05/26 07:47:19 INFO rpc.RpcClient: Creating Bucket: ozone11/testkdbkt1, with server-side default
 bucket layout, s3g as owner, Versioning false, Storage Type set to DISK and Encryption set to

@@ -67,14 +67,14 @@ This is the longest single procedure in the guide - one wizard, **29 steps**, ru
 
     ![Getting Started page with Air Gapped selected, showing the four mirror steps - download everything under the archive URL with wget, modify http_url inside manifest.json, mirror the directory to a local http server, and add the local URL to Custom Repository](/images/cdp-7-3-2/ds/ecs/installation/10-getting-started-air-gapped.png)
 
-    ```text
+    ```transcript
     [root@cldr-mngr ~]# mkdir -p /var/www/html/cloudera-repos/cdp-pvc-ds/
     [root@cldr-mngr ~]# cd /var/www/html/cloudera-repos/cdp-pvc-ds/
     ```
 
     Download everything under `https://archive.cloudera.com/p/cdp-pvc-ds/latest/` to your local HTTP server - for example `http://your_local_repo/cdp-pvc-ds/latest/` - using the command below.
 
-    ```text
+    ```transcript
     [root@cldr-mngr cdp-pvc-ds]# wget -l 0 --recursive --no-parent -e robots=off -nH --cut-dirs=2
     --reject="index.html*" -t 10 https://<paywall_username>:<paywall_password>@archive.cloudera.com/p/cdp-pvc-ds/latest/
 
@@ -89,7 +89,7 @@ This is the longest single procedure in the guide - one wizard, **29 steps**, ru
 
     Modify the `manifest.json` file inside the downloaded directory. Change `"http_url": "..."` to `"http_url": "http://your_local_repo/cloudera-repos/cdp-pvc-ds/1.5.5-h3200/"`.
 
-    ```text
+    ```transcript
     [root@cldr-mngr ~]# vi manifest.json
     "http_url": "http://192.168.1.38/cloudera-repos/cdp-pvc-ds/1.5.5-h3200/"
     ```
@@ -403,7 +403,7 @@ Since all hosts part of the ECS installation might not have NVIDIA GPU installed
 
     Install K9s for troubleshooting purposes.
 
-    ```text
+    ```transcript
     [root@pvcecs-master ~]# dnf install wget -y
     [root@pvcecs-master ~]# rm -rvf ~/.kube && mkdir -p ~/.kube && cp /etc/rancher/rke2/rke2.yaml
     ~/.kube/config
@@ -416,7 +416,7 @@ Since all hosts part of the ECS installation might not have NVIDIA GPU installed
 
     The `kubectl` binary path may vary. Run `whereis kubectl`, or use `find` or `locate`, to get the exact path of the `kubectl` binary on the node.
 
-    ```text
+    ```transcript
     [root@pvcecs-master ~]# export PATH=/var/lib/rancher/rke2/data/v1.30.12-rke2r1-328c510931ca/bin/:$PATH
     [root@pvcecs-master ~]# kubectl get pods
     No resources found in the default namespace.
@@ -427,7 +427,7 @@ Since all hosts part of the ECS installation might not have NVIDIA GPU installed
 
     Create an alias on the node so you can run the `kubectl` command more briefly.
 
-    ```text
+    ```transcript
     [root@pvcecs-master ~]# echo "export
     PATH=/var/lib/rancher/rke2/data/v1.30.12-rke2r1-328c510931ca/bin/:$PATH" >> ~/.bashrc && source ~/.bashrc
     [root@pvcecs-master ~]# echo "alias k=kubectl" >> ~/.bashrc && source ~/.bashrc
@@ -443,13 +443,13 @@ Since all hosts part of the ECS installation might not have NVIDIA GPU installed
 
     Test `nslookup` and `dig` from the Ubuntu image to see whether it can resolve the IP from the private DNS.
 
-    ```text
+    ```transcript
     [root@pvcecs-master ~]# kubectl run -it ubuntu1 --image=ubuntu bash
     ```
 
     If it cannot resolve the IP from the private DNS, point coredns to the private DNS / FreeIPA server.
 
-    ```text
+    ```transcript
     [root@pvcecs-master ~]# kubectl get configmap -n kube-system | grep coredns
 
     [root@pvcecs-master ~]# kubectl edit configmap rke2-coredns-rke2-coredns -n kube-system
@@ -505,19 +505,19 @@ Since all hosts part of the ECS installation might not have NVIDIA GPU installed
 
     The line that matters is `forward . 172.31.24.240` - the address of your FreeIPA or AD DNS server, replacing the default upstream resolver.
 
-    ```text
+    ```transcript
     [root@pvcecs-master ~]# kubectl rollout restart deployment rke2-coredns-rke2-coredns -n kube-system
     ```
 
     Verify that the coredns deployment is updated with the configmap changes.
 
-    ```text
+    ```transcript
     [root@pvcecs-master ~]# kubectl get pod -A |grep dns
     ```
 
     Test `nslookup` and `dig` from the Ubuntu image to confirm that it can now resolve the IP from the private DNS.
 
-    ```text
+    ```transcript
     [root@pvcecs-master ~]# kubectl run -it ubuntu1 --image=ubuntu bash
     root@ubuntu2:/# apt-get update && apt-get install net-tools dnsutils -y
 
@@ -594,7 +594,7 @@ rm -vf /var/lib/rancher/k3s/server/node-token
 
 Solution: [https://www.reddit.com/r/k3s/comments/p3rdap/lost_bootstrap_data_already_found_and_encrypted/](https://www.reddit.com/r/k3s/comments/p3rdap/lost_bootstrap_data_already_found_and_encrypted/)
 
-```text
+```transcript
 [root@pvcecs-master bin]# rm -vf /var/lib/rancher/k3s/server/node-token
 rm -rvf /var/lib/rancher/ /etc/rancher
 ```
@@ -650,7 +650,7 @@ Other: [https://repost.aws/knowledge-center/create-lv-on-ebs-partition](https://
 
 The guide records this one as still open, without a fix:
 
-```text
+```transcript
 [root@pvcecs-master ~]# k get po -A|grep dex | grep -v -E 'Run|Comp'
 dex-base-j95kjx9f                         cdp-cde-embedded-db-0
 0/1     Pending                  0                8m54s

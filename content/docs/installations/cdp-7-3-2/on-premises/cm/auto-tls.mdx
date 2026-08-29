@@ -48,14 +48,14 @@ Auto-TLS is managed using the `certmanager` utility, which is included in the Cl
 
 After enabling the AutoTLS for the CM-UI through the browser, login to `cldr-mngr` node at backend as user root and restart Cloudera Manager Server, suggested in the previous screenshot.
 
-```text
+```transcript
 [root@cldr-mngr ~]# systemctl restart cloudera-scm-server
 [root@cldr-mngr ~]# systemctl status cloudera-scm-server -l
 ```
 
 Run the command below to check the logs of `cloudera-scm-server` starting up. Wait until you see the **Started Jetty server** message on the screen.
 
-```text
+```transcript
 [root@cldr-mngr ~]# sudo tail -f /var/log/cloudera-scm-server/cloudera-scm-server.log
 ```
 

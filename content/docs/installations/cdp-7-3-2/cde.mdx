@@ -89,19 +89,19 @@ Every time a **new virtual cluster** is created, there are a few **manual steps*
 1. Log in to the **ECS master** and run the next set of **commands** as per the instructions.
 2. Run the below command to create a temporary directory and navigate to the same.
 
-    ```text
+    ```transcript
     [root@pvcecs-master ~]# mkdir -p /tmp/cde-latest && cd /tmp/cde-latest
     ```
 
 3. Download the script `cdp-cde-utils` using wget.
 
-    ```text
+    ```transcript
     [root@pvcecs-master ~]# wget https://docs.cloudera.com/data-engineering/1.5.5/cdp-cde-utils.sh
     ```
 
 4. Add execute permission to this script.
 
-    ```text
+    ```transcript
     [root@pvcecs-master ~]# chmod +x /tmp/cde-latest/cdp-cde-utils.sh
     ```
 
@@ -127,19 +127,19 @@ Every time a **new virtual cluster** is created, there are a few **manual steps*
 
 8. Once you get the endpoint of the virtual cluster, **login to the ECS master** and navigate to `/tmp/cde-latest` directory where the `cdp-cde-utils.sh` script is present.
 
-    ```text
+    ```transcript
     [root@pvcecs-master ~]# cd /tmp/cde-latest
     ```
 
 9. Generate a self-signed certificate with the below command. Replace the `endpoint_host` with the endpoint of your virtual cluster that you got from the previous step.
 
-    ```text
+    ```transcript
     [root@pvcecs-master ~]# ./cdp-cde-utils.sh init-virtual-cluster -h <endpoint_host> -a
     ```
 
     For the example host we used above, this command will be as below.
 
-    ```text
+    ```transcript
     [root@pvcecs-master ~]# ./cdp-cde-utils.sh init-virtual-cluster -h
     dfdj6kgx.cde-2cdxw5x5.ecs-demo.example.com -a
     ```
@@ -152,19 +152,19 @@ This step is required to submit the jobs to CDE from the LDAP users.
 
 1. Log in to the ECS master host and navigate to the directory `/tmp/cde-latest`.
 
-    ```text
+    ```transcript
     [root@pvcecs-master ~]# cd /tmp/cde-latest
     ```
 
 2. Install `krb5-workstation` package using dnf.
 
-    ```text
+    ```transcript
     [root@pvcecs-master ~]# dnf install krb5-workstation krb5-libs -y
     ```
 
 3. Create a file named `<username>.principal` containing the user principal. As an example, we will consider admin as the username. Here `CLDRSETUP.LOCAL` is the realm provided during IPA setup. You need to replace it with the realm you configured.
 
-    ```text
+    ```transcript
     [root@pvcecs-master ~]# cat>> admin.principal
     ```
 
@@ -174,7 +174,7 @@ This step is required to submit the jobs to CDE from the LDAP users.
 
 4. Generate a keytab named `<username>.keytab` for the user using `ktutil`:
 
-    ```text
+    ```transcript
     [root@pvcecs-master ~]# cat>> admin.keytab
     [root@pvcecs-master ~]# sudo ktutil
     ktutil:  addent -password -p admin@CLDRSETUP.LOCAL -k 1 -e aes256-cts
@@ -187,27 +187,27 @@ This step is required to submit the jobs to CDE from the LDAP users.
 
 5. Validate the keytab using `klist`. This command should use the principals created with two encryptions provided above, namely aes256-cts and aes128-cts.
 
-    ```text
+    ```transcript
     [root@pvcecs-master ~]# klist -ekt admin.keytab
     ```
 
 6. Validate the **keytab** using `kinit`. This command should get executed successfully.
 
-    ```text
+    ```transcript
     [root@pvcecs-master ~]# kinit -kt admin.keytab admin@CLDRSETUP.LOCAL
     ```
 
 7. Make sure that the **keytab** is valid before continuing. If the `kinit` command fails, the user will not be able to run jobs in the **virtual cluster**. After verifying that the `kinit` command succeeds, you can **destroy** the Kerberos ticket by running `kdestroy`.
 8. Use the `cdp-cde-utils.sh` script to copy the user **keytab** to the virtual cluster hosts.
 
-    ```text
+    ```transcript
     [root@pvcecs-master ~]# ./cdp-cde-utils.sh init-user-in-virtual-cluster -h <endpoint_host> -u <user> -p
     <principal_file> -k <keytab_file>
     ```
 
     For the above example, the command would be below.
 
-    ```text
+    ```transcript
     [root@pvcecs-master ~]# ./cdp-cde-utils.sh init-user-in-virtual-cluster -h
     dfdj6kgx.cde-2cdxw5x5.ecs-demo.example.com -u cdpuser -p cdpuser.principal -k cdpuser.keytab
     ```

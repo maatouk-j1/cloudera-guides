@@ -19,7 +19,7 @@ Choose one of the nodes of the cluster or a separate node as the Ansible Admin/C
 
 1. Set up the hostname for each individual node by logging in using the IP addresses provided by the infrastructure team, so we can refer to them with names instead of IP addresses for simplicity and ease of identification. While you are configuring the hostname, also follow Step 2 while logging in to each host. Replace your ORG DOMAIN.
 
-    ```text
+    ```transcript
     [root@ipaserver ~]# sudo hostnamectl set-hostname --static ipaserver.cldrsetup.local
     [root@cldr-mngr ~]# sudo hostnamectl set-hostname --static cldr-mngr.cldrsetup.local
 
@@ -51,7 +51,7 @@ Choose one of the nodes of the cluster or a separate node as the Ansible Admin/C
 
     Solution 1 - Lock to your current minor version (RHEL 9.7). Run the following:
 
-    ```text
+    ```transcript
     [root@<hostname> ~]# sudo subscription-manager release --set=9.7
     [root@<hostname> ~]# sudo subscription-manager release --show
     Release: 9.7
@@ -59,27 +59,27 @@ Choose one of the nodes of the cluster or a separate node as the Ansible Admin/C
 
     This locks your system repositories to RHEL 9.7 content - updates will stay within 9.7 and not move to a later minor version.
 
-    ```text
+    ```transcript
     [root@ipaserver ~]# sudo dnf -y update
     [root@ipaserver ~]# sudo dnf -y install wget telnet net-tools bind-utils iproute traceroute nc
     ```
 
     Verify whether Python 3 and pip3 are already installed:
 
-    ```text
+    ```transcript
     [root@ipaserver ~]# python3 --version
     [root@ipaserver ~]# pip3 --version
     ```
 
     Install Python 3.9 on all nodes if it is not present already. First check whether Python can be installed using `dnf` directly:
 
-    ```text
+    ```transcript
     [root@ipaserver ~]# sudo dnf -y install python39 python3-pip
     ```
 
     If Python could not be installed using `dnf` directly, build it from source:
 
-    ```text
+    ```transcript
     [root@ipaserver ~]# sudo dnf -y groupinstall "Development Tools"
     [root@ipaserver ~]# sudo dnf -y install epel-release openssl-devel bzip2-devel libffi-devel xz-devel
     [root@ipaserver ~]# VERSION=3.9.22
@@ -95,7 +95,7 @@ Choose one of the nodes of the cluster or a separate node as the Ansible Admin/C
 
     Install pip3 on all nodes if it is not present already:
 
-    ```text
+    ```transcript
     [root@ipaserver ~]# dnf install -y python3-pip
     [root@ipaserver ~]# pip3 install --upgrade pip
     [root@ipaserver ~]# pip3 --version
@@ -104,7 +104,7 @@ Choose one of the nodes of the cluster or a separate node as the Ansible Admin/C
 
     Verify the Python and pip versions:
 
-    ```text
+    ```transcript
     [root@ipaserver ~]# python3 -V
     Python 3.9.22
     [root@ipaserver ~]# pip3 --version
@@ -112,7 +112,7 @@ Choose one of the nodes of the cluster or a separate node as the Ansible Admin/C
 
 3. Log in to the `ipaserver` node using the IP provided previously by the infrastructure team.
 
-    ```text
+    ```transcript
     [root@ipaserver ~]# ssh 172.31.24.240
     ```
 
@@ -120,7 +120,7 @@ Choose one of the nodes of the cluster or a separate node as the Ansible Admin/C
 
     Populate the hosts file with IP addresses and corresponding hostnames on the `ipaserver` node by taking the private IP of each machine and adding an entry in `/etc/hosts` as follows. All of the IPs mentioned below are private IP addresses. We will later copy the same hosts file to all other nodes with the help of Ansible.
 
-    ```text
+    ```transcript
     [root@ipaserver ~]# sudo vi /etc/hosts
 
     127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
@@ -157,7 +157,7 @@ Choose one of the nodes of the cluster or a separate node as the Ansible Admin/C
 
     Ensure that the OS version is RHEL 9.x. The following command should return Red Hat Enterprise Linux version 9.x:
 
-    ```text
+    ```transcript
     [root@ipaserver ~]# cat /etc/*rel* |grep -E 'NAME|VERSION'
     NAME="Red Hat Enterprise Linux"
     VERSION="9.7 (Plow)"
@@ -170,7 +170,7 @@ Choose one of the nodes of the cluster or a separate node as the Ansible Admin/C
 
     Verify the hostname and IP addresses. The `ip addr show eth1` command fails if the instance has only a single network interface attached — ignore it if so:
 
-    ```text
+    ```transcript
     [root@ipaserver ~]# hostname -f
     ipaserver.cldrsetup.local
 
@@ -235,19 +235,19 @@ Please keep the same password for both the Directory Manager and the IPA admin s
 
 1. Log in to the `ipaserver` node and install the `ipa-server` packages.
 
-    ```text
+    ```transcript
     [root@ipaserver ~]# sudo dnf install -y ipa-server bind bind-dyndb-ldap ipa-server-dns firewalld
     ```
 
     If required, use the following command to set the Java version:
 
-    ```text
+    ```transcript
     [root@ipaserver ~]# update-alternatives --config java
     ```
 
     Configure the IPA server and DNS with `ipa-server-install --setup-dns`:
 
-    ```text
+    ```transcript
     [root@ipaserver ~]# ipa-server-install --setup-dns
     The log file for this installation can be found in /var/log/ipaserver-install.log
     ==============================================================================
@@ -412,7 +412,7 @@ Please keep the same password for both the Directory Manager and the IPA admin s
 
     If the installation fails, run the following command to uninstall, then retry the installation command above:
 
-    ```text
+    ```transcript
     [root@ipaserver ~]# ipa-server-install --uninstall
     [root@ipaserver ~]# ipa-server-install --setup-dns (again)
     ```
@@ -420,7 +420,7 @@ Please keep the same password for both the Directory Manager and the IPA admin s
 
     Disable the firewall on the `ipaserver` node so the rest of the hosts can connect to it:
 
-    ```text
+    ```transcript
     [root@ipaserver ~]# systemctl stop firewalld
     [root@ipaserver ~]# systemctl disable firewalld
     Removed "/etc/systemd/system/multi-user.target.wants/firewalld.service".
@@ -431,7 +431,7 @@ Please keep the same password for both the Directory Manager and the IPA admin s
 
     Run the `kinit admin` command to authenticate as `admin` and enter the directory password provided during the FreeIPA server installation. The command generates the ticket, which `klist -e` then lists.
 
-    ```text
+    ```transcript
     [root@ipaserver ~]# kinit admin
     Password for admin@CLDRSETUP.LOCAL: <ipa_admin_password>
 
@@ -446,13 +446,13 @@ Please keep the same password for both the Directory Manager and the IPA admin s
 
     You can also try `kinit admin@CLDRSETUP.LOCAL`. If it fails at any point, run the following command:
 
-    ```text
+    ```transcript
     [root@ipaserver ~]# ipactl stop && ipactl start && ipactl status
     ```
 
     Verify the status of the installed IPA services:
 
-    ```text
+    ```transcript
     [root@ipaserver ~]# ipactl status
     Directory Service: RUNNING
     krb5kdc Service: RUNNING
@@ -474,13 +474,13 @@ Enable password-less login across all the nodes when Red Hat Linux is installed 
 
 1. Log in to the `ipaserver` node.
 
-    ```text
+    ```transcript
     [root@ipaserver ~]# ssh 172.31.24.240
     ```
 
 2. Run the `ssh-keygen` command to create both the public and private SSH key pair on the Ansible controller node. `-N ''` leaves the key without a passphrase and `-f ~/.ssh/id_rsa` writes it to the default path, both of which the later steps and Ansible depend on.
 
-    ```text
+    ```transcript
     [root@ipaserver ~]# ssh-keygen -N '' -f ~/.ssh/id_rsa
     [root@ipaserver ~]# ls -l /root/.ssh
     [root@ipaserver ~]# chmod 600 /root/.ssh/id_rsa
@@ -492,7 +492,7 @@ Enable password-less login across all the nodes when Red Hat Linux is installed 
     Not applicable on AWS EC2 - this needs to be done manually, as password-based authentication for non-root users is disabled there.
     </Banner>
 
-    ```text
+    ```transcript
     [root@ipaserver ~]# for i in {1}; do echo "copying ipaserver.cldrsetup.local"; ssh-copy-id -i
     ~/.ssh/id_rsa.pub root@ipaserver.cldrsetup.local; done;
     [root@ipaserver ~]# for i in {1}; do echo "copying cldr-mngr.cldrsetup.local"; ssh-copy-id -i
@@ -509,13 +509,13 @@ Enable password-less login across all the nodes when Red Hat Linux is installed 
 
     An alternate way is to add the public key to the `authorized_keys` file manually on the `ipaserver` node and copy the entire `.ssh` directory to all other nodes; otherwise log in to each host and update `authorized_keys` manually.
 
-    ```text
+    ```transcript
     [root@ipaserver ~]# cat /root/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys
     ```
 
     Copy the entire `.ssh` directory to all nodes, providing the root user password when prompted:
 
-    ```text
+    ```transcript
     [root@ipaserver ~]# scp -r /root/.ssh root@cldr-mngr.cldrsetup.local:/root/.
     ```
 
@@ -531,7 +531,7 @@ We will be using the Bastion host as the Ansible controller/admin node.
 
 1. Log in to the Bastion node and install `ansible-core`.
 
-    ```text
+    ```transcript
     [root@jump ~]# dnf install -y ansible-core
     [root@jump ~]# ansible --version
     ansible [core 2.14.14]
@@ -550,7 +550,7 @@ We will be using the Bastion host as the Ansible controller/admin node.
 
 2. Prepare the host inventory file for Ansible as shown below. Various host groups have been created based on any specific installation requirements of certain hosts.
 
-    ```text
+    ```transcript
     [root@jump ~]# vi /etc/ansible/hosts
 
     [admin]
@@ -605,7 +605,7 @@ We will be using the Bastion host as the Ansible controller/admin node.
 
 3. Verify the host group by running the following command.
 
-    ```text
+    ```transcript
     [root@jump ~]# ansible datanodes -m ping
     pvcbase-worker2.cldrsetup.local | SUCCESS => {
         "ansible_facts": {
@@ -632,7 +632,7 @@ We will be using the Bastion host as the Ansible controller/admin node.
 
 4. Copy the `/etc/hosts` file to each node that is part of the Cloudera deployment, to resolve FQDNs across the cluster.
 
-    ```text
+    ```transcript
     [root@jump ~]# ansible all -m copy -a "src=/etc/hosts dest=/etc/hosts"
     ```
 
@@ -646,7 +646,7 @@ We will be using the Bastion host as the Ansible controller/admin node.
     Make sure that the `/etc/resolv.conf` file on the ECS hosts contains a maximum of 2 active search domains. See [Known issues in ECS environments](https://docs.cloudera.com/data-warehouse/1.5.5/release-notes/topics/dw-private-cloud-known-issues-ecs-environments.html).
     </Banner>
 
-    ```text
+    ```transcript
     [root@jump ~]# cp /etc/resolv.conf /etc/resolv.conf.orig
     [root@jump ~]# cat /etc/resolv.conf
     search ap-southeast-1.compute.internal cldrsetup.local
@@ -659,7 +659,7 @@ We will be using the Bastion host as the Ansible controller/admin node.
 
     The changes to `/etc/resolv.conf` above are temporary and would get overwritten if the machine is rebooted. In order to keep the nameserver entry persistent, open the file `/etc/sysconfig/network` in edit mode and add the entries below.
 
-    ```text
+    ```transcript
     [root@jump ~]# cp /etc/sysconfig/network /etc/sysconfig/network.orig
     [root@jump ~]# cat /etc/sysconfig/network
     NETWORKING=yes
@@ -670,13 +670,13 @@ We will be using the Bastion host as the Ansible controller/admin node.
 
 3. Copy the `/etc/resolv.conf` file to each node to make them able to resolve FQDNs across the cluster.
 
-    ```text
+    ```transcript
     [root@ipaserver ~]# ansible all -m copy -a "src=/etc/resolv.conf dest=/etc/resolv.conf" --become
     ```
 
 4. Copy the `/etc/sysconfig/network` file to each node to make them able to resolve FQDNs across the cluster. `/etc/resolv.conf` changes may vanish after a reboot, so to persist those changes we need the configuration below.
 
-    ```text
+    ```transcript
     [root@ipaserver ~]# ansible all -m copy -a "src=/etc/sysconfig/network dest=/etc/sysconfig/network" --become
     ```
 
@@ -684,13 +684,13 @@ We will be using the Bastion host as the Ansible controller/admin node.
 
     Extract the DNS entries from `/etc/resolv.conf`:
 
-    ```text
+    ```transcript
     [root@jump ~]# grep '^nameserver' /etc/resolv.conf | awk '{print "DNS" NR "=" $2}' > /tmp/dns_entries.txt
     ```
 
     Update `ifcfg-eth0` with those DNS entries:
 
-    ```text
+    ```transcript
     [root@jump ~]# while IFS= read -r line; do
       ansible all -m lineinfile -a "path=/etc/sysconfig/network-scripts/ifcfg-eth0 line='${line}' state=present backup=true" --become
     done < /tmp/dns_entries.txt
@@ -698,7 +698,7 @@ We will be using the Bastion host as the Ansible controller/admin node.
 
     Clean up the temporary file:
 
-    ```text
+    ```transcript
     [root@jump ~]# rm -vf /tmp/dns_entries.txt
     ```
 
@@ -712,7 +712,7 @@ We will be using the Bastion host as the Ansible controller/admin node.
 
     If your VPC has a CIDR of 172.16.0.0/16, then the command looks as below.
 
-    ```text
+    ```transcript
     [root@ipaserver ~]# ipa dnszone-add --name-from-ip=172.31.0.0/16
     Zone name [31.172.in-addr.arpa.]:
       Zone name: 31.172.in-addr.arpa.
@@ -738,7 +738,7 @@ We will be using the Bastion host as the Ansible controller/admin node.
 
     Open the file `/etc/krb5.conf` in edit mode and comment out the line related to `ccache_name` as shown below.
 
-    ```text
+    ```transcript
     [root@ipaserver ~]# vi /etc/krb5.conf
 
     #default_ccache_name = KEYRING:persistent:%{uid}
@@ -746,7 +746,7 @@ We will be using the Bastion host as the Ansible controller/admin node.
 
     After any change to `/etc/krb5.conf`, run the following command to restart all the IPA services.
 
-    ```text
+    ```transcript
     [root@ipaserver ~]# ipactl restart
     ```
 
@@ -780,7 +780,7 @@ We will be using the Bastion host as the Ansible controller/admin node.
 
     Following the same pattern, the record for each machine is created in the reverse DNS zone.
 
-    ```text
+    ```transcript
     [root@ipaserver ~]# ipa dnsrecord-add 31.172.in-addr.arpa. 240.24   --ptr-rec ipaserver.cldrsetup.local.
       Record name: 240.24
       PTR record: ipaserver.cldrsetup.local.
@@ -852,7 +852,7 @@ We will be using the Bastion host as the Ansible controller/admin node.
 
 9. Verify that the DNS records have been added successfully.
 
-    ```text
+    ```transcript
     [root@ipaserver ~]# ipa dnsrecord-find 31.172.in-addr.arpa.
       Record name: @
       NS record: ipaserver.cldrsetup.local.
@@ -933,7 +933,7 @@ Configure the FreeIPA client on every other node so that it is managed by the `i
     Please review the Java requirement in the Cloudera Base on premises Requirements and Supported Versions sections. We installed OpenJDK 11 for this solution validation; `ipa-client` will also require and auto-install Java 11 on all hosts if it is not present or a different version, for example Java 17, is installed. See [Java requirements](https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/cdp-private-cloud-base-installation/topics/cdpdc-java-requirements.html).
     </Banner>
 
-    ```text
+    ```transcript
     [root@jump ~]# ansible all -m shell -a "sudo subscription-manager repos
     --enable=rhel-9-for-x86_64-baseos-rpms && sudo subscription-manager repos
     --enable=rhel-9-for-x86_64-appstream-rpms && sudo dnf install -y java-17-openjdk java-17-openjdk-devel
@@ -964,7 +964,7 @@ Configure the FreeIPA client on every other node so that it is managed by the `i
     | User authorized to enroll computers: | admin |
     | `Password for admin@<your_domain>:` | `<ipa_admin_password>` |
 
-    ```text
+    ```transcript
     [root@pvcbase-master ~]# ipa-client-install --force-join
     This program will set up IPA client.
     Version 4.11.0
@@ -1015,7 +1015,7 @@ Configure the FreeIPA client on every other node so that it is managed by the `i
 
     Run the `kinit admin` command to authenticate as `admin` and enter the directory password provided during the FreeIPA server installation. The command generates the ticket, which `klist -e` then lists.
 
-    ```text
+    ```transcript
     [root@ipaserver ~]# kinit admin
     Password for admin@CLDRSETUP.LOCAL: <ipa_admin_password>
 
@@ -1030,13 +1030,13 @@ Configure the FreeIPA client on every other node so that it is managed by the `i
 
     You can also try `kinit admin@CLDRSETUP.LOCAL`. If it fails at any point, run the following command.
 
-    ```text
+    ```transcript
     [root@ipaserver ~]# ipactl stop && ipactl start && ipactl status
     ```
 
     Verify the status of the installed IPA services.
 
-    ```text
+    ```transcript
     [root@ipaserver ~]# ipactl status
     Directory Service: RUNNING
     krb5kdc Service: RUNNING
@@ -1057,13 +1057,13 @@ If you are using an AD server as Kerberos instead of FreeIPA:
 
 1. Run the following command on all the client machines and skip the `ipa-client-install` steps.
 
-    ```text
+    ```transcript
     [root@pvcbase-master ~]# realm join --user=administrator cldrsetup.local
     ```
 
     Use the following non-interactive form to supply the password on the command line:
 
-    ```text
+    ```transcript
     [root@pvcbase-master ~]# echo '<ad_admin_password>' | realm join --user=administrator cldrsetup.local
     ```
 
@@ -1081,7 +1081,7 @@ If you are using an AD server as Kerberos instead of FreeIPA:
     Make sure that the `/etc/resolv.conf` file on the ECS hosts contains a maximum of 2 active search domains. See [Known issues in ECS environments](https://docs.cloudera.com/data-warehouse/1.5.5/release-notes/topics/dw-private-cloud-known-issues-ecs-environments.html).
     </Banner>
 
-    ```text
+    ```transcript
     [root@jump ~]# cp /etc/resolv.conf /etc/resolv.conf.orig
     [root@jump ~]# cat /etc/resolv.conf
     search ap-southeast-1.compute.internal cldrsetup.local
@@ -1094,7 +1094,7 @@ If you are using an AD server as Kerberos instead of FreeIPA:
 
     The changes in `/etc/resolv.conf` above are temporary and would get overwritten if the machine is rebooted. In order to keep the nameserver entry persistent, open the file `/etc/sysconfig/network` in edit mode and verify the entries below.
 
-    ```text
+    ```transcript
     [root@jump ~]# cp /etc/sysconfig/network /etc/sysconfig/network.orig
     [root@jump ~]# cat /etc/sysconfig/network
     NETWORKING=yes
@@ -1105,19 +1105,19 @@ If you are using an AD server as Kerberos instead of FreeIPA:
 
 3. Copy the `/etc/resolv.conf` file to each node again, to make them able to resolve FQDNs across the cluster.
 
-    ```text
+    ```transcript
     [root@jump ~]# ansible all -m copy -a "src=/etc/resolv.conf dest=/etc/resolv.conf"
     ```
 
 4. Copy the `/etc/sysconfig/network` file again to each node, to make them able to resolve FQDNs across the cluster. `/etc/resolv.conf` changes may vanish after a reboot, so to persist those changes we need the configuration below.
 
-    ```text
+    ```transcript
     [root@jump ~]# ansible all -m copy -a "src=/etc/sysconfig/network dest=/etc/sysconfig/network"
     ```
 
 5. Enable permissions for HDFS and for PAM authentication.
 
-    ```text
+    ```transcript
     [root@jump ~]# ansible all -m shell -a "chmod 1777 /tmp && chmod 444 /etc/shadow"
     ```
 
@@ -1127,7 +1127,7 @@ If you are using an AD server as Kerberos instead of FreeIPA:
     In case of an AD server, you can verify on any client machine such as `pvcbase-master`.
     </Banner>
 
-    ```text
+    ```transcript
     [root@pvcbase-master ~]# nslookup cldr-mngr.cldrsetup.local
     Server:          172.31.24.240
     Address:         172.31.24.240#53
@@ -1138,7 +1138,7 @@ If you are using an AD server as Kerberos instead of FreeIPA:
 
     For a forward lookup, `dig <server_fqdn> A` should return the IPv4 address of the machine in the answer section - for example, `dig ipaserver.cldrsetup.local A`:
 
-    ```text
+    ```transcript
     [root@pvcbase-master ~]# dig $(hostname -f) A | grep -A2 ANSWER
     ;; flags: qr aa rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
 
@@ -1150,7 +1150,7 @@ If you are using an AD server as Kerberos instead of FreeIPA:
 
     For a reverse lookup, `dig -x <private_ip_of_server>` should return the hostname of the machine in the answer section - for example, `dig -x 172.31.40.119`:
 
-    ```text
+    ```transcript
     [root@pvcbase-master ~]# dig -x $(hostname -i) | grep -A2 ANSWER
     ;; flags: qr aa rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
 
@@ -1172,7 +1172,7 @@ If you are using an AD server as Kerberos instead of FreeIPA:
 
     Skip the steps below if you are using an AD server - jump to Step 11.
 
-    ```text
+    ```transcript
     [root@ipaserver ~]# ipa dnsrecord-add cldrsetup.local *.apps
     Please choose a type of DNS resource record to be added
     The most common types for this type of zone are: A, AAAA
@@ -1208,7 +1208,7 @@ If you are using an AD server as Kerberos instead of FreeIPA:
 
 8. Download and copy the PostgreSQL JDBC driver to all hosts.
 
-    ```text
+    ```transcript
     [root@jump ~]# wget https://jdbc.postgresql.org/download/postgresql-42.7.13.jar
     [root@jump ~]# chmod 644 postgresql-42.7.13.jar
     [root@jump ~]# ansible all -m copy -a "src=postgresql-42.7.13.jar
@@ -1226,7 +1226,7 @@ The default Linux firewall settings are too restrictive for any Hadoop deploymen
 
 Either disable the firewall or update the rules on all hosts.
 
-```text
+```transcript
 [root@jump ~]# ansible all -m command -a "firewall-cmd --zone=public --add-port=80/tcp --permanent"
 [root@jump ~]# ansible all -m command -a "firewall-cmd --zone=public --add-port=443/tcp --permanent"
 [root@jump ~]# ansible all -m command -a "firewall-cmd --reload"
@@ -1242,7 +1242,7 @@ SELinux must be disabled during the install procedure and cluster setup. SELinux
 
 SELinux can be disabled by editing `/etc/selinux/config` (on some systems it would be `/etc/sysconfig/selinux`). To disable SELinux, change `SELINUX=enforcing` to `SELINUX=disabled` or `SELINUX=permissive`. Follow these steps:
 
-```text
+```transcript
 [root@jump ~]# ansible all -m shell -a "sed -i 's/SELINUX=enforcing/SELINUX=disabled/g'
 /etc/selinux/config"
 [root@jump ~]# ansible all -m shell -a "setenforce 0"
@@ -1257,7 +1257,7 @@ This command may fail if SELinux is already disabled. This requires a reboot to 
 While the suggested configuration is to disable SELinux as shown below, if for any reason SELinux needs to be enabled on the cluster, run the following command to make sure that httpd can read the Yum profiles.
 </Banner>
 
-```text
+```transcript
 [root@jump ~]# chcon -R -t httpd_sys_content_t /var/www/html/
 ```
 
@@ -1269,7 +1269,7 @@ Syslog must be enabled on each node to preserve logs regarding killed processes 
 
 Use one of the following commands to confirm that the service is properly configured.
 
-```text
+```transcript
 [root@jump ~]# ansible all -m command -a "rsyslogd -v"
 [root@jump ~]# ansible all -m command -a "service rsyslog status"
 ```
@@ -1280,7 +1280,7 @@ On each node, `ulimit -n` specifies the number of inodes that can be opened simu
 
 1. For setting the ulimit on Red Hat, edit `/etc/security/limits.conf` on the admin node and add the following lines.
 
-    ```text
+    ```transcript
     [root@jump ~]# vi /etc/security/limits.conf
     ```
 
@@ -1291,13 +1291,13 @@ On each node, `ulimit -n` specifies the number of inodes that can be opened simu
 
 2. Copy the `/etc/security/limits.conf` file from the admin node (`ipaserver`) to all the nodes using the following command.
 
-    ```text
+    ```transcript
     [root@jump ~]# ansible all -m copy -a "src=/etc/security/limits.conf dest=/etc/security/limits.conf"
     ```
 
 3. Make sure that the `/etc/pam.d/su` file contains the following settings.
 
-    ```text
+    ```transcript
     [root@ipaserver ~]# vi /etc/pam.d/su
     #%PAM-1.0
     auth             required        pam_env.so
@@ -1318,7 +1318,7 @@ On each node, `ulimit -n` specifies the number of inodes that can be opened simu
 
 4. Copy the `/etc/pam.d/su` file from the admin node (`ipaserver`) to all the nodes using the following command.
 
-    ```text
+    ```transcript
     [root@jump ~]# ansible all -m copy -a "src=/etc/pam.d/su dest=/etc/pam.d/su"
     ```
 
@@ -1336,7 +1336,7 @@ On each node, setting the number of TCP retries to 5 can help detect unreachable
 
 1. Edit the file `/etc/sysctl.conf` on the `ipaserver` node and add the following lines.
 
-    ```text
+    ```transcript
     [root@jump ~]# vi /etc/sysctl.conf
 
     net.ipv4.tcp_retries2=5
@@ -1347,7 +1347,7 @@ On each node, setting the number of TCP retries to 5 can help detect unreachable
 
 2. Copy the `/etc/sysctl.conf` file from the admin node to all the nodes using the following command.
 
-    ```text
+    ```transcript
     [root@jump ~]# ansible all -m copy -a "src=/etc/sysctl.conf dest=/etc/sysctl.conf"
     ```
 
@@ -1355,7 +1355,7 @@ On each node, setting the number of TCP retries to 5 can help detect unreachable
 
 Run the following commands.
 
-```text
+```transcript
 [root@jump ~]# ansible all -m shell -a "echo 'net.ipv6.conf.all.disable_ipv6 = 1' >> /etc/sysctl.conf" -l
 'all:!ecsmasternodes:!ecsnodes'
 [root@jump ~]# ansible all -m shell -a "echo 'net.ipv6.conf.default.disable_ipv6 = 1' >> /etc/sysctl.conf"
@@ -1368,7 +1368,7 @@ Run the following commands.
 
 Run the following to set VM swappiness to 1, by updating the `/etc/sysctl.conf` file on all nodes.
 
-```text
+```transcript
 [root@jump ~]# ansible all -m shell -a "echo 'vm.swappiness=1' >> /etc/sysctl.conf"
 ```
 
@@ -1376,13 +1376,13 @@ Run the following to set VM swappiness to 1, by updating the `/etc/sysctl.conf` 
 
 1. Run the following on all nodes. The variable is `vm.overcommit_memory=0`.
 
-    ```text
+    ```transcript
     [root@jump ~]# ansible all -m shell -a "echo 'vm.overcommit_memory=0' >> /etc/sysctl.conf"
     ```
 
 2. Load the settings from the default sysctl file `/etc/sysctl.conf` and verify the content of `sysctl.conf`.
 
-    ```text
+    ```transcript
     [root@jump ~]# ansible all -m shell -a "sysctl -p"     ## Reload sysctl.conf
     [root@jump ~]# ansible all -m shell -a "cat /etc/sysctl.conf"
     net.ipv4.tcp_retries2=5
@@ -1399,14 +1399,14 @@ Disabling Transparent Huge Pages (THP) reduces elevated CPU usage caused by THP.
 
 1. You must run the following commands for every reboot.
 
-    ```text
+    ```transcript
     [root@jump ~]# ansible all -m shell -a "echo never > /sys/kernel/mm/transparent_hugepage/enabled"
     [root@jump ~]# ansible all -m shell -a "echo never > /sys/kernel/mm/transparent_hugepage/defrag"
     ```
 
 2. On the Ansible controller / `ipaserver` node, run the following commands.
 
-    ```text
+    ```transcript
     [root@jump ~]# rm –f /root/thp_disable
     [root@jump ~]# echo "echo never > /sys/kernel/mm/transparent_hugepage/enabled" >> /root/thp_disable
     [root@jump ~]# echo "echo never > /sys/kernel/mm/transparent_hugepage/defrag" >> /root/thp_disable
@@ -1414,7 +1414,7 @@ Disabling Transparent Huge Pages (THP) reduces elevated CPU usage caused by THP.
 
     Disable IPv6.
 
-    ```text
+    ```transcript
     [root@jump ~]# echo "sysctl -w net.ipv6.conf.all.disable_ipv6=1" >> /root/thp_disable
     [root@jump ~]# echo "sysctl -w net.ipv6.conf.default.disable_ipv6=1" >> /root/thp_disable
     [root@jump ~]# echo "sysctl -w net.ipv6.conf.lo.disable_ipv6=0" >> /root/thp_disable
@@ -1422,13 +1422,13 @@ Disabling Transparent Huge Pages (THP) reduces elevated CPU usage caused by THP.
 
 3. Copy the file to each node to copy the commands to `/etc/rc.d/rc.local`, so they are executed automatically for every reboot.
 
-    ```text
+    ```transcript
     [root@jump ~]# ansible all -m copy -a "src=/root/thp_disable dest=/root/thp_disable"
     ```
 
     Append the content of the `thp_disable` file to `/etc/rc.d/rc.local`.
 
-    ```text
+    ```transcript
     [root@jump ~]# ansible all -m shell -a "cat /root/thp_disable >> /etc/rc.d/rc.local"
     [root@jump ~]# ansible all -m shell -a "chmod +x /etc/rc.d/rc.local"
     [root@jump ~]# ansible all -m shell -a "cat /etc/rc.d/rc.local"
@@ -1453,19 +1453,19 @@ For a Cloudera cluster with hosts running RHEL/CentOS 7.x, 8.x or 9.x, disable t
 
 1. Ensure that the `tuned` service is started.
 
-    ```text
+    ```transcript
     [root@jump ~]# ansible all -m shell -a "systemctl start tuned"
     ```
 
 2. Turn the `tuned` service off.
 
-    ```text
+    ```transcript
     [root@jump ~]# ansible all -m shell -a "tuned-adm off"
     ```
 
 3. Ensure that there are no active profiles.
 
-    ```text
+    ```transcript
     [root@jump ~]# ansible all -m shell -a "tuned-adm list"
     ```
 
@@ -1498,7 +1498,7 @@ For a Cloudera cluster with hosts running RHEL/CentOS 7.x, 8.x or 9.x, disable t
 
 4. Shut down and disable the `tuned` service.
 
-    ```text
+    ```transcript
     [root@jump ~]# ansible all -m shell -a "systemctl stop tuned"
     [root@jump ~]# ansible all -m shell -a "systemctl disable tuned"
     ```
@@ -1517,7 +1517,7 @@ Disabling TCP checksum offload may have implications on network performance or s
 
     Determine the network interface used by the affected ECS nodes. This can typically be found using the `ifconfig` or `ip addr` command.
 
-    ```text
+    ```transcript
     [root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "ifconfig | grep flags | grep -v lo && ip addr |
     grep mtu | grep -v lo"
 
@@ -1531,7 +1531,7 @@ Disabling TCP checksum offload may have implications on network performance or s
 
     Replace `<interface_name>` with the name of the network interface identified in step 1.
 
-    ```text
+    ```transcript
     [root@ipaserver ~]# ansible ecsmasternodes,ecsnodes -m shell -a "sudo ethtool -K <interface_name> tx off"
     ```
 
@@ -1543,7 +1543,7 @@ Create partitions on the ECS nodes - master and worker - manually if they are no
 
 Create partitions on the attached disks. We require three partitions: `/docker`, `/cdwdata` and `/lhdata`.
 
-```text
+```transcript
 [root@pvcecs-master ~]# lsblk
 NAME    MAJ:MIN RM    SIZE RO TYPE MOUNTPOINTS
 xvda    202:0     0   600G 0 disk
@@ -1662,13 +1662,13 @@ Install httpd on the Cloudera Manager node - `cldr-mngr` - to host a local parce
     The Red Hat repository is hosted using HTTP on the admin node; this machine is accessible by all the hosts in the cluster.
     </Banner>
 
-    ```text
+    ```transcript
     [root@cldr-mngr ~]# dnf install -y httpd mod_ssl createrepo_c
     ```
 
 2. Generate the CA certificate.
 
-    ```text
+    ```transcript
     [root@cldr-mngr ~]# openssl req -newkey rsa:2048 -nodes -keyout /etc/pki/tls/private/httpd.key -x509 -days
     3650 -out /etc/pki/tls/certs/httpd.crt \
     -subj "/C=US/ST=North Carolina/L=Raleigh/O=Red Hat Inc/OU=CLDR/CN=cldr-mngr.cldrsetup.local"
@@ -1691,7 +1691,7 @@ Install httpd on the Cloudera Manager node - `cldr-mngr` - to host a local parce
 
 3. Create the certificate directory to serve content from.
 
-    ```text
+    ```transcript
     [root@cldr-mngr ~]# mkdir -p /var/www/https/
     [root@cldr-mngr ~]# echo secure content > /var/www/https/index.html
     [root@cldr-mngr ~]# cat /var/www/https/index.html
@@ -1700,7 +1700,7 @@ Install httpd on the Cloudera Manager node - `cldr-mngr` - to host a local parce
 
 4. Edit the `httpd.conf` file; add `ServerName` and make the necessary changes to the server configuration file.
 
-    ```text
+    ```transcript
     [root@cldr-mngr ~]# vi /etc/httpd/conf/httpd.conf
     ```
 
@@ -1710,7 +1710,7 @@ Install httpd on the Cloudera Manager node - `cldr-mngr` - to host a local parce
 
 5. Start the httpd service.
 
-    ```text
+    ```transcript
     [root@cldr-mngr ~]# systemctl start httpd
     [root@cldr-mngr ~]# systemctl enable httpd
     [root@cldr-mngr ~]# systemctl is-enabled httpd
