@@ -182,9 +182,13 @@ scroll.
 
 **Always tag a fence with a language.** An untagged fence loses syntax highlighting, which is applied
 by `rehype-pretty-code` with the `one-dark-pro` theme (`mdx.tsx:72`). Languages in use: `bash`,
-`text`, `yaml`, `python`, `sql`, `ini`, `xml`, `javascript`.
+`transcript`, `text`, `yaml`, `python`, `sql`, `ini`, `xml`, `javascript`. All but `transcript` are
+shiki's own; `transcript` is defined by this repo in `components/mdx/transcript.ts` and is the tag
+for any block carrying a shell prompt.
 
-Use `text` for command *output*, terminal transcripts and anything with no real syntax:
+Use `text` for command *output* and anything else with no real syntax. A terminal transcript is the
+exception: a block that shows its prompts is neither `text` nor `bash` but `transcript`, for the
+reasons set out below.
 
 ````md
 ```bash
@@ -213,12 +217,12 @@ key-value `.conf` files, `yaml`, `xml` or `sql` where those apply, `text` otherw
 ````
 
 **A file shown as part of a transcript stays in one fence with the command that opened it, tagged
-`text`.** Do not split the `vi` line off into a fence of its own. The reader is being shown a single
+`transcript`.** Do not split the `vi` line off into a fence of its own. The reader is being shown a single
 session; two boxes read as two separate things to do, and the second one arrives with no indication
 of which file it belongs to. Separate the parts with a blank line:
 
 ````md
-```text
+```transcript
 [root@ipaserver ~]# sudo vi /etc/hosts
 
 127.0.0.1   localhost localhost.localdomain localhost4
@@ -228,18 +232,18 @@ of which file it belongs to. Separate the parts with a blank line:
 ```
 ````
 
-`text` is the only tag that is right for the whole of such a block, and the reason is the prompt.
+No file grammar is right for the whole of such a block, and the reason is the prompt.
 Tag it `ini` and shiki reads `[root@ipaserver ~]` as a section header and everything from the `#`
 onward as a comment, so the command renders italic grey — the one thing on that line that is not a
 comment. The `#` in a root prompt is a prompt. Unlike the shell grammar (below), the INI grammar has
 no rule that stops it firing, because nothing about the preceding `]` marks the line as anything but
-a section header. `text` has no grammar at all, so no rule can fire and no token can be coloured
-wrongly.
+a section header. `transcript` colours the prompt and its command and leaves every other line plain,
+so no file grammar ever runs and no token can be coloured wrongly.
 
 The cost is that genuine `#` comments inside the file — `# Free-IPA Server` in a hosts file, the
-trailing notes in `postgresql.conf` — lose their grey too. A fence carries one grammar, so a block
-holding both a prompt and a file gets either uniform text or misplaced emphasis, and uniform is the
-honest one. Blank lines carry the structure instead.
+trailing notes in `postgresql.conf` — get no grey. A block holding both a prompt and a file cannot
+have both, and leaving the file plain is the honest choice: the commands are what the reader acts on.
+Blank lines carry the structure instead.
 
 Applied throughout the CDP 7.3.2 pages: `post-os-work.mdx` (`/etc/hosts`, `/etc/ansible/hosts`,
 `/etc/sysctl.conf`), `on-premises/repos-and-parcels.mdx` (both `cloudera-manager.repo` blocks),
@@ -252,9 +256,10 @@ file `127.0.0.1` renders blue as `entity.name.function` and the hostnames after 
 string arguments, while `::1` splits into a cyan `:` and a green `:1`. The reader sees emphasis where
 there is no meaning.
 
-**A terminal transcript is `text`.** A transcript records a session — prompt, command and output
-interleaved — rather than listing commands to run, so the rule above already puts it in `text`. Tag
-it `bash` and you get one of two wrong results, depending on the prompt.
+**A terminal transcript is never `bash`.** A transcript records a session — prompt, command and
+output interleaved — rather than listing commands to run. Tag it `bash` and you get one of two wrong
+results, depending on the prompt. Tag it `text` and you get no colour at all. The `transcript` fence
+below is the answer; this is why the two obvious tags are not.
 
 With the bracketed form, the failure is silent. Shiki has no concept of a prompt and parses the line
 as bash source, so `[root@host ~]` matches the rule for a **test expression** and takes
@@ -271,54 +276,63 @@ Without brackets the failure is loud, and it is the file-contents problem in rev
 `root@host:~# sudo dnf update` there is no bracket for the test-expression rule to catch, so shiki
 tokenises the prompt itself as the command: `root@host:~#` renders blue as `entity.name.command.shell`
 and the actual command after it renders green as `string.unquoted.argument.shell`. The prompt is
-emphasised and the command is not. Tagging transcripts `text` avoids both cases.
+emphasised and the command is not. `text` avoids both failures, but only by giving up on colour
+entirely.
 
-**Pilot — `cleanup.mdx` only.** The rules above still hold everywhere else in `content/`. The cleanup
-page tests two ways of colouring a prompted command; do not roll either out further, and do not
-"correct" that page back to `text`. Every block on it now uses the second.
+**Prompted blocks use the `transcript` fence.** A session that shows its prompts cannot be coloured
+by shiki alone, and stripping the prompts to make it a plain `bash` block trades the record of a real
+session for syntax colour. `transcript` gets both, so it is the standard for every prompted block in
+`content/`. `cleanup.mdx` is the worked example.
 
-*The `transcript` fence* colours a session without touching its text. Shiki cannot do this on its
-own: the shell grammar only opens a command at the start of a line or straight after `;`, `|`, `&`,
-`!`, `(`, `{` or a backtick, and a consumed prompt leaves a space in front of the command, so the
-rule never fires. `components/mdx/transcript.ts` splits each line and hands only the command to the
-`bash` grammar, where it starts a fresh string and tokenises normally; it is wired in through
-`rehype-pretty-code`'s `getHighlighter` (`mdx.tsx:77`). The prompt renders `#7f848e`, the command
-colours as bash, and output lines and pasted file contents stay plain.
+*Deciding, per fence.* Does any line in the block match this?
 
-**No page uses it.** `cleanup.mdx` did, until every one of its blocks turned out to be commands end
-to end and moved to the run-on header below. The mechanism is kept because it is the only thing that
-colours a block that *cannot* drop its prompts — a session with `dnf` output, a `kubectl get pods`
-table or a pasted file in it, which is most of the prompted blocks in the rest of `content/`. Reach
-for it there, not here.
-
-Note the local exception it creates where it is used: inside a `transcript` fence `#7f848e` marks the
-*prompt*. The grey-means-comment test above still applies to `bash` fences.
-
-*The `bash` fence with a run-on header* drops the prompts instead. The block opens with a single
-`# Run on` line naming every host it applies to, comma-separated, then a blank line, then bare
-commands:
-
-````md
-```bash
-# Run on cldr-mngr, pvcbase-master, pvcbase-worker[1-n]
-
-sudo umount cm_processes
+```text
+^\s*(?:\[[^\]\n]*\]|[\w.-]+@[\w.-]+:\S*)\s*[$#%>]\s
 ```
-````
 
-Hosts are named exactly as `cldr-mngr`, `ipaserver`, `pvcbase-master`, `pvcbase-worker[1-n]`,
-`pvcecs-master`, `pvcecs-worker[1-n]`. This says what a prompt cannot — a prompt can only ever show
-one host, so a block that runs on every worker had to say so in the prose. It also makes the block
-copy-pasteable. It only suits blocks that are commands end to end; a session with output or pasted
-file contents in it cannot use this form, and stays `transcript` or `text`.
+- **Yes** → tag the fence `transcript`, whatever it is tagged now.
+- **No** → leave the tag exactly as it is. Pure command lists stay `bash`; pure output and pasted
+  file contents stay `text`; `ini` / `yaml` / `xml` / `python` fences stay as they are.
+
+That is the whole procedure. There is no third branch and no judgement call: a prompt in the block
+means `transcript`, every time. A block that moves between hosts, a block that is commands end to
+end, a block with 40 lines of `dnf` output in it — all the same tag.
+
+*How it works.* The shell grammar only opens a command at the start of a line or straight after `;`,
+`|`, `&`, `!`, `(`, `{` or a backtick, and a consumed prompt leaves a space in front of the command,
+so the rule never fires. `components/mdx/transcript.ts` splits each line itself and hands only the
+command to the `bash` grammar, where it starts a fresh string and tokenises normally; it is wired in
+through `rehype-pretty-code`'s `getHighlighter` (`mdx.tsx:77`). The prompt renders `#7f848e`, the
+command colours as bash, and output lines and pasted file contents stay plain. It emits shiki's own
+markup, so line numbers, grid mode and `onVisitLine` behave as they do for any other fence.
+
+A prompt is a bracketed `[root@host ~]` or a bare `user@host:~`, then a sigil — `$`, `#`, `%` or
+`>` — then **at least one space** (`transcript.ts:22`). Requiring that space keeps a commented-out
+command such as `#/opt/cloudera/installer/uninstall-cloudera-manager.sh` — which `cleanup.mdx`
+contains — out of the match. Lines that do not match are output, and are left alone.
+
+**Retag the fence and change nothing inside it.** Prompts stay exactly as transcribed and commands
+stay byte-identical. A transcript is a record of what was run; editing it makes it a worse record
+without making it a better one.
+
+In particular, **never strip a prompt**. The prompt is what `transcript` keys on, so removing it
+loses the colour this fence exists to provide. It is also the only thing separating a command from
+its output, and the only record of which host the command was run on — a block that moves between
+hosts says so through its prompts and has no other way to.
+
+Note the local exception it creates: inside a `transcript` fence `#7f848e` marks the *prompt*. The
+grey-means-comment test above still applies to `bash` fences.
+
+**A block with no prompt in it keeps the tag it has.** Pure command lists stay `bash`; pure output and
+pasted file contents stay `text`. `transcript` is for blocks that carry a prompt, and has nothing to
+add to one that does not.
 
 **Do not mark the commands with a `$` sigil.** It is the loud failure of the unbracketed prompt
 (above) in miniature. Shiki reads the bare `$` as the command name and gives it
 `entity.name.command.shell` blue, which demotes the real command to a green
 `string.unquoted.argument.shell`: in `$ systemctl stop postgresql-17` the `$` is emphasised and
-`systemctl` is not. Without it the same line colours correctly. The sigil also re-breaks the
-copy-paste that dropping the prompts just fixed, and once the prompts are gone there is no output
-left in the block to distinguish the commands from.
+`systemctl` is not. Without it the same line colours correctly. A `bash` fence needs no marker on its
+commands, and a `transcript` fence already has a real prompt doing that job.
 
 **Always fence shell content.** An unfenced line beginning with `#` — common when pasting a root
 prompt or a shell comment — is parsed as a markdown heading and renders as enormous page-width text.
@@ -515,7 +529,16 @@ The schema script prints its progress to stdout and takes a few minutes on a fir
     sudo systemctl status <service-name>
     ```
 
-4. Open `https://<master-host>:<port>` and sign in with the default credentials.
+4. If the status output is not `active (running)`, read the log on the host:
+
+    ```transcript
+    [root@<master-host> ~]# tail -n 3 /var/log/<service-name>/<service-name>.log
+    INFO  Loading configuration from /etc/<service-name>/conf
+    ERROR Failed to bind to port <port>: address already in use
+    [root@<master-host> ~]# ss -lntp | grep <port>
+    ```
+
+5. Open `https://<master-host>:<port>` and sign in with the default credentials.
 
     ![Sign-in page showing the username and password fields](/images/<topic-slug>/<section>/sign-in.png)
 
