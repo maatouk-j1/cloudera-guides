@@ -110,7 +110,7 @@ On the **Cluster Basics- Add Private Cloud Containerized Cluster** page, enter t
 ![Cluster Basics page with Cluster Name set to PVCDSECSCluster1, the Private Cloud Containerized Cluster tile below it, Base Cluster set to PvCBaseCluster1 (7.1.9), and an unchecked Use Default Configuration box warning that defaults are not recommended for production](/images/cdp-7-3-2/ds/ecs/installation/13-cluster-basics.png)
 
 <Banner type="warning">
-Leave **Use Default Configuration** unchecked. It swaps in the embedded Docker repository, Vault and database with default settings and default role assignments - the source's own caption says it is *not recommended for production*, and it skips most of the pages below.
+Leave **Use Default Configuration** unchecked. It swaps in the embedded Docker repository, Vault and database with default settings and default role assignments - the caption in the capture above warns that it is *not recommended for production*, and it skips most of the pages below.
 </Banner>
 
 ## Specify Hosts
@@ -534,7 +534,7 @@ Since all hosts part of the ECS installation might not have NVIDIA GPU installed
 
 ## Troubleshooting during installation
 
-If you still face any issue while making the services up or during the installation or start of any ECS services please refer to troubleshooting PvC Data Services Cluster part at the end of this document. Though, some of the major issues during installation, their cause and their resolution is listed as below:
+If you still face any issue while making the services up or during the installation or start of any ECS services please refer to the Data Services (ECS) section of [Error Handling](/installations/cdp-7-3-2/error-handling). Though, some of the major issues during installation, their cause and their resolution is listed as below:
 
 ### Name resolution not working inside pod
 
@@ -644,7 +644,7 @@ Other: [https://repost.aws/knowledge-center/create-lv-on-ebs-partition](https://
 
 ### UNRESOLVED: CDE Error
 
-The guide records this one as still open, without a fix:
+This one is still open, with no known fix:
 
 ```transcript
 [root@pvcecs-master ~]# k get po -A|grep dex | grep -v -E 'Run|Comp'
@@ -683,7 +683,7 @@ connection refused
 Defaulted container "cdp-cde-embedded-db" out of: cdp-cde-embedded-db, k8tz (init)
 ```
 
-The stack trace in the source's `data-connectors` log is reproduced above with its Go frames elided; every frame points at the same failure, a refused connection to the CDE embedded database on port `3306`, whose pod (`cdp-cde-embedded-db-0`) is itself `Pending` and logging nothing.
+The `data-connectors` stack trace above has its Go frames elided; every frame points at the same failure, a refused connection to the CDE embedded database on port `3306`, whose pod (`cdp-cde-embedded-db-0`) is itself `Pending` and logging nothing.
 
 ## Summary
 

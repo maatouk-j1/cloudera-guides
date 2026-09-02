@@ -9,7 +9,7 @@ nextTitle: Kubernetes Command Reference
 nextSlug: /installations/cdp-7-3-2/kubernetes-commands
 ---
 
-This is the guide's troubleshooting log: the errors that actually surfaced while building this deployment, paired with what resolved them. It is organised by cluster — Base first, then Data Services (ECS) — and within each, roughly in the order the failures tend to appear.
+This is the troubleshooting log for this deployment: the errors that actually surfaced while building it, paired with what resolved them. It is organised by cluster — Base first, then Data Services (ECS) — and within each, roughly in the order the failures tend to appear.
 
 Two themes run through the whole section. On the Base cluster, most failures are **certificate, Kerberos or PostgreSQL** problems wearing a service's name. On the ECS cluster, most failures trace back to an **incomplete cleanup** or **DNS that was not in place before the install** — which is why [Cluster Cleanup](/installations/cdp-7-3-2/cleanup) is worth doing properly rather than quickly.
 
@@ -17,7 +17,7 @@ Two themes run through the whole section. On the Base cluster, most failures are
 
 ### Preliminary commands
 
-Two commands the guide keeps to hand: pointing `python` at Python 2 for older tooling, and pulling the Cloudera Manager server certificate out of the TLS handshake so it can be trusted elsewhere.
+Two commands worth keeping to hand: pointing `python` at Python 2 for older tooling, and pulling the Cloudera Manager server certificate out of the TLS handshake so it can be trusted elsewhere.
 
 ```bash
 alternatives --set python /usr/bin/python2
@@ -330,7 +330,7 @@ java.nio.file.NoSuchFileException:
 https://cloudera-build-us-west-1.vpc.cloudera.com/s3/build/52717809/cdh/7.x/maven-repository/org/[…]6/ozone-filesystem-hadoop3-1.4.0.7.3.2.1-246.jar
 ```
 
-The URL is elided in the source (`[…]`) and points at an internal Cloudera build host that is not reachable from a customer network. Treat it as an indication of *which* artefact is missing, not as a download link.
+The URL is elided above (`[…]`) and points at an internal Cloudera build host that is not reachable from a customer network. Treat it as an indication of *which* artefact is missing, not as a download link.
 
 ### YARN error: MapReduce framework JARs
 
@@ -352,7 +352,7 @@ Failed to execute command Install YARN MapReduce Framework JARs on service YARN
 chmod 444 /etc/shadow
 ```
 
-World-readable `/etc/shadow` exposes every local password hash on the host. This is the guide's lab workaround; on any real deployment, configure PAM or LDAP authentication properly instead.
+World-readable `/etc/shadow` exposes every local password hash on the host. This is a lab workaround; on any real deployment, configure PAM or LDAP authentication properly instead.
 
 Important links:
 
@@ -362,7 +362,7 @@ Important links:
 
 ## Data Services (ECS) cluster error handling
 
-The guide's references for this section:
+References for this section:
 
 - [https://spacelift.io/blog/kubectl-port-forward](https://spacelift.io/blog/kubectl-port-forward)
 - [https://docs.cloudera.com/cdp-private-cloud-data-services/1.5.5/day-two-operations/cdppvc-data-services-day-two-operations.pdf](https://docs.cloudera.com/cdp-private-cloud-data-services/1.5.5/day-two-operations/cdppvc-data-services-day-two-operations.pdf)

@@ -62,7 +62,7 @@ This page continues the procedure begun on [Install Cloudera Base on premises us
     | Ranger | **Ranger Admin** : pvcbase-master<br />**UserSync** : pvcbase-master<br />**Ranger Tagsync** : pvcbase-master |
     | Atlas | **Atlas Server** : pvcbase-master |
     | Oozie Server (Optional) | pvcbase-master |
-    | YARN Queue Manager (Optional) | *(no host given in the source)* |
+    | YARN Queue Manager (Optional) | *(no host given)* |
 
 2. Assign roles as updated above and shown as below.
 
@@ -108,7 +108,7 @@ This page continues the procedure begun on [Install Cloudera Base on premises us
     ![Enter Required Parameters stage listing Knox Master Secret, Ozone Service ID set to ozone11, and the Ranger Admin, Usersync, Tagsync and KMS Keyadmin initial passwords, with a 1 - 6 of 6 row count](/images/cdp-7-3-2/on-premises/base/data-lake/enter-required-parameters.png)
 
     <Banner type="info">
-    **Note on the capture:** the guide lists **seven** inputs but the screenshot shows **six** (`1 - 6 of 6`) - Knox IDBroker Master Secret is absent from the capture. It appears only when the Knox IDBroker role is part of the selection.
+    The list above has **seven** inputs but the capture shows **six** (`1 - 6 of 6`) - Knox IDBroker Master Secret is absent from the capture. It appears only when the Knox IDBroker role is part of the selection.
     </Banner>
 
 3. Click **Continue**.
@@ -151,7 +151,7 @@ This page continues the procedure begun on [Install Cloudera Base on premises us
 
     ![Command Details for the First Run Command, Finished in 6.9m, reporting successful first run of Core Configuration, ZooKeeper, HDFS, Ranger, Kafka, Knox, CDP-INFRA-SOLR, YARN, Atlas, Ozone, Tez, HBase, Hive, Phoenix, Spark 3, Spark, Hive on Tez, Iceberg Replication, Impala, Hue and Cloudera Management Service](/images/cdp-7-3-2/on-premises/base/data-lake/first-run-command.png)
 
-2. If you still face any issue while making the services up or during the installation or start of any Control Plane services please refer to troubleshooting PvC Base Cluster part at the end of this document. Though, some of the major issues during installation, their cause and their resolution is listed as below:
+2. If you still face any issue while making the services up or during the installation or start of any Control Plane services please refer to the Base cluster section of [Error Handling](/installations/cdp-7-3-2/error-handling). Though, some of the major issues during installation, their cause and their resolution is listed as below:
 
 ### Zookeeper SASL error
 

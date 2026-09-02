@@ -9,7 +9,7 @@ nextTitle: Cluster Cleanup
 nextSlug: /installations/cdp-7-3-2/cleanup
 ---
 
-With the Base cluster and the Data Services cluster both standing, validate that the platform actually works end to end. The guide validates two storage paths independently: **Hive on HDFS**, by loading a real public dataset and querying it, and **Ozone**, by creating a volume and a bucket through the S3 gateway principal.
+With the Base cluster and the Data Services cluster both standing, validate that the platform actually works end to end. Two storage paths are validated independently: **Hive on HDFS**, by loading a real public dataset and querying it, and **Ozone**, by creating a volume and a bucket through the S3 gateway principal.
 
 Both validations run on the Base cluster master and both start the same way — with a Kerberos ticket. Every "cannot authenticate via:[TOKEN, KERBEROS]" failure below is deliberate: it is what the commands look like *before* you `kinit`, and it is the single most common reason a validation step fails on a freshly Kerberised cluster.
 
@@ -86,7 +86,7 @@ Valid starting     Expires            Service principal
         renew until 07/08/25 06:17:08
 ```
 
-The upstream guide labels these steps *HDFS*, but the commands use the **Hive** keytab and service principal. That is what the `LOAD DATA` steps below need.
+These steps use the **Hive** keytab and service principal — that is what the `LOAD DATA` steps below need.
 
 ### 4. Stage the CSV files in HDFS
 
@@ -123,7 +123,7 @@ LOAD DATA INPATH '/tmp/movielens/genome-tags.csv' overwrite INTO TABLE genome_ta
 LOAD DATA INPATH '/tmp/movielens/genome-scores.csv' overwrite INTO TABLE genome_scores;
 ```
 
-The guide spells out the `CREATE TABLE` for `ratings` only, but loads into five tables. Create `movies`, `tags`, `genome_tags` and `genome_scores` the same way, matching each CSV's columns — the linked `createMovieLensTables.hql` reference above carries the full set of DDL statements.
+Only `ratings` has its `CREATE TABLE` spelled out above, but the loads cover five tables. Create `movies`, `tags`, `genome_tags` and `genome_scores` the same way, matching each CSV's columns — the linked `createMovieLensTables.hql` reference above carries the full set of DDL statements.
 
 ### 7. Exercise the path through Hue
 
@@ -167,7 +167,7 @@ aes256-cts-hmac-sha384-192
 
 ### 2. Find the Ozone keytab and kinit as the S3 gateway
 
-Ozone roles are spread across several process directories, so `find` returns one keytab per role instance. The guide uses the **S3 gateway** one.
+Ozone roles are spread across several process directories, so `find` returns one keytab per role instance. Use the **S3 gateway** one.
 
 ```transcript
 [root@pvcbase-master ~]# find / -name ozone.keytab

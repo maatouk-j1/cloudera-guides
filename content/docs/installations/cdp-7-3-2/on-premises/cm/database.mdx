@@ -407,7 +407,7 @@ The command above generates the following artifacts.
 -r--------. 1 postgres postgres 1704 Aug 9 14:35 server.key
 ```
 
-Verify the key and certificate are well-formed. Both outputs are abridged in the guide:
+Verify the key and certificate are well-formed. Both outputs below are abridged:
 
 ```transcript
 [root@cldr-mngr data]# openssl rsa -noout -text -in server.key
@@ -674,5 +674,5 @@ If you plan to use Schema Registry or Streams Messaging Manager, please visit Co
 </Banner>
 
 <Banner type="important">
-**Every password above is the role name.** The guide's lab build uses `scm/scm`, `hive/hive`, `ranger/rangeradmin` and so on throughout. Substitute real credentials before running any of this outside a disposable lab, and record them - the Cloudera Manager installation wizard asks for them later.
+**Every password above is the role name.** The lab build these come from uses `scm/scm`, `hive/hive`, `ranger/rangeradmin` and so on throughout. Substitute real credentials before running any of this outside a disposable lab, and record them - the Cloudera Manager installation wizard asks for them later.
 </Banner>

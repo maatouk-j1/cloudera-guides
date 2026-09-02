@@ -25,13 +25,13 @@ alias k=kubectl
 
 Three things to fix before pasting this:
 
-- The `kubectl` line has mismatched quotes in the source — it opens with `"` and closes with `'`. Write it with matching single quotes inside the double-quoted `echo`, as the `helm` and `docker` lines do.
+- The `kubectl` line has mismatched quotes — it opens with `"` and closes with `'`. Write it with matching single quotes inside the double-quoted `echo`, as the `helm` and `docker` lines do.
 - The `helm` alias is repeated; once is enough.
 - The parcel path pins the ECS build `1.5.5-b238-ecs-1.5.5-b238.p0.50802651` and the RKE2 data directory pins `v1.26.10-rke2r1-e58e49f33617`. Both change between builds — check the actual directory names under `/opt/cloudera/parcels/` and `/var/lib/rancher/rke2/data/` on your own hosts.
 
 ## General resource inspection
 
-The first entry is the guide's shorthand, not a runnable line: pick one verb, one resource type, and one namespace scope.
+The first entry is shorthand, not a runnable line: pick one verb, one resource type, and one namespace scope.
 
 ```bash
 kubectl   get|describe|delete|create

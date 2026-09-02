@@ -11,7 +11,7 @@ nextSlug: /installations/cdp-7-3-2/appendix
 
 Cloudera Data Engineering (CDE) is the third data service to stand up on the Embedded Container Service (ECS) cluster. Enabling it runs in four stages: enable the CDE service itself, create a Virtual Cluster inside it, initialize that Virtual Cluster from the ECS master with a self-signed certificate, and finally push a Kerberos keytab for every LDAP user that needs to submit jobs.
 
-The guide points at the upstream reference [docs.cloudera.com/data-engineering/1.5.5/enable-data-engineering/topics/cde-private-cloud-add-cde-service.html](https://docs.cloudera.com/data-engineering/1.5.5/enable-data-engineering/topics/cde-private-cloud-add-cde-service.html).
+The upstream reference for this service: [docs.cloudera.com/data-engineering/1.5.5/enable-data-engineering/topics/cde-private-cloud-add-cde-service.html](https://docs.cloudera.com/data-engineering/1.5.5/enable-data-engineering/topics/cde-private-cloud-add-cde-service.html).
 
 ## Cloudera Base on premises cluster requirements
 
@@ -45,7 +45,7 @@ The **Cloudera Data Engineering (CDE)** service requires proper configuration of
 
 6. The **CDE Home page** displays the status of the **CDE** service initialization. You can view logs for the service by clicking on the service **vertical ellipsis (three dots) menu**, and then clicking **View Logs**.
 
-    The guide follows this step with the reference `https://docs.cloudera.com/management-console/1.5.5/private-cloud-environments/topics/mc-private-cloud-environment-register-ui.html`.
+    The upstream reference for this step: `https://docs.cloudera.com/management-console/1.5.5/private-cloud-environments/topics/mc-private-cloud-environment-register-ui.html`.
 
 7. If you are unable to see the service, then the chances are that the default virtual cluster would not have been created properly. In this case, click on the **View Services** button and then you will be able to see the **CDE** service **enabled**.
 
@@ -73,7 +73,7 @@ When you **enable CDE service**, by default a new **Virtual cluster with Spark2.
     This will take approximately 20 minutes.
 
 <Banner type="warning">
-**Contradiction in the source:** the step text offers **Spark2.4** and **Spark3.7**, but the **Spark Version** dropdown in its own capture lists only **Spark 2.4.7** and **Spark 3.2.1** - there is no Spark 3.7. Pick the Spark 3.x version your CDE build actually offers in the dropdown.
+**These two disagree:** the step text offers **Spark2.4** and **Spark3.7**, but the **Spark Version** dropdown in the capture above lists only **Spark 2.4.7** and **Spark 3.2.1** - there is no Spark 3.7. Pick the Spark 3.x version your CDE build actually offers in the dropdown.
 </Banner>
 
 3. You can check the logs of the cluster creation by clicking on the **pencil** icon and selecting the **Logs** section on the cluster page as shown below.
@@ -212,5 +212,5 @@ This step is required to submit the jobs to CDE from the LDAP users.
 9. Repeat these steps for all users that need to submit jobs to the virtual cluster.
 
 <Banner type="warning">
-**Contradiction in the source:** the keytab procedure mixes two usernames. The prose says *"we will consider admin as the username"* and every file is named `admin.*`, but the principal written into `admin.principal` is `cdpuser@CLDRSETUP.LOCAL`, while `ktutil` adds entries for `admin@CLDRSETUP.LOCAL` and the final `init-user-in-virtual-cluster` example passes `-u cdpuser -p cdpuser.principal -k cdpuser.keytab`. Pick one username and use it consistently across the principal file, the `ktutil` entries, the keytab filename and the `-u` argument - otherwise `kinit` will succeed against a principal the virtual cluster never receives.
+**The keytab procedure above mixes two usernames.** The prose says *"we will consider admin as the username"* and every file is named `admin.*`, but the principal written into `admin.principal` is `cdpuser@CLDRSETUP.LOCAL`, while `ktutil` adds entries for `admin@CLDRSETUP.LOCAL` and the final `init-user-in-virtual-cluster` example passes `-u cdpuser -p cdpuser.principal -k cdpuser.keytab`. Pick one username and use it consistently across the principal file, the `ktutil` entries, the keytab filename and the `-u` argument - otherwise `kinit` will succeed against a principal the virtual cluster never receives.
 </Banner>

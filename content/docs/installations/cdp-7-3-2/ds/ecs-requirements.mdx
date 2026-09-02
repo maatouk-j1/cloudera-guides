@@ -13,7 +13,7 @@ nextSlug: /installations/cdp-7-3-2/ds/checklist
 
 Use the checklist for Embedded Container Service (ECS) for Cloudera Data Services on premises: [https://docs.cloudera.com/cdp-private-cloud-data-services/1.5.5/installation-ecs/topics/cdppvc-installation-ds-checklist.html](https://docs.cloudera.com/cdp-private-cloud-data-services/1.5.5/installation-ecs/topics/cdppvc-installation-ds-checklist.html)
 
-The guide reproduces that checklist in full on the [next page](/installations/cdp-7-3-2/ds/checklist). Work through the requirements below first - they are the changes you actually make on the hosts; the checklist is what you verify afterwards.
+That checklist is reproduced in full on the [next page](/installations/cdp-7-3-2/ds/checklist). Work through the requirements below first - they are the changes you actually make on the hosts; the checklist is what you verify afterwards.
 
 ## Cloudera Data Services on premises software requirements
 
@@ -221,7 +221,7 @@ If the `nm-cloud-setup.service` and `nm-cloud-setup.timer` services are enabled,
 If you disabled the `nm-cloud-setup.service` and `nm-cloud-setup.timer` services, reboot the added hosts. For more information, see Known issues and limitations.
 
 <Banner type="warning">
-Both `nm-cloud-setup` commands are transcribed verbatim, including the source's use of the Ansible **`copy`** module where `shell` is what would actually run `systemctl`. Correct the module before running them.
+Both `nm-cloud-setup` commands use the Ansible **`copy`** module where `shell` is what would actually run `systemctl`. Correct the module before running them.
 </Banner>
 
 ## Notes
