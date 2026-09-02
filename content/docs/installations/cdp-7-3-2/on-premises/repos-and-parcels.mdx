@@ -197,8 +197,7 @@ These steps require a Cloudera username and password to access: [https://archive
 5. Run `createrepo` command to create a local repository.
 
     ```transcript
-    [root@cldr-mngr ~]# createrepo --baseurl http://$(hostname -i)/cloudera-repos/cloudera-manager/
-    /var/www/html/cloudera-repos/cloudera-manager/
+    [root@cldr-mngr ~]# createrepo --baseurl http://$(hostname -i)/cloudera-repos/cloudera-manager/ /var/www/html/cloudera-repos/cloudera-manager/
     ```
 
     <Banner type="info">
@@ -208,8 +207,7 @@ These steps require a Cloudera username and password to access: [https://archive
 6. Copy `cloudera-manager.repo` file to `/etc/yum.repos.d/` on all nodes to enable it to find the packages that are locally hosted on the admin node.
 
     ```transcript
-    [root@cldr-mngr ~]# cp /var/www/html/cloudera-repos/cloudera-manager/cloudera-manager.repo
-    /etc/yum.repos.d/cloudera-manager.repo
+    [root@cldr-mngr ~]# cp /var/www/html/cloudera-repos/cloudera-manager/cloudera-manager.repo /etc/yum.repos.d/cloudera-manager.repo
     ```
 
 7. Edit `cloudera-manager.repo` file as per the customer repository location configuration in the step above, replacing `<cm_server_ip>` in `baseurl` with the IP of the repository host — `cldr-mngr` in this setup.
@@ -233,8 +231,7 @@ These steps require a Cloudera username and password to access: [https://archive
 8. From the ansible control node copy the repo files to `/etc/yum.repos.d/` of all the nodes of the cluster:
 
     ```transcript
-    [root@ipaserver ~]# ansible all -m copy -a "src=/etc/yum.repos.d/cloudera-manager.repo
-    dest=/etc/yum.repos.d/cloudera-manager.repo"
+    [root@ipaserver ~]# ansible all -m copy -a "src=/etc/yum.repos.d/cloudera-manager.repo dest=/etc/yum.repos.d/cloudera-manager.repo"
     ```
 
 ## 2. Set Up the Local Parcels for Cloudera Base on premises 7.3.2

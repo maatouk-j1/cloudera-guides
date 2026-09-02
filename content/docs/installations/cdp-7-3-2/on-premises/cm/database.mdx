@@ -62,8 +62,7 @@ We will be installing the external PostgreSQL DB server on the `cldr-mngr` host.
     ```
 
     ```transcript
-    [root@jump ~]# ansible all -m copy -a "src=postgresql-connector-java.jar
-    dest=/usr/share/java/postgresql-connector-java.jar"
+    [root@jump ~]# ansible all -m copy -a "src=postgresql-connector-java.jar dest=/usr/share/java/postgresql-connector-java.jar"
 
     [root@jump ~]# ansible all -m shell -a "sudo chmod 644 /usr/share/java/postgresql-connector-java.jar"
 
@@ -554,8 +553,7 @@ Log in to the `ipaserver` node and copy the `root.crt` PostgreSQL database certi
 Finally, prove that both strict SSL modes work:
 
 ```transcript
-[root@cldr-mngr data]# psql -h cldr-mngr.cldrsetup.local -p 5432 -U postgres "dbname=postgres
-sslmode=verify-full"
+[root@cldr-mngr data]# psql -h cldr-mngr.cldrsetup.local -p 5432 -U postgres "dbname=postgres sslmode=verify-full"
 Password for user postgres:
 psql (17.13)
 SSL connection (protocol: TLSv1.3, cipher: TLS_AES_256_GCM_SHA384, bits: 256, compression: off)
@@ -563,8 +561,7 @@ Type "help" for help.
 postgres=#
 postgres=# \q
 
-[root@cldr-mngr data]# psql -h cldr-mngr.cldrsetup.local -p 5432 -U postgres "dbname=postgres
-sslmode=verify-ca"
+[root@cldr-mngr data]# psql -h cldr-mngr.cldrsetup.local -p 5432 -U postgres "dbname=postgres sslmode=verify-ca"
 Password for user postgres:
 psql (17.13)
 SSL connection (protocol: TLSv1.3, cipher: TLS_AES_256_GCM_SHA384, bits: 256, compression: off)

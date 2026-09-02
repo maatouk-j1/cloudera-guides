@@ -137,24 +137,19 @@ Stop at this stage. On base cluster nodes (for handling of a bug associated with
 Verify that the links are good for the Cloudera Manager version of the `hadoop-hdfs` filesystem JAR.
 
 ```transcript
-[root@jump ~]# ansible namenodes,datanodes -m shell -a "namei -om
-/var/lib/hadoop-hdfs/ozone-filesystem-hadoop3.jar"
+[root@jump ~]# ansible namenodes,datanodes -m shell -a "namei -om /var/lib/hadoop-hdfs/ozone-filesystem-hadoop3.jar"
 ```
 
 If jar not found on the host, you can download using the link below:
 
 ```bash
-wget
-https://repository.cloudera.com/repository/cloudera-repos/org/apache/hadoop/hadoop-ozone-filesystem-had
-oop3/1.1.0.7.2.15.0-147/hadoop-ozone-filesystem-hadoop3-1.1.0.7.2.15.0-147.jar
+wget https://repository.cloudera.com/repository/cloudera-repos/org/apache/hadoop/hadoop-ozone-filesystem-hadoop3/1.1.0.7.2.15.0-147/hadoop-ozone-filesystem-hadoop3-1.1.0.7.2.15.0-147.jar
 ```
 
 If links are not working fine, deactivate and activate the parcel from CM Parcel Manager. Then Perform Below steps:
 
 ```transcript
-[root@cldr-mngr ~]# ansible namenodes,datanodes -m shell -a "unlink
-/etc/alternatives/ozone-filesystem-hadoop3.jar; unlink
-/var/lib/hadoop-hdfs/ozone-filesystem-hadoop3.jar"
+[root@cldr-mngr ~]# ansible namenodes,datanodes -m shell -a "unlink /etc/alternatives/ozone-filesystem-hadoop3.jar; unlink /var/lib/hadoop-hdfs/ozone-filesystem-hadoop3.jar"
 ```
 
 ### Notes from the product / engineering team on the issue

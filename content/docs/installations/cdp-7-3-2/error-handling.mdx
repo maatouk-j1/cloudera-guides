@@ -406,7 +406,6 @@ kubectl -n kubernetes-dashboard get sa/admin-user -o 'jsonpath={.secrets[0].name
 
 ```bash
 kubectl -n kubernetes-dashboard get secret/admin-user-secret  -o 'jsonpath={.metadata.name}'
-(working)
 ```
 
 ### Dashboard token: base64decode template error
@@ -423,7 +422,7 @@ error: error executing template "{{.data.token | base64decode}}": template: outp
 **Solution.**
 
 ```bash
-kubectl get secret -n kubernetes-dashboard admin-user-secret -o 'go-template={{.data.token | base64decode}}' (working command)
+kubectl get secret -n kubernetes-dashboard admin-user-secret -o 'go-template={{.data.token | base64decode}}'
 ```
 
 ### INSTALLATION FAILED: cannot re-use a name that is still in use

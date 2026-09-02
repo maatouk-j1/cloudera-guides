@@ -414,7 +414,7 @@ Please keep the same password for both the Directory Manager and the IPA admin s
 
     ```transcript
     [root@ipaserver ~]# ipa-server-install --uninstall
-    [root@ipaserver ~]# ipa-server-install --setup-dns (again)
+    [root@ipaserver ~]# ipa-server-install --setup-dns
     ```
     </Banner>
 
@@ -493,18 +493,12 @@ Enable password-less login across all the nodes when Red Hat Linux is installed 
     </Banner>
 
     ```transcript
-    [root@ipaserver ~]# for i in {1}; do echo "copying ipaserver.cldrsetup.local"; ssh-copy-id -i
-    ~/.ssh/id_rsa.pub root@ipaserver.cldrsetup.local; done;
-    [root@ipaserver ~]# for i in {1}; do echo "copying cldr-mngr.cldrsetup.local"; ssh-copy-id -i
-    ~/.ssh/id_rsa.pub root@cldr-mngr.cldrsetup.local; done;
-    [root@ipaserver ~]# for i in {1}; do echo "copying pvcbase-master.cldrsetup.local"; ssh-copy-id -i
-    ~/.ssh/id_rsa.pub root@pvcbase-master.cldrsetup.local; done;
-    [root@ipaserver ~]# for i in {1..3}; do echo "copying pvcbase-worker$i.cldrsetup.local"; ssh-copy-id -i
-    ~/.ssh/id_rsa.pub root@pvcbase-worker$i.cldrsetup.local; done;
-    [root@ipaserver ~]# for i in {1}; do echo "copying pvcecs-master.cldrsetup.local"; ssh-copy-id -i
-    ~/.ssh/id_rsa.pub root@pvcecs-master.cldrsetup.local; done;
-    [root@ipaserver ~]# for i in {1..10}; do echo "copying pvcecs-worker$i.cldrsetup.local"; ssh-copy-id -i
-    ~/.ssh/id_rsa.pub root@pvcecs-worker$i.cldrsetup.local; done;
+    [root@ipaserver ~]# for i in {1}; do echo "copying ipaserver.cldrsetup.local"; ssh-copy-id -i ~/.ssh/id_rsa.pub root@ipaserver.cldrsetup.local; done;
+    [root@ipaserver ~]# for i in {1}; do echo "copying cldr-mngr.cldrsetup.local"; ssh-copy-id -i ~/.ssh/id_rsa.pub root@cldr-mngr.cldrsetup.local; done;
+    [root@ipaserver ~]# for i in {1}; do echo "copying pvcbase-master.cldrsetup.local"; ssh-copy-id -i ~/.ssh/id_rsa.pub root@pvcbase-master.cldrsetup.local; done;
+    [root@ipaserver ~]# for i in {1..3}; do echo "copying pvcbase-worker$i.cldrsetup.local"; ssh-copy-id -i ~/.ssh/id_rsa.pub root@pvcbase-worker$i.cldrsetup.local; done;
+    [root@ipaserver ~]# for i in {1}; do echo "copying pvcecs-master.cldrsetup.local"; ssh-copy-id -i ~/.ssh/id_rsa.pub root@pvcecs-master.cldrsetup.local; done;
+    [root@ipaserver ~]# for i in {1..10}; do echo "copying pvcecs-worker$i.cldrsetup.local"; ssh-copy-id -i ~/.ssh/id_rsa.pub root@pvcecs-worker$i.cldrsetup.local; done;
     ```
 
     An alternate way is to add the public key to the `authorized_keys` file manually on the `ipaserver` node and copy the entire `.ssh` directory to all other nodes; otherwise log in to each host and update `authorized_keys` manually.
@@ -934,21 +928,11 @@ Configure the FreeIPA client on every other node so that it is managed by the `i
     </Banner>
 
     ```transcript
-    [root@jump ~]# ansible all -m shell -a "sudo subscription-manager repos
-    --enable=rhel-9-for-x86_64-baseos-rpms && sudo subscription-manager repos
-    --enable=rhel-9-for-x86_64-appstream-rpms && sudo dnf install -y java-17-openjdk java-17-openjdk-devel
-    python3-pip wget telnet mlocate tar traceroute net-tools bind-utils traceroute nc && java -version &&
-    python3 -V && pip3 install --upgrade pip && pip3 -V && pip3 install psycopg2-binary && pip3 list |grep
-    psy"
+    [root@jump ~]# ansible all -m shell -a "sudo subscription-manager repos --enable=rhel-9-for-x86_64-baseos-rpms && sudo subscription-manager repos --enable=rhel-9-for-x86_64-appstream-rpms && sudo dnf install -y java-17-openjdk java-17-openjdk-devel python3-pip wget telnet mlocate tar traceroute net-tools bind-utils traceroute nc && java -version && python3 -V && pip3 install --upgrade pip && pip3 -V && pip3 install psycopg2-binary && pip3 list |grep psy"
 
-    [root@jump ~]# ansible all -m shell -a "sudo dnf install -y
-    https://download.postgresql.org/pub/repos/yum/reporpms/EL-9-x86_64/pgdg-redhat-repo-latest.noarch.rpm &&
-    sudo dnf install -y postgresql14"
+    [root@jump ~]# ansible all -m shell -a "sudo dnf install -y https://download.postgresql.org/pub/repos/yum/reporpms/EL-9-x86_64/pgdg-redhat-repo-latest.noarch.rpm && sudo dnf install -y postgresql14"
 
-    [root@jump ~]# ansible all -m shell -a "sudo subscription-manager repos
-    --enable=rhel-9-for-x86_64-baseos-rpms && sudo subscription-manager repos
-    --enable=rhel-9-for-x86_64-appstream-rpms && sudo dnf install -y freeipa-client openldap-clients
-    krb5-workstation krb5-libs && chronyc tracking && chronyc sources" -l 'all:!admin'
+    [root@jump ~]# ansible all -m shell -a "sudo subscription-manager repos --enable=rhel-9-for-x86_64-baseos-rpms && sudo subscription-manager repos --enable=rhel-9-for-x86_64-appstream-rpms && sudo dnf install -y freeipa-client openldap-clients krb5-workstation krb5-libs && chronyc tracking && chronyc sources" -l 'all:!admin'
     ```
 
 2. Install and set up the IPA services by configuring the FreeIPA client on all machines except the `ipaserver`, and add all the machines to the DNS server, by running the command `ipa-client-install` to set up the IPA client.
@@ -1211,8 +1195,7 @@ If you are using an AD server as Kerberos instead of FreeIPA:
     ```transcript
     [root@jump ~]# wget https://jdbc.postgresql.org/download/postgresql-42.7.13.jar
     [root@jump ~]# chmod 644 postgresql-42.7.13.jar
-    [root@jump ~]# ansible all -m copy -a "src=postgresql-42.7.13.jar
-    dest=/usr/share/java/postgresql-connector-java.jar"
+    [root@jump ~]# ansible all -m copy -a "src=postgresql-42.7.13.jar dest=/usr/share/java/postgresql-connector-java.jar"
     [root@jump ~]# ansible all -m shell -a "sudo ls -l /usr/share/java/postgresql-connector-java.jar"
     ```
 
@@ -1230,8 +1213,7 @@ Either disable the firewall or update the rules on all hosts.
 [root@jump ~]# ansible all -m command -a "firewall-cmd --zone=public --add-port=80/tcp --permanent"
 [root@jump ~]# ansible all -m command -a "firewall-cmd --zone=public --add-port=443/tcp --permanent"
 [root@jump ~]# ansible all -m command -a "firewall-cmd --reload"
-[root@jump ~]# ansible all -m command -a "systemctl disable firewalld && systemctl stop firewalld &&
-systemctl status firewalld | grep -e disabled -e inactive"
+[root@jump ~]# ansible all -m command -a "systemctl disable firewalld && systemctl stop firewalld && systemctl status firewalld | grep -e disabled -e inactive"
 ```
 
 ## 8. Disable SELinux
@@ -1243,8 +1225,7 @@ SELinux must be disabled during the install procedure and cluster setup. SELinux
 SELinux can be disabled by editing `/etc/selinux/config` (on some systems it would be `/etc/sysconfig/selinux`). To disable SELinux, change `SELINUX=enforcing` to `SELINUX=disabled` or `SELINUX=permissive`. Follow these steps:
 
 ```transcript
-[root@jump ~]# ansible all -m shell -a "sed -i 's/SELINUX=enforcing/SELINUX=disabled/g'
-/etc/selinux/config"
+[root@jump ~]# ansible all -m shell -a "sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config"
 [root@jump ~]# ansible all -m shell -a "setenforce 0"
 [root@jump ~]# ansible all -m shell -a "getenforce"
 ```
@@ -1356,12 +1337,9 @@ On each node, setting the number of TCP retries to 5 can help detect unreachable
 Run the following commands.
 
 ```transcript
-[root@jump ~]# ansible all -m shell -a "echo 'net.ipv6.conf.all.disable_ipv6 = 1' >> /etc/sysctl.conf" -l
-'all:!ecsmasternodes:!ecsnodes'
-[root@jump ~]# ansible all -m shell -a "echo 'net.ipv6.conf.default.disable_ipv6 = 1' >> /etc/sysctl.conf"
--l 'all:!ecsmasternodes:!ecsnodes'
-[root@jump ~]# ansible all -m shell -a "echo 'net.ipv6.conf.lo.disable_ipv6 = 0' >> /etc/sysctl.conf" -l
-'all:!ecsmasternodes:!ecsnodes'
+[root@jump ~]# ansible all -m shell -a "echo 'net.ipv6.conf.all.disable_ipv6 = 1' >> /etc/sysctl.conf" -l 'all:!ecsmasternodes:!ecsnodes'
+[root@jump ~]# ansible all -m shell -a "echo 'net.ipv6.conf.default.disable_ipv6 = 1' >> /etc/sysctl.conf" -l 'all:!ecsmasternodes:!ecsnodes'
+[root@jump ~]# ansible all -m shell -a "echo 'net.ipv6.conf.lo.disable_ipv6 = 0' >> /etc/sysctl.conf" -l 'all:!ecsmasternodes:!ecsnodes'
 ```
 
 ## 13. Disable swapping
@@ -1407,7 +1385,7 @@ Disabling Transparent Huge Pages (THP) reduces elevated CPU usage caused by THP.
 2. On the Ansible controller / `ipaserver` node, run the following commands.
 
     ```transcript
-    [root@jump ~]# rm –f /root/thp_disable
+    [root@jump ~]# rm -f /root/thp_disable
     [root@jump ~]# echo "echo never > /sys/kernel/mm/transparent_hugepage/enabled" >> /root/thp_disable
     [root@jump ~]# echo "echo never > /sys/kernel/mm/transparent_hugepage/defrag" >> /root/thp_disable
     ```
@@ -1518,8 +1496,7 @@ Disabling TCP checksum offload may have implications on network performance or s
     Determine the network interface used by the affected ECS nodes. This can typically be found using the `ifconfig` or `ip addr` command.
 
     ```transcript
-    [root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "ifconfig | grep flags | grep -v lo && ip addr |
-    grep mtu | grep -v lo"
+    [root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "ifconfig | grep flags | grep -v lo && ip addr | grep mtu | grep -v lo"
 
     [root@jump ~]$ ifconfig | grep flags | grep -v lo
     eth0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST> mtu 9001

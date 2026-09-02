@@ -138,19 +138,15 @@ The guide reproduces that checklist in full on the [next page](/installations/cd
     Enable the optional repositories, on RHEL 9 Linux only. This is optional if it was not completed prior.
 
     ```transcript
-    [root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "subscription-manager repos
-    --enable=rhel-9-for-x86_64-appstream-rpms"
-    [root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "subscription-manager repos
-    --enable=rhel-9-for-x86_64-baseos-rpms"
-    [root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "subscription-manager repos
-    --enable=codeready-builder-for-rhel-9-x86_64-rpms"
+    [root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "subscription-manager repos --enable=rhel-9-for-x86_64-appstream-rpms"
+    [root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "subscription-manager repos --enable=rhel-9-for-x86_64-baseos-rpms"
+    [root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "subscription-manager repos --enable=codeready-builder-for-rhel-9-x86_64-rpms"
     ```
 
     Install the kernel headers and development packages for the currently running kernel.
 
     ```transcript
-    [root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "sudo dnf install kernel-devel-$(uname -r)
-    kernel-headers-$(uname -r)"
+    [root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "sudo dnf install kernel-devel-$(uname -r) kernel-headers-$(uname -r)"
     ```
 
     Remove the outdated signing key.
@@ -162,13 +158,9 @@ The guide reproduces that checklist in full on the [next page](/installations/cd
     Download and install the NVIDIA CUDA Toolkit. This exercise is documented with CUDA 12.3.2 for RHEL 9, installed from a local rpm.
 
     ```transcript
-    [root@ipaserver ~]# wget
-    https://developer.download.nvidia.com/compute/cuda/12.2.2/local_installers/cuda-repo-rhel9-12-2-local-12.2.2_535.104.05-1.x86_64.rpm
-    [root@jump ~]# ansible ecsmasternodes,ecsnodes -m copy -a
-    "src=/root/cuda-repo-rhel9-12-2-local-12.2.2_535.104.05-1.x86_64.rpm
-    dest=/root/cuda-repo-rhel9-12-2-local-12.2.2_535.104.05-1.x86_64.rpm"
-    [root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "sudo rpm --install
-    cuda-repo-rhel9-12-2-local-12.2.2_535.104.05-1.x86_64.rpm"
+    [root@ipaserver ~]# wget https://developer.download.nvidia.com/compute/cuda/12.2.2/local_installers/cuda-repo-rhel9-12-2-local-12.2.2_535.104.05-1.x86_64.rpm
+    [root@jump ~]# ansible ecsmasternodes,ecsnodes -m copy -a "src=/root/cuda-repo-rhel9-12-2-local-12.2.2_535.104.05-1.x86_64.rpm dest=/root/cuda-repo-rhel9-12-2-local-12.2.2_535.104.05-1.x86_64.rpm"
+    [root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "sudo rpm --install cuda-repo-rhel9-12-2-local-12.2.2_535.104.05-1.x86_64.rpm"
     ```
 
     From the [NVIDIA Driver Downloads page](https://www.nvidia.com/download/index.aspx), download the NVIDIA driver that matches your GPU, OS and NVIDIA CUDA version.
@@ -176,23 +168,18 @@ The guide reproduces that checklist in full on the [next page](/installations/cd
     ```transcript
     [root@jump ~]# wget https://nvidia.github.io/libnvidia-container/stable/rpm/nvidia-container-toolkit.repo
 
-    [root@jump ~]# ansible ecsmasternodes,ecsnodes -m copy -a
-    "src=/root/nvidia-driver-local-repo-rhel9-535.161.07-1.0-1.x86_64.rpm
-    dest=/root/nvidia-driver-local-repo-rhel9-535.161.07-1.0-1.x86_64.rpm"
-    [root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "sudo rpm --install
-    nvidia-driver-local-repo-rhel9-535.161.07-1.0-1.x86_64.rpm”
+    [root@jump ~]# ansible ecsmasternodes,ecsnodes -m copy -a "src=/root/nvidia-driver-local-repo-rhel9-535.161.07-1.0-1.x86_64.rpm dest=/root/nvidia-driver-local-repo-rhel9-535.161.07-1.0-1.x86_64.rpm"
+    [root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "sudo rpm --install nvidia-driver-local-repo-rhel9-535.161.07-1.0-1.x86_64.rpm"
 
     [root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "sudo dnf clean all"
-    [root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "sudo dnf -y module install
-    nvidia-driver:latest-dkms"
+    [root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "sudo dnf -y module install nvidia-driver:latest-dkms"
     [root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "sudo dnf -y install cuda"
     ```
 
     Enable the `nvidia-persistenced` services.
 
     ```transcript
-    [root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "sudo systemctl enable
-    nvidia-persistenced.service"
+    [root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "sudo systemctl enable nvidia-persistenced.service"
     ```
 
     Reboot the machine.
@@ -210,10 +197,8 @@ The guide reproduces that checklist in full on the [next page](/installations/cd
     Install with `dnf`, configuring the production repository first.
 
     ```transcript
-    [root@jump ~]# ansible ecsmasternodes,ecsnodes -m copy -a "src=/root/nvidia-container-toolkit.repo
-    dest=/etc/yum.repos.d/nvidia-container-toolkit.repo"
-    [root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "sudo dnf config-manager --enable
-    nvidia-container-toolkit-experimental"
+    [root@jump ~]# ansible ecsmasternodes,ecsnodes -m copy -a "src=/root/nvidia-container-toolkit.repo dest=/etc/yum.repos.d/nvidia-container-toolkit.repo"
+    [root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "sudo dnf config-manager --enable nvidia-container-toolkit-experimental"
     [root@jump ~]# ansible ecsmasternodes,ecsnodes -m shell -a "sudo dnf install -y nvidia-container-toolkit"
     ```
 
@@ -224,15 +209,13 @@ The guide reproduces that checklist in full on the [next page](/installations/cd
 Run the following command to check whether the `nm-cloud-setup.service` and `nm-cloud-setup.timer` services are enabled.
 
 ```transcript
-[root@jump ~]# ansible ecsmasternodes,ecsnodes -m copy -a "systemctl status nm-cloud-setup.service
-nm-cloud-setup.timer"
+[root@jump ~]# ansible ecsmasternodes,ecsnodes -m copy -a "systemctl status nm-cloud-setup.service nm-cloud-setup.timer"
 ```
 
 If the `nm-cloud-setup.service` and `nm-cloud-setup.timer` services are enabled, disable them by running the following command on each host you added.
 
 ```transcript
-[root@jump ~]# ansible ecsmasternodes,ecsnodes -m copy -a "systemctl disable nm-cloud-setup.service
-nm-cloud-setup.timer && systemctl stop nm-cloud-setup.service nm-cloud-setup.timer"
+[root@jump ~]# ansible ecsmasternodes,ecsnodes -m copy -a "systemctl disable nm-cloud-setup.service nm-cloud-setup.timer && systemctl stop nm-cloud-setup.service nm-cloud-setup.timer"
 ```
 
 If you disabled the `nm-cloud-setup.service` and `nm-cloud-setup.timer` services, reboot the added hosts. For more information, see Known issues and limitations.

@@ -107,10 +107,7 @@ Reference: [https://docs.cloudera.com/cloudera-manager/7.13.2/cloudera-manager-i
     For this deployment it becomes:
 
     ```transcript
-    [root@cldr-mngr ~]# sudo /opt/cloudera/cm/schema/scm_prepare_database.sh -h cldr-mngr.cldrsetup.local
-    --jdbc-url
-    "jdbc:postgresql://cldr-mngr.cldrsetup.local:5432/scm?ssl=true&sslmode=verify-ca&sslrootcert=/var/lib/clouder
-    a-scm-server/.postgresql/root.crt" postgresql scm scm scm --ssl
+    [root@cldr-mngr ~]# sudo /opt/cloudera/cm/schema/scm_prepare_database.sh -h cldr-mngr.cldrsetup.local --jdbc-url "jdbc:postgresql://cldr-mngr.cldrsetup.local:5432/scm?ssl=true&sslmode=verify-ca&sslrootcert=/var/lib/cloudera-scm-server/.postgresql/root.crt" postgresql scm scm scm --ssl
     JAVA_HOME=/usr/lib/jvm/java-17-openjdk-17.0.14.0.7-1.el9.x86_64
     Verifying that we can write to /etc/cloudera-scm-server
     Creating SCM configuration file in /etc/cloudera-scm-server

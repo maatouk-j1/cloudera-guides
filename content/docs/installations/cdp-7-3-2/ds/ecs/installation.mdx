@@ -75,8 +75,7 @@ This is the longest single procedure in the guide - one wizard, **29 steps**, ru
     Download everything under `https://archive.cloudera.com/p/cdp-pvc-ds/latest/` to your local HTTP server - for example `http://your_local_repo/cdp-pvc-ds/latest/` - using the command below.
 
     ```transcript
-    [root@cldr-mngr cdp-pvc-ds]# wget -l 0 --recursive --no-parent -e robots=off -nH --cut-dirs=2
-    --reject="index.html*" -t 10 https://<paywall_username>:<paywall_password>@archive.cloudera.com/p/cdp-pvc-ds/latest/
+    [root@cldr-mngr cdp-pvc-ds]# wget -l 0 --recursive --no-parent -e robots=off -nH --cut-dirs=2 --reject="index.html*" -t 10 https://<paywall_username>:<paywall_password>@archive.cloudera.com/p/cdp-pvc-ds/latest/
 
     [root@cldr-mngr cdp-pvc-ds]# ls -lt 1.5.5-h3200/
     total 116300
@@ -405,10 +404,8 @@ Since all hosts part of the ECS installation might not have NVIDIA GPU installed
 
     ```transcript
     [root@pvcecs-master ~]# dnf install wget -y
-    [root@pvcecs-master ~]# rm -rvf ~/.kube && mkdir -p ~/.kube && cp /etc/rancher/rke2/rke2.yaml
-    ~/.kube/config
-    [root@pvcecs-master ~]# wget
-    https://github.com/derailed/k9s/releases/latest/download/k9s_Linux_amd64.tar.gz
+    [root@pvcecs-master ~]# rm -rvf ~/.kube && mkdir -p ~/.kube && cp /etc/rancher/rke2/rke2.yaml ~/.kube/config
+    [root@pvcecs-master ~]# wget https://github.com/derailed/k9s/releases/latest/download/k9s_Linux_amd64.tar.gz
     [root@pvcecs-master ~]# tar -xzf k9s_Linux_amd64.tar.gz
     [root@pvcecs-master ~]# sudo mv k9s /usr/bin/
     [root@pvcecs-master ~]# k9s version
@@ -428,8 +425,7 @@ Since all hosts part of the ECS installation might not have NVIDIA GPU installed
     Create an alias on the node so you can run the `kubectl` command more briefly.
 
     ```transcript
-    [root@pvcecs-master ~]# echo "export
-    PATH=/var/lib/rancher/rke2/data/v1.30.12-rke2r1-328c510931ca/bin/:$PATH" >> ~/.bashrc && source ~/.bashrc
+    [root@pvcecs-master ~]# echo "export PATH=/var/lib/rancher/rke2/data/v1.30.12-rke2r1-328c510931ca/bin/:$PATH" >> ~/.bashrc && source ~/.bashrc
     [root@pvcecs-master ~]# echo "alias k=kubectl" >> ~/.bashrc && source ~/.bashrc
     ```
 

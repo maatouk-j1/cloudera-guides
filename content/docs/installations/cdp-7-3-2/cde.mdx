@@ -140,8 +140,7 @@ Every time a **new virtual cluster** is created, there are a few **manual steps*
     For the example host we used above, this command will be as below.
 
     ```transcript
-    [root@pvcecs-master ~]# ./cdp-cde-utils.sh init-virtual-cluster -h
-    dfdj6kgx.cde-2cdxw5x5.ecs-demo.example.com -a
+    [root@pvcecs-master ~]# ./cdp-cde-utils.sh init-virtual-cluster -h dfdj6kgx.cde-2cdxw5x5.ecs-demo.example.com -a
     ```
 
 10. These steps must be performed for each virtual cluster you create.
@@ -201,15 +200,13 @@ This step is required to submit the jobs to CDE from the LDAP users.
 8. Use the `cdp-cde-utils.sh` script to copy the user **keytab** to the virtual cluster hosts.
 
     ```transcript
-    [root@pvcecs-master ~]# ./cdp-cde-utils.sh init-user-in-virtual-cluster -h <endpoint_host> -u <user> -p
-    <principal_file> -k <keytab_file>
+    [root@pvcecs-master ~]# ./cdp-cde-utils.sh init-user-in-virtual-cluster -h <endpoint_host> -u <user> -p <principal_file> -k <keytab_file>
     ```
 
     For the above example, the command would be below.
 
     ```transcript
-    [root@pvcecs-master ~]# ./cdp-cde-utils.sh init-user-in-virtual-cluster -h
-    dfdj6kgx.cde-2cdxw5x5.ecs-demo.example.com -u cdpuser -p cdpuser.principal -k cdpuser.keytab
+    [root@pvcecs-master ~]# ./cdp-cde-utils.sh init-user-in-virtual-cluster -h dfdj6kgx.cde-2cdxw5x5.ecs-demo.example.com -u cdpuser -p cdpuser.principal -k cdpuser.keytab
     ```
 
 9. Repeat these steps for all users that need to submit jobs to the virtual cluster.
