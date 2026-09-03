@@ -170,9 +170,17 @@ rm -vf /tmp/kafka-logs/*
 
 See [this write-up on the KafkaServer startup failure](https://gautambangalore.medium.com/resolved-error-fatal-error-during-kafkaserver-startup-37f638c2c00c).
 
+This line rewrites a stale cluster ID across the DataNodes. It is incomplete as printed and will not
+run:
+
 ```bash
 ansible datanodes -m shell -a "sed -i 's#aHRUaTqoQzOpGf8qA5bXlQ#rxsV4DwNRvWtIcl5ejG-IA#g'
 ```
+
+Two things are missing before you can paste it: the file `sed` is meant to edit, and the closing `"`
+that ends the `-a` argument. Supply the `meta.properties` path named above, and check the two IDs —
+`aHRUaTqoQzOpGf8qA5bXlQ` and `rxsV4DwNRvWtIcl5ejG-IA` are this deployment's, and yours come from your
+own Role logs.
 
 ### Service NodeManager failed in state INITED
 

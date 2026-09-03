@@ -1646,8 +1646,7 @@ Install httpd on the Cloudera Manager node - `cldr-mngr` - to host a local parce
 2. Generate the CA certificate.
 
     ```transcript
-    [root@cldr-mngr ~]# openssl req -newkey rsa:2048 -nodes -keyout /etc/pki/tls/private/httpd.key -x509 -days
-    3650 -out /etc/pki/tls/certs/httpd.crt \
+    [root@cldr-mngr ~]# openssl req -newkey rsa:2048 -nodes -keyout /etc/pki/tls/private/httpd.key -x509 -days 3650 -out /etc/pki/tls/certs/httpd.crt \
     -subj "/C=US/ST=North Carolina/L=Raleigh/O=Red Hat Inc/OU=CLDR/CN=cldr-mngr.cldrsetup.local"
 
     [root@cldr-mngr ~]# ls -l /etc/pki/tls/private/ /etc/pki/tls/certs/
