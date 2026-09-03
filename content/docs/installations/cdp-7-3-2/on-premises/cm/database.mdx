@@ -201,26 +201,13 @@ We will be installing the external PostgreSQL DB server on the `cldr-mngr` host.
     # 4. Update postgresql.conf
     # ================================
 
-    sed -i -E \
-      -e "s|^[[:space:]]*#?[[:space:]]*port[[:space:]]*=.*|port = ${PG_PORT}|" \
-      -e "s|^[[:space:]]*#?[[:space:]]*listen_addresses[[:space:]]*=.*|listen_addresses = '${PG_LISTEN_ADDRESSES}'|" \
-      -e "s|^[[:space:]]*#?[[:space:]]*max_connections[[:space:]]*=.*|max_connections = ${PG_MAX_CONNECTIONS}|" \
-      -e "s|^[[:space:]]*#?[[:space:]]*shared_buffers[[:space:]]*=.*|shared_buffers = ${PG_SHARED_BUFFERS}|" \
-      -e "s|^[[:space:]]*#?[[:space:]]*wal_buffers[[:space:]]*=.*|wal_buffers = ${PG_WAL_BUFFERS}|" \
-      -e "s|^[[:space:]]*#?[[:space:]]*max_wal_size[[:space:]]*=.*|max_wal_size = ${PG_MAX_WAL_SIZE}|" \
-      -e "s|^[[:space:]]*#?[[:space:]]*min_wal_size[[:space:]]*=.*|min_wal_size = ${PG_MIN_WAL_SIZE}|" \
-      -e "s|^[[:space:]]*#?[[:space:]]*checkpoint_completion_target[[:space:]]*=.*|checkpoint_completion_target = ${PG_CHECKPOINT_COMPLETION_TARGET}|" \
-      -e "s|^[[:space:]]*#?[[:space:]]*standard_conforming_strings[[:space:]]*=.*|standard_conforming_strings = ${PG_STANDARD_CONFORMING_STRINGS}|" \
-      -e "s|^[[:space:]]*#?[[:space:]]*jit[[:space:]]*=.*|jit = ${PG_JIT}|" \
-      "${PG_CONF}"
+    sed -i -E -e "s|^[[:space:]]*#?[[:space:]]*port[[:space:]]*=.*|port = ${PG_PORT}|" -e "s|^[[:space:]]*#?[[:space:]]*listen_addresses[[:space:]]*=.*|listen_addresses = '${PG_LISTEN_ADDRESSES}'|" -e "s|^[[:space:]]*#?[[:space:]]*max_connections[[:space:]]*=.*|max_connections = ${PG_MAX_CONNECTIONS}|" -e "s|^[[:space:]]*#?[[:space:]]*shared_buffers[[:space:]]*=.*|shared_buffers = ${PG_SHARED_BUFFERS}|" -e "s|^[[:space:]]*#?[[:space:]]*wal_buffers[[:space:]]*=.*|wal_buffers = ${PG_WAL_BUFFERS}|" -e "s|^[[:space:]]*#?[[:space:]]*max_wal_size[[:space:]]*=.*|max_wal_size = ${PG_MAX_WAL_SIZE}|" -e "s|^[[:space:]]*#?[[:space:]]*min_wal_size[[:space:]]*=.*|min_wal_size = ${PG_MIN_WAL_SIZE}|" -e "s|^[[:space:]]*#?[[:space:]]*checkpoint_completion_target[[:space:]]*=.*|checkpoint_completion_target = ${PG_CHECKPOINT_COMPLETION_TARGET}|" -e "s|^[[:space:]]*#?[[:space:]]*standard_conforming_strings[[:space:]]*=.*|standard_conforming_strings = ${PG_STANDARD_CONFORMING_STRINGS}|" -e "s|^[[:space:]]*#?[[:space:]]*jit[[:space:]]*=.*|jit = ${PG_JIT}|" "${PG_CONF}"
 
     # ================================
     # 5. Verify Updated Parameters
     # ================================
 
-    grep -E \
-    '^[[:space:]]*(port|listen_addresses|max_connections|shared_buffers|wal_buffers|max_wal_size|min_wal_size|checkpoint_completion_target|standard_conforming_strings|jit)[[:space:]]*=' \
-    "${PG_CONF}"
+    grep -E '^[[:space:]]*(port|listen_addresses|max_connections|shared_buffers|wal_buffers|max_wal_size|min_wal_size|checkpoint_completion_target|standard_conforming_strings|jit)[[:space:]]*=' "${PG_CONF}"
     cd -
     ```
 
