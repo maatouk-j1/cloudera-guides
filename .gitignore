@@ -37,3 +37,7 @@ next-env.d.ts
 
 # source PDFs for docs ingestion (large binaries, fetched by P1)
 /sources
+
+# local learning scratch (parcels, planning workbooks) — large binaries.
+# Also keeps Tailwind's automatic source detection from scanning them.
+/learning
