@@ -1643,7 +1643,13 @@ Install httpd on the Cloudera Manager node - `cldr-mngr` - to host a local parce
     [root@cldr-mngr ~]# dnf install -y httpd mod_ssl createrepo_c
     ```
 
-2. Generate the CA certificate.
+2. Generate the self-signed certificate.
+
+    The `-x509` flag makes `openssl` sign the certificate with its own private key rather than send a request off to a certificate authority, so no CA is involved and nothing external has to vouch for it. Its only job is to let `httpd` serve the local repository over HTTPS, so that Cloudera Manager pulls the parcels over `https://` instead of plain `http://`. Because no CA signed it, clients have no reason to trust it on sight - point Cloudera Manager at the repository over HTTPS and it will reject the certificate until you add `httpd.crt` to the host's trust store, or fall back to `http://`.
+
+    <Banner type="info">
+    This certificate secures the parcel repository only. It is unrelated to the certificates that Auto-TLS issues for the cluster services later, and the two must not be reused for each other.
+    </Banner>
 
     ```transcript
     [root@cldr-mngr ~]# openssl req -newkey rsa:2048 -nodes -keyout /etc/pki/tls/private/httpd.key -x509 -days 3650 -out /etc/pki/tls/certs/httpd.crt -subj "/C=US/ST=North Carolina/L=Raleigh/O=Red Hat Inc/OU=CLDR/CN=cldr-mngr.cldrsetup.local"
