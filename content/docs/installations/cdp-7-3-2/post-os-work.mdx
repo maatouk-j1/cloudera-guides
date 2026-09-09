@@ -472,6 +472,10 @@ To manage all the nodes in a cluster from the admin/controller node, password-le
 
 Enable password-less login across all the nodes when Red Hat Linux is installed across all the nodes in the cluster.
 
+<Banner type="warning">
+Every node must allow the root user to log in over SSH before the key is copied to it. Check that `/etc/ssh/sshd_config` contains `PermitRootLogin yes` on each node and run `systemctl restart sshd` after changing it - otherwise the `ssh-copy-id` commands in step 3 are refused.
+</Banner>
+
 1. Log in to the `ipaserver` node.
 
     ```transcript
