@@ -657,6 +657,10 @@ We will be using the Bastion host as the Ansible controller/admin node.
 
     The changes to `/etc/resolv.conf` above are temporary and would get overwritten if the machine is rebooted. In order to keep the nameserver entry persistent, open the file `/etc/sysconfig/network` in edit mode and add the entries below.
 
+    <Banner type="warning">
+    On RHEL 9, skip the file edit below and run the `nmcli` commands that follow it instead. `/etc/sysconfig/network` was dropped along with the `initscripts` package, and nothing reads `DNS1=` any more.
+    </Banner>
+
     ```transcript
     [root@jump ~]# cp /etc/sysconfig/network /etc/sysconfig/network.orig
     [root@jump ~]# cat /etc/sysconfig/network
@@ -664,6 +668,17 @@ We will be using the Bastion host as the Ansible controller/admin node.
     NISDOMAIN=cldrsetup.local
     DNS1=172.31.24.240
     NOZEROCONF=yes
+    ```
+
+    On RHEL 9, NetworkManager owns `/etc/resolv.conf` and rewrites it when a connection is activated, so persist the entries in the connection profile instead. The first command prints the connection name to use in the rest; `ipv4.ignore-auto-dns yes` is what stops DHCP from inserting its own nameservers ahead of the IPA server.
+
+    ```transcript
+    [root@jump ~]# nmcli -t -f NAME,DEVICE con show
+    [root@jump ~]# nmcli con mod "<connection>" ipv4.dns "172.31.24.240 172.31.0.2"
+    [root@jump ~]# nmcli con mod "<connection>" ipv4.dns-search "cldrsetup.local,ap-southeast-1.compute.internal"
+    [root@jump ~]# nmcli con mod "<connection>" ipv4.ignore-auto-dns yes
+    [root@jump ~]# nmcli con up "<connection>"
+    [root@jump ~]# cat /etc/resolv.conf
     ```
 
 3. Copy the `/etc/resolv.conf` file to each node to make them able to resolve FQDNs across the cluster.
@@ -674,11 +689,29 @@ We will be using the Bastion host as the Ansible controller/admin node.
 
 4. Copy the `/etc/sysconfig/network` file to each node to make them able to resolve FQDNs across the cluster. `/etc/resolv.conf` changes may vanish after a reboot, so to persist those changes we need the configuration below.
 
+    <Banner type="warning">
+    On RHEL 9 there is no file to copy. Apply the `nmcli` settings from step 2 to every node instead, using the command that follows the block below.
+    </Banner>
+
     ```transcript
     [root@ipaserver ~]# ansible all -m copy -a "src=/etc/sysconfig/network dest=/etc/sysconfig/network" --become
     ```
 
+    On RHEL 9, run step 2's settings across the cluster. Each host picks up its own active connection name, so the same command works everywhere.
+
+    ```transcript
+    [root@ipaserver ~]# ansible all -m shell -a 'conn=$(nmcli -t -f NAME con show --active | head -1); nmcli con mod "$conn" ipv4.dns "172.31.24.240 172.31.0.2" ipv4.dns-search "cldrsetup.local,ap-southeast-1.compute.internal" ipv4.ignore-auto-dns yes; nmcli con up "$conn"' --become
+    ```
+
+    <Banner type="info">
+    `nmcli con up` re-activates the connection. The address does not change, so an SSH session normally survives it, but run this from a host outside the cluster rather than from a node that is re-activating its own connection.
+    </Banner>
+
 5. Update the network config to make sure DNS entries persist, even after reboot.
+
+    <Banner type="warning">
+    Skip this step on RHEL 9 and do nothing in its place. `/etc/sysconfig/network-scripts/ifcfg-eth0` went with the same `initscripts` removal, and the `nmcli` commands in steps 2 and 4 have already made the DNS entries persistent.
+    </Banner>
 
     Extract the DNS entries from `/etc/resolv.conf`:
 
@@ -1082,6 +1115,10 @@ If you are using an AD server as Kerberos instead of FreeIPA:
 
     The changes in `/etc/resolv.conf` above are temporary and would get overwritten if the machine is rebooted. In order to keep the nameserver entry persistent, open the file `/etc/sysconfig/network` in edit mode and verify the entries below.
 
+    <Banner type="warning">
+    On RHEL 9 this file does not exist. Verify the connection profile instead, with `nmcli con show "<connection>" | grep ipv4.dns`, which should list the values set in step 2 of *Set up network configuration files and DNS zones/records*.
+    </Banner>
+
     ```transcript
     [root@jump ~]# cp /etc/sysconfig/network /etc/sysconfig/network.orig
     [root@jump ~]# cat /etc/sysconfig/network
@@ -1098,6 +1135,10 @@ If you are using an AD server as Kerberos instead of FreeIPA:
     ```
 
 4. Copy the `/etc/sysconfig/network` file again to each node, to make them able to resolve FQDNs across the cluster. `/etc/resolv.conf` changes may vanish after a reboot, so to persist those changes we need the configuration below.
+
+    <Banner type="warning">
+    Skip this step on RHEL 9 and do nothing in its place - the file is not present to copy, and the connection profiles already carry the DNS entries.
+    </Banner>
 
     ```transcript
     [root@jump ~]# ansible all -m copy -a "src=/etc/sysconfig/network dest=/etc/sysconfig/network"
