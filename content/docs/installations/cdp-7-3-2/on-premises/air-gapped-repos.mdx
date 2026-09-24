@@ -1,0 +1,494 @@
+---
+title: Setup Repositories at an Air-Gapped Site
+topicTitle: Install Cloudera on premises
+topicSlug: cdp-7-3-2/on-premises
+summary: Stage the Cloudera Manager repository tarball and the Cloudera Runtime parcel on an internet-connected workstation, carry them into a customer site that has no outbound access, and host them from the cldr-mngr node.
+prevTitle: Setup Repositories and Parcels
+prevSlug: /installations/cdp-7-3-2/on-premises/repos-and-parcels
+nextTitle: Setup Cloudera Manager Server
+nextSlug: /installations/cdp-7-3-2/on-premises/cm
+---
+
+<Banner type="warning">
+This page is an alternative to the previous one, not an addition to it. Follow the previous page when
+the `cldr-mngr` node can reach `archive.cloudera.com` directly. Follow this one when it cannot —
+which is the normal case at a bank, a telco or any site with an outbound proxy that does not carry
+the Cloudera archive. Do not run both.
+</Banner>
+
+At most customer sites the cluster nodes have no route to the internet, and the only machine that
+does is a workstation the customer issues you — typically Windows. Everything Cloudera needs has to
+be downloaded there, carried across, and served from inside the network.
+
+This page follows Cloudera's own procedure for that: [Configuring a Local Parcel
+Repository](https://docs.cloudera.com/cloudera-manager/7.13.2/cloudera-manager-installation/topics/cdpdc-configuring-local-parcel-repository.html)
+and [Downloading and Publishing the Package
+Repository](https://docs.cloudera.com/cloudera-manager/7.13.2/cloudera-manager-installation/topics/cdpdc-downloading-publishing-package-repository.html).
+
+---
+
+## How packages and parcels differ
+
+Two things get installed, in two different ways, and confusing them is the most common reason an
+air-gapped build stalls.
+
+**Cloudera Manager is a package.** It installs with `dnf`, like any other Linux software. `dnf` needs
+a repository — a directory of RPM files plus an index that lists what is in it. Cloudera ships that
+whole directory, index included, as a single compressed archive called a **repository tarball**. You
+download one file, unpack it, and the repository is ready. There is nothing to generate.
+
+**Cloudera Runtime is a parcel.** Hadoop, Hive, Spark, Ranger and the rest do not install with `dnf`
+at all. They arrive as one large file — a parcel — that Cloudera Manager unpacks onto every host
+itself, into `/opt/cloudera/parcels`. `dnf` never sees it.
+
+So the rule is: **tarball for Cloudera Manager, parcel for the Runtime.** Both end up served over
+HTTP from the `cldr-mngr` node, which becomes the cluster's substitute for the internet.
+
+## Before you start
+
+- The Cloudera **archive** username and password. These are not a Cloudera portal login — they are
+  issued against the customer's license entitlement, and the customer's Cloudera account
+  administrator has to give them to you. Without them every download below returns 401.
+- A Windows workstation that can reach `https://archive.cloudera.com`, with roughly 25 GB free.
+- Around 20 GB free on the filesystem holding `/var/www` on `cldr-mngr`.
+- WinSCP, or another transfer tool that can resume an interrupted copy.
+- The `cldr-mngr` node already able to install RPMs from the customer's internal RHEL mirror.
+
+<Banner type="warning">
+That last point is the one people discover too late. If `cldr-mngr` has no RHEL repository
+configured, you cannot install `httpd`, and you cannot build a repository server until the server
+itself can install software. Confirm `dnf repolist` returns the RHEL BaseOS and AppStream
+repositories before you go any further, and raise it with the customer's Linux team on day one if it
+does not.
+</Banner>
+
+Confirm the combination is supported before downloading anything, at
+[supportmatrix.cloudera.com](https://supportmatrix.cloudera.com/). Cloudera Manager must be the same
+version as the Runtime or newer — never older.
+
+| Component | Value used on this page | Where it comes from |
+|:--|:--|:--|
+| Cloudera Manager | 7.13.2.100 | The directory under p/cm7 on the archive |
+| Cloudera Manager build | 81323056 | Part of the RPM file names, needed only for the fallback below |
+| Cloudera Runtime | 7.3.2 | The release train |
+| Parcel version | 7.3.2.100 | The directory under p/cdh7 on the archive |
+| Parcel build | 81274879 | Part of the parcel file name |
+| Operating system | RHEL 9 | Written redhat9 in URLs and el9 in file names |
+| Repository host | cldr-mngr.cldrsetup.local | The node running httpd |
+
+Substitute your own values throughout. Every command below is written against this set.
+
+## 1. Find the exact file names
+
+File names carry build numbers that cannot be guessed, so read them off the archive rather than
+constructing them.
+
+1. On the Windows workstation, open both of these in a browser. Each prompts for the archive
+   username and password:
+
+    ```text
+    https://archive.cloudera.com/p/cm7/7.13.2.100/repo-as-tarball/
+    https://archive.cloudera.com/p/cdh7/7.3.2.100/parcels/
+    ```
+
+2. From the first listing, note the tarball for your operating system:
+
+    ```text
+    cm7.13.2.100-redhat9.tar.gz
+    ```
+
+3. From the second, note the parcel ending in `-el9.parcel`:
+
+    ```text
+    CDH-7.3.2-1.cdh7.3.2.p100.81274879-el9.parcel
+    ```
+
+    The digits before `-el9` are the build number. Copy both names exactly — one wrong character and
+    the download returns 404.
+
+<Banner type="info">
+If the `repo-as-tarball` directory does not exist for your version, that version does not ship one.
+Use the loose-RPM fallback at the end of this page instead.
+</Banner>
+
+## 2. Download the files on the Windows workstation
+
+Everything here is done in the browser and in File Explorer. Nothing has to be installed on the
+workstation, and no scripting is involved.
+
+1. Create the folder structure. On the Desktop — or on any drive with at least 25 GB free — create a
+   folder named `cloudera-repos`. Inside it create two folders, `cm7` and `cdh7`. Inside `cdh7`
+   create one more, named after the parcel version, `7.3.2.100`.
+
+    The result should look like this:
+
+    ```text
+    cloudera-repos\
+    ├── cm7\
+    └── cdh7\
+        └── 7.3.2.100\
+    ```
+
+    Build it now, in the exact shape it will have on the server, so the copy later is a straight
+    transfer with no rearranging. The names `cm7` and `cdh7` are Cloudera's own convention and appear
+    throughout their documentation, so keep them. The `7.3.2.100` folder is the parcel version, which
+    lets the same web server host several Runtime versions side by side at upgrade time.
+
+2. Download the Cloudera Manager repository tarball. In the browser, go back to the
+   `repo-as-tarball` listing from the previous step, click `cm7.13.2.100-redhat9.tar.gz`, and save it
+   into the `cm7` folder.
+
+    The file is roughly 2 GB. It holds the Cloudera Manager server, agent and daemon RPMs **and** the
+    repository index, which is why `createrepo` appears nowhere in this procedure.
+
+3. Download the Runtime parcel and its three companion files. Go back to the `parcels` listing, and
+   save all four of these into the `cdh7\7.3.2.100` folder:
+
+    ```text
+    CDH-7.3.2-1.cdh7.3.2.p100.81274879-el9.parcel
+    CDH-7.3.2-1.cdh7.3.2.p100.81274879-el9.parcel.sha1
+    CDH-7.3.2-1.cdh7.3.2.p100.81274879-el9.parcel.sha256
+    manifest.json
+    ```
+
+    The parcel itself is around 15 GB and will take a while. Leave the browser window open until it
+    finishes.
+
+4. Verify the parcel before moving it. A truncated download wastes the entire transfer and then fails
+   during distribution with a message that points somewhere else.
+
+    Open the `cdh7\7.3.2.100` folder, hold Shift, right-click in the empty space and choose **Open
+    in Terminal** — or **Open command window here** on older Windows. Then run this, substituting your
+    own parcel file name:
+
+    ```text
+    certutil -hashfile CDH-7.3.2-1.cdh7.3.2.p100.81274879-el9.parcel SHA256
+    ```
+
+    Open the `.parcel.sha256` file in Notepad and compare the two strings. They must match. If they do
+    not, delete the parcel and download it again.
+
+<Banner type="info">
+Each listing prompts for the archive username and password the first time you open it. The browser
+remembers them for the rest of the session, so you are asked once rather than for every file.
+</Banner>
+
+What each of the four parcel files is for:
+
+| File | Purpose |
+|:--|:--|
+| The .parcel file | The Cloudera Runtime itself, around 15 GB |
+| manifest.json | The catalog Cloudera Manager reads to discover which parcels exist and what their checksums are |
+| The .parcel.sha1 file | Your own verification only |
+| The .parcel.sha256 file | Your own verification only |
+
+<Banner type="warning">
+`manifest.json` is mandatory when the parcel is served over HTTP. Cloudera Manager ignores the
+`.sha1` file sitting beside the parcel and takes the hash out of `manifest.json` instead. Omit it and
+Cloudera Manager reports the repository as empty, with no error explaining why.
+</Banner>
+
+The finished tree on the workstation:
+
+```text
+cloudera-repos\
+├── cm7\
+│   └── cm7.13.2.100-redhat9.tar.gz
+└── cdh7\
+    └── 7.3.2.100\
+        ├── CDH-7.3.2-1.cdh7.3.2.p100.81274879-el9.parcel
+        ├── CDH-7.3.2-1.cdh7.3.2.p100.81274879-el9.parcel.sha1
+        ├── CDH-7.3.2-1.cdh7.3.2.p100.81274879-el9.parcel.sha256
+        └── manifest.json
+```
+
+Leave the tarball packed. Do not right-click and extract it on Windows — that destroys the file
+permissions and symbolic links inside it.
+
+
+## 3. Copy the files to the Cloudera Manager node
+
+Use WinSCP for this, not a command-line copy tool. A 15 GB transfer over a customer VPN will drop
+at some point, and most command-line tools restart from zero while WinSCP resumes where it left off.
+
+1. In WinSCP, create a session against `cldr-mngr` as `root`, using SCP or SFTP.
+
+2. Before transferring, open **Options** > **Preferences** > **Transfer** > **Endurance** and enable
+   transfer resume for all files.
+
+3. In the left pane find the `cloudera-repos` folder you built, in the right pane navigate to
+   `/tmp`, and drag the whole folder across.
+
+4. Confirm the transfer landed and check free space on the destination filesystems:
+
+    ```transcript
+    [root@cldr-mngr ~]# du -sh /tmp/cloudera-repos/*
+    2.0G    /tmp/cloudera-repos/cm7
+    15G     /tmp/cloudera-repos/cdh7
+    [root@cldr-mngr ~]# df -h /var/www /opt
+    ```
+
+`/tmp` is a staging area. The files move to their permanent location in the steps below. Staging
+first means the transfer can be verified before it matters, and disk-space problems surface now
+rather than halfway through an extraction.
+
+## 4. Install and configure the web server
+
+Everything from here runs on `cldr-mngr` as `root`.
+
+1. Install Apache:
+
+    ```bash
+    dnf install -y httpd
+    ```
+
+    Nothing else is required. `createrepo_c` is not needed, because the tarball already contains its
+    index, and `mod_ssl` is needed only if the repository is served over HTTPS.
+
+2. Open the configuration file and add the parcel MIME type inside the `<IfModule mime_module>`
+   block, then set the server name:
+
+    ```transcript
+    [root@cldr-mngr ~]# vi /etc/httpd/conf/httpd.conf
+
+    <IfModule mime_module>
+        TypesConfig /etc/mime.types
+        AddType application/x-compress .Z
+        AddType application/x-gzip .gz .tgz .parcel
+    </IfModule>
+
+    ServerName cldr-mngr.cldrsetup.local
+    ```
+
+    <Banner type="important">
+    The `AddType` line is not optional. A parcel is a compressed archive with an unfamiliar
+    extension, and without this line Apache serves it as plain text and corrupts it in transit. The
+    download appears to succeed and Cloudera Manager then rejects it with **Hash verification
+    failed** — which reads like a bad download or a bad checksum, so the usual response is to
+    re-transfer 15 GB for nothing. One line prevents it.
+    </Banner>
+
+3. Start Apache and confirm it is running:
+
+    ```bash
+    systemctl enable --now httpd
+    systemctl status httpd
+    ```
+
+## 5. Publish the Cloudera Manager packages
+
+1. Create the target directory and unpack the tarball into it:
+
+    ```bash
+    mkdir -p /var/www/html/cloudera-repos/cm7
+    tar xvfz /tmp/cloudera-repos/cm7/cm7.13.2.100-redhat9.tar.gz -C /var/www/html/cloudera-repos/cm7 --strip-components=1
+    chmod -R ugo+rX /var/www/html/cloudera-repos/cm7
+    ```
+
+    `--strip-components=1` discards the tarball's own top-level directory, so the result is
+    `cm7/redhat9/yum` rather than `cm7/cm7.13.2.100/redhat9/yum`. That keeps the URL short and matches
+    Cloudera's documented layout.
+
+    `chmod -R ugo+rX` grants read access to files and traversal into directories. Apache runs as the
+    `apache` user, not as `root`, so without it every host sees an empty repository.
+
+2. Locate the index, which defines the repository URL:
+
+    ```transcript
+    [root@cldr-mngr ~]# find /var/www/html/cloudera-repos/cm7 -name repomd.xml
+    /var/www/html/cloudera-repos/cm7/redhat9/yum/repodata/repomd.xml
+    ```
+
+    Strip `repodata/repomd.xml` from that path and what remains is the repository root. Note it down
+    — it becomes the `baseurl`.
+
+## 6. Publish the Cloudera Runtime parcel
+
+1. Move the four files into place and open up permissions:
+
+    ```bash
+    mkdir -p /var/www/html/cloudera-repos/cdh7/7.3.2.100
+    mv /tmp/cloudera-repos/cdh7/7.3.2.100/* /var/www/html/cloudera-repos/cdh7/7.3.2.100/
+    chmod -R 755 /var/www/html/cloudera-repos/cdh7
+    ```
+
+    All four sit flat in that one directory, with no subdirectories. The parcel and its
+    `manifest.json` must be siblings or Cloudera Manager cannot connect the two.
+
+2. If SELinux is enforcing, relabel the document root:
+
+    ```transcript
+    [root@cldr-mngr ~]# getenforce
+    Enforcing
+    [root@cldr-mngr ~]# chcon -R -t httpd_sys_content_t /var/www/html/
+    ```
+
+    SELinux blocks Apache from reading files it does not recognize as web content, whatever the file
+    permissions say. Skip this if `getenforce` returns `Disabled` or `Permissive`.
+
+## 7. Verify both repositories over HTTP
+
+Do not move on until both checks return 200.
+
+1. Test from the repository host itself:
+
+    ```transcript
+    [root@cldr-mngr ~]# curl -s -o /dev/null -w "%{http_code}\n" http://cldr-mngr.cldrsetup.local/cloudera-repos/cm7/redhat9/yum/repodata/repomd.xml
+    200
+    [root@cldr-mngr ~]# curl -s -o /dev/null -w "%{http_code}\n" http://cldr-mngr.cldrsetup.local/cloudera-repos/cdh7/7.3.2.100/manifest.json
+    200
+    ```
+
+    A 403 is a permissions or SELinux problem. A 404 means the path is wrong — re-run the `find` from
+    the previous section.
+
+2. Test from a different cluster node, which is what actually matters:
+
+    ```transcript
+    [root@cldr-mngr ~]# ssh root@cldr-wrkr1 "curl -sI http://cldr-mngr.cldrsetup.local/cloudera-repos/cdh7/7.3.2.100/manifest.json | head -1"
+    HTTP/1.1 200 OK
+    ```
+
+    If the local test passed and this one did not, port 80 is closed between the cluster nodes and
+    `cldr-mngr`.
+
+## 8. Point every host at the package repository
+
+1. Write the repository definition on `cldr-mngr`:
+
+    ```bash
+    cat > /etc/yum.repos.d/cloudera-manager.repo <<'EOF'
+    [cloudera-manager]
+    name=Cloudera Manager
+    baseurl=http://cldr-mngr.cldrsetup.local/cloudera-repos/cm7/redhat9/yum/
+    enabled=1
+    gpgcheck=0
+    EOF
+    ```
+
+    Two choices there are deliberate. The `baseurl` uses the fully qualified hostname rather than an
+    IP address, because Cloudera Manager hands this URL to the agent on every host and a hostname
+    survives the node being rebuilt. And `gpgcheck=0` is set because signature verification needs
+    Cloudera's signing key fetched from the internet, which these hosts cannot reach — the tarball's
+    integrity was already established over HTTPS at download time.
+
+2. Distribute it to the rest of the cluster from the Ansible control node:
+
+    ```transcript
+    [root@ipaserver ~]# ansible all -m copy -a "src=/etc/yum.repos.d/cloudera-manager.repo dest=/etc/yum.repos.d/cloudera-manager.repo"
+    ```
+
+3. Confirm the repository resolves:
+
+    ```transcript
+    [root@cldr-mngr ~]# dnf clean all
+    [root@cldr-mngr ~]# dnf repolist
+    repo id                     repo name
+    cloudera-manager            Cloudera Manager
+    ```
+
+    A package count of zero means the `baseurl` does not point at the directory holding `repodata`.
+
+## 9. Install the Cloudera Manager packages
+
+```bash
+dnf install -y cloudera-manager-agent cloudera-manager-daemons cloudera-manager-server
+```
+
+This is the payoff: `dnf` pulls everything from the local web server with no internet involved.
+`cloudera-manager-daemons` carries the bulk of the code at around 1.8 GB, `cloudera-manager-server`
+is the management service and web console, and `cloudera-manager-agent` is the small process that
+runs on every host.
+
+Continue with [Setup Database for Cloudera
+Manager](/installations/cdp-7-3-2/on-premises/cm/database) and [Install Cloudera Manager
+Server](/installations/cdp-7-3-2/on-premises/cm/server), then return here for the parcel
+configuration once the console is reachable.
+
+## 10. Point Cloudera Manager at the parcel repository
+
+1. In the Cloudera Manager console, go to **Hosts** > **Parcels** > **Configuration**.
+
+2. Delete every existing entry under **Remote Parcel Repository URL**. They all point at
+   `archive.cloudera.com`, and with no outbound route each one hangs until it times out, which makes
+   the Parcels page take minutes to load.
+
+3. Add a single URL:
+
+    ```text
+    http://cldr-mngr.cldrsetup.local/cloudera-repos/cdh7/7.3.2.100/
+    ```
+
+4. Save, then click **Check for New Parcels**. The Runtime version should appear in the list. If it
+   does not, `manifest.json` is missing or unreadable.
+
+5. In the installation wizard, on the **Select Repository** screen, choose **Custom Repository** and
+   enter the package repository URL so the wizard can install the agent on the remaining hosts:
+
+    ```text
+    http://cldr-mngr.cldrsetup.local/cloudera-repos/cm7/redhat9/yum/
+    ```
+
+<Banner type="info">
+Cloudera also supports a second parcel method — copying the parcel directly into
+`/opt/cloudera/parcel-repo` on the Cloudera Manager node, generating a `.parcel.sha` file with
+`sha1sum`, and changing ownership to `cloudera-scm`. It needs no web server for the parcel, but it
+serves only that one node, so the package repository above is still required. Prefer the hosted
+method for anything beyond a single-node trial.
+</Banner>
+
+## If the version has no repository tarball
+
+Some patch releases publish only loose RPMs. In that case you download the individual packages and
+build the index yourself.
+
+1. On the Windows workstation, inside the `cm7` folder create the nested folders `RPMS` and then
+   `x86_64`, so the path reads `cloudera-repos\cm7\RPMS\x86_64`.
+
+2. In the browser, open the package listing:
+
+    ```text
+    https://archive.cloudera.com/p/cm7/7.13.2.100/redhat9/yum/RPMS/x86_64/
+    ```
+
+    Download these three files into the `x86_64` folder you just created:
+
+    ```text
+    cloudera-manager-agent-7.13.2.100-81323056.el9.x86_64.rpm
+    cloudera-manager-daemons-7.13.2.100-81323056.el9.x86_64.rpm
+    cloudera-manager-server-7.13.2.100-81323056.el9.x86_64.rpm
+    ```
+
+    Also download `cloudera-manager-server-db-2` from the same listing, but only if the embedded
+    PostgreSQL database is used. With the external PostgreSQL this guide configures, it is not needed.
+
+3. Go up one level in the browser to the `yum` listing and download `RPM-GPG-KEY-cloudera` into the
+   `cm7` folder.
+
+4. After copying to `cldr-mngr`, generate the index:
+
+    ```bash
+    dnf install -y createrepo_c
+    createrepo_c /var/www/html/cloudera-repos/cm7/
+    chmod -R ugo+rX /var/www/html/cloudera-repos/cm7
+    ```
+
+    The `baseurl` is then `http://cldr-mngr.cldrsetup.local/cloudera-repos/cm7/` with no
+    `redhat9/yum` suffix, because `createrepo_c` writes `repodata` at the top of that directory.
+
+<Banner type="warning">
+Re-run `createrepo_c` every time an RPM is added or replaced. The index is a snapshot, and a stale
+one makes `dnf` report a package as missing when the file is sitting right there.
+</Banner>
+
+## What goes wrong
+
+| Symptom | Cause | Fix |
+|:--|:--|:--|
+| Hash verification failed while distributing the parcel | The AddType line is missing from httpd.conf | Add it, restart httpd, then retry the distribution |
+| Check for New Parcels finds nothing, with no error | manifest.json is missing from the parcel directory, or unreadable | Copy it in beside the parcel and re-apply the permissions |
+| Other hosts get HTTP 403, the repository host gets 200 | Directory permissions, or an SELinux label on the document root | Re-run the chmod and the chcon |
+| HTTP 404 on repomd.xml | The baseurl does not match where the tarball actually unpacked | Locate repomd.xml with find and correct the baseurl |
+| dnf repolist shows the repository with zero packages | The baseurl points above or below the directory holding repodata | Same fix as above |
+| dnf install httpd fails on cldr-mngr | The node has no RHEL repository configured | Get the internal RHEL mirror configured before continuing |
+| The repository works today and breaks after a rebuild | The baseurl uses an IP address rather than the hostname | Rewrite it with the fully qualified hostname and redistribute |

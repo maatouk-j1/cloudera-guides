@@ -162,6 +162,10 @@ export const navigation: NavItem[] = [
                     href: "/installations/cdp-7-3-2/on-premises/repos-and-parcels",
                   },
                   {
+                    title: "Setup Repositories at an Air-Gapped Site",
+                    href: "/installations/cdp-7-3-2/on-premises/air-gapped-repos",
+                  },
+                  {
                     title: "Setup Cloudera Manager Server",
                     href: "/installations/cdp-7-3-2/on-premises/cm",
                     children: [
