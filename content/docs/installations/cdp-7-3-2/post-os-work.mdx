@@ -224,12 +224,18 @@ In this step, a private DNS server and other services such as KDC and Directory 
 | IPA admin password: | `<ipa_admin_password>` |
 | Password (confirm): | `<ipa_admin_password>` |
 | Do you want to configure DNS forwarders? [yes]: | `<ENTER>` |
+| Do you want to configure these servers as DNS forwarders? [yes]: | `<ENTER>` |
+| Enter an IP address for a DNS forwarder, or press Enter to skip: | `<ENTER>` |
 | Do you want to search for missing reverse zones?[yes]: | no |
 | NetBIOS domain name [CLDRSETUP]: | CLDRSETUP |
 | Do you want to configure chrony with NTP server or pool address? [no]: | yes |
 | Enter NTP source server addresses separated by comma, or press Enter to skip: | `<ENTER>` |
 | Enter a NTP source pool address, or press Enter to skip: | `<ENTER>` |
 | Continue to configure the system with these values?[no]: | yes |
+
+<Banner type="warning">
+Accept the DNS forwarders. The installer offers whatever `nameserver` entries it finds in `/etc/resolv.conf`, so run this step **before** you point `/etc/resolv.conf` at the IPA server in Step 5 - at this stage the file must still hold the upstream resolvers the hosts were provisioned with. Declining leaves the zone with `Forward policy: only`, and BIND then answers every name outside your domain with NXDOMAIN. Because glibc falls through to the next `nameserver` only on timeout or SERVFAIL, never on NXDOMAIN, listing the upstream resolvers in `/etc/resolv.conf` afterwards does not rescue it, and `dnf` fails to resolve its mirrors on every node. If the resolvers are not DNSSEC-signed the installer warns about missing signatures and asks whether to continue; answering yes still adds them. To repair a server already installed without forwarders, run `ipa dnsconfig-mod --forwarder=<ip> --forward-policy=first`.
+</Banner>
 
 Please keep the same password for both the Directory Manager and the IPA admin so that there is no confusion in future while using the same. Also, note down the password separately.
 
@@ -298,8 +304,12 @@ Please keep the same password for both the Directory Manager and the IPA admin s
     Password (confirm): <ipa_admin_password>
 
     Checking DNS domain cldrsetup.local., please wait ...
-    Do you want to configure DNS forwarders? [yes]: no
-    No DNS forwarders configured
+    Do you want to configure DNS forwarders? [yes]: <ENTER>
+    Following DNS servers are configured in /etc/resolv.conf: 172.31.0.2
+    Do you want to configure these servers as DNS forwarders? [yes]: <ENTER>
+    All DNS servers from /etc/resolv.conf were added. You can enter additional addresses now:
+    Enter an IP address for a DNS forwarder, or press Enter to skip: <ENTER>
+    Checking DNS forwarders, please wait ...
     Do you want to search for missing reverse zones? [yes]: no
     Trust is configured but no NetBIOS domain name found, setting it now.
     Enter the NetBIOS name for the IPA domain.
@@ -324,8 +334,8 @@ Please keep the same password for both the Directory Manager and the IPA admin s
     Chaining:     self-signed
 
     BIND DNS server will be configured to serve IPA domain with:
-    Forwarders:       No forwarders
-    Forward policy:   only
+    Forwarders:       172.31.0.2
+    Forward policy:   first
     Reverse zone(s): No reverse zone
 
     Continue to configure the system with these values? [no]: yes
