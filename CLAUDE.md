@@ -23,3 +23,10 @@ Ingesting the Cloudera 7.3.2 ECS deployment guide? Follow `docs/agents/cdp-7-3-2
 ### Domain docs
 
 Single-context: `CONTEXT.md` + `docs/adr/` at the repo root. See `docs/agents/domain.md`.
+
+### Lab notes (agent memory)
+
+Memory goes in `learning/lab-notes/` as files — never the built-in memory dir. Read
+`learning/lab-notes/README.md` before any cluster-build work: index, guide deviations, lockouts,
+and the format for new notes. Not auto-loaded. Gitignored, so absent on a fresh clone — skip
+silently if missing.
