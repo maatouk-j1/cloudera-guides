@@ -2,7 +2,7 @@
 title: Enable Auto-TLS
 topicTitle: Setup Cloudera Manager Server
 topicSlug: cdp-7-3-2/on-premises/cm
-summary: Run the Cloudera Manager Auto-TLS wizard from the Add Private Cloud Base Cluster page so Cloudera Manager becomes its own certificate authority, then restart the server and confirm the UI redirects to HTTPS on port 7183.
+summary: Enable Auto-TLS using one of two official use cases - Use Case 1 runs the Cloudera Manager wizard so Cloudera Manager becomes its own certificate authority, and Use Case 3 stages host certificates signed by the company's existing CA (FreeIPA here) and enables Auto-TLS through the generateCmca API.
 prevTitle: Install Cloudera Manager Server
 prevSlug: /installations/cdp-7-3-2/on-premises/cm/server
 nextTitle: Enable Kerberos
@@ -11,9 +11,24 @@ nextSlug: /installations/cdp-7-3-2/on-premises/cm/kerberos
 
 Auto-TLS is managed using the `certmanager` utility, which is included in the Cloudera Manager Agent software, and not the Cloudera Manager Server software. You must install the Cloudera Manager Agent software on the Cloudera Manager Server host to be able to use the utility. You can use `certmanager` to manage auto-TLS on a new installation. For more information, go to: [Configuring TLS Encryption for Cloudera Manager Using Auto-TLS](https://docs.cloudera.com/cdp-private-cloud-base/7.3.1/security-encrypting-data-in-transit/topics/cm-security-auto-tls.html)
 
+<Banner type="info">
+The documentation link above points at the **7.3.1** security guide, not 7.3.2. The build described here is Cloudera Manager **7.13.2.100** on Cloudera Base on premises **7.3.2.100**; see the [version table on the CDP 7.3.2 landing page](/installations/cdp-7-3-2).
+</Banner>
+
+The official documentation splits Auto-TLS into numbered use cases. This page covers two of them. Pick **one** and follow only its section:
+
+| Use case | Who signs the host certificates | Driven by | Pick it when |
+|:--|:--|:--|:--|
+| Use Case 1 | Cloudera Manager, acting as its own internal CA | The Auto-TLS wizard in the Cloudera Manager UI | A lab or a site with no TLS policy of its own |
+| Use Case 3 | The company's existing CA, one certificate per host | The Cloudera Manager generateCmca API | A site whose security team must sign every certificate, such as a bank |
+
 ---
 
-## 1. Start the Auto-TLS wizard
+## Use Case 1: Use Cloudera Manager to Generate an Internal CA
+
+Cloudera Manager creates its own root CA and signs a certificate for every host itself. Reference: [Use case 1: Use Cloudera Manager to generate internal CA and corresponding certificates](https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/security-encrypting-data-in-transit/topics/cm-security-use-case-1.html).
+
+### 1. Start the Auto-TLS wizard
 
 1. Click on the link **here to setup Enable AutoTLS** to set up AutoTLS through Cloudera Manager on the **Add Private Cloud Base Cluster** page.
 
@@ -44,7 +59,7 @@ Auto-TLS is managed using the `certmanager` utility, which is included in the Cl
 
 4. Click on **Finish**.
 
-## 2. Restart Cloudera Manager Server
+### 2. Restart Cloudera Manager Server
 
 After enabling the AutoTLS for the CM-UI through the browser, login to `cldr-mngr` node at backend as user root and restart Cloudera Manager Server, suggested in the previous screenshot.
 
@@ -59,7 +74,7 @@ Run the command below to check the logs of `cloudera-scm-server` starting up. Wa
 [root@cldr-mngr ~]# sudo tail -f /var/log/cloudera-scm-server/cloudera-scm-server.log
 ```
 
-## 3. Verify the HTTPS redirect
+### 3. Verify the HTTPS redirect
 
 1. Once you see the message **Started Jetty server** in the logs, Login to Cloudera Manager using URL endpoint, `http://<cm_server_ip>:7180`, in a new incognito window.
 
@@ -69,6 +84,315 @@ Run the command below to check the logs of `cloudera-scm-server` starting up. Wa
 
     ![Add Cluster / Select Cluster Type page showing a green banner reading AutoTLS has already been enabled, alongside a warning banner that a KDC is currently not configured](/images/cdp-7-3-2/on-premises/cm/auto-tls/autotls-enabled-select-cluster-type.png)
 
-<Banner type="info">
-The documentation link at the top of this page points at the **7.3.1** security guide, not 7.3.2. The build described here is Cloudera Manager **7.13.2.100** on Cloudera Base on premises **7.3.2.100**; see the [version table on the CDP 7.3.2 landing page](/installations/cdp-7-3-2).
+---
+
+## Use Case 3: Enable Auto-TLS with Existing Certificates
+
+The company's own CA signs one certificate per host. You stage those certificates on the Cloudera Manager server and enable Auto-TLS with a single API call. Cloudera Manager never becomes a CA: it only distributes certificates the company issued. Reference: [Use case 3: Enabling Auto-TLS with Existing Certificates](https://docs.cloudera.com/cdp-private-cloud-base/7.3.2/security-encrypting-data-in-transit/topics/cm-security-use-case-3.html).
+
+In this build the FreeIPA CA on `ipaserver` plays the part of the company's CA. At a customer site, the signing in step 3 is done by their security team instead, and every other step is the same.
+
+The steps below cover these hosts. `cldr-mngr` is included because every host running a Cloudera Manager Agent needs a certificate, the Cloudera Manager host included:
+
+| Host | FQDN |
+|:--|:--|
+| Cloudera Manager | cldr-mngr.cldrsetup.local |
+| Master | pvcbase-master.cldrsetup.local |
+| Worker 1 | pvcbase-worker1.cldrsetup.local |
+| Worker 2 | pvcbase-worker2.cldrsetup.local |
+| Worker 3 | pvcbase-worker3.cldrsetup.local |
+
+<Banner type="warning">
+Every host needs its certificate **before** you enable Auto-TLS. Hosts added later need the extra upload in [step 9](#9-add-hosts-later). Also, Auto-TLS rejects any certificate chain that doesn't match the chain in `caCert`, unless the certificate file contains the entire chain.
 </Banner>
+
+<Banner type="warning">
+Every host must already be enrolled in FreeIPA, as described in [Configure freeipa-client on all other nodes](/installations/cdp-7-3-2/post-os-work#6-configure-freeipa-client-on-all-other-nodes). FreeIPA refuses to sign a CSR for a host it doesn't know.
+</Banner>
+
+### 1. Create the Auto-TLS directory
+
+1. Create the Auto-TLS directory `/opt/cloudera/AutoTLS` on the Cloudera Manager server. It must be owned by the `cloudera-scm` user.
+
+    ```transcript
+    [root@cldr-mngr ~]# mkdir /opt/cloudera/AutoTLS
+    [root@cldr-mngr ~]# chown cloudera-scm:cloudera-scm /opt/cloudera/AutoTLS
+    ```
+
+    <Banner type="warning">
+    The official procedure says to create this directory, then later says the API `location` should "not already exist (to avoid known issues with picking up old truststores)". What matters is that the directory is **empty**. If you repeat this procedure after a failed attempt, delete the directory and create it again.
+    </Banner>
+
+2. Create the staging directories and the private key password file. The private keys are locked with this password, and step 6 passes the same file to Cloudera Manager as the keystore password.
+
+    ```transcript
+    [root@cldr-mngr ~]# mkdir -p /tmp/auto-tls/keys /tmp/auto-tls/certs /tmp/auto-tls/ca-certs
+    [root@cldr-mngr ~]# openssl rand -hex 20 > /tmp/auto-tls/keys/key.pwd
+    [root@cldr-mngr ~]# chmod 600 /tmp/auto-tls/keys/key.pwd
+    ```
+
+    <Banner type="important">
+    Keystore and truststore passwords must be **more than 12 characters** and must **not** include special characters. `openssl rand -hex 20` produces 40 characters from 0-9 and a-f, which satisfies both rules.
+    </Banner>
+
+### 2. Generate a private key and CSR for each host
+
+A CSR (certificate signing request) asks the CA to certify that a public key belongs to a hostname. The private key stays on `cldr-mngr`; only the CSR goes to the CA.
+
+1. Generate the key and CSR for `cldr-mngr`:
+
+    ```transcript
+    [root@cldr-mngr ~]# openssl req -newkey rsa:4096 -sha256 -keyout /tmp/auto-tls/keys/cldr-mngr.cldrsetup.local-key.pem -out /tmp/auto-tls/cldr-mngr.cldrsetup.local.csr -passout file:/tmp/auto-tls/keys/key.pwd -subj '/CN=cldr-mngr.cldrsetup.local/O=Cloudera Test/C=US' -extensions san -config <( echo '[req]'; echo 'distinguished_name=req'; echo 'req_extensions=san'; echo '[san]'; echo 'subjectAltName=DNS:cldr-mngr.cldrsetup.local'; echo 'extendedKeyUsage = serverAuth, clientAuth')
+    ```
+
+2. Run the same command once for each remaining host in the table above. Change the FQDN in **four** places: `-keyout`, `-out`, `CN=` and `DNS:`.
+
+    <Banner type="info">
+    This command differs from the official example in two ways. It drops `-days 365`, which only applies to self-signed certificates: for a CSR, the CA sets the validity period. It also separates the subject fields with `/` rather than `,` because openssl reads `/CN=host1.example.com, O=Cloudera Test, C=US` as one long CN.
+    </Banner>
+
+    <Banner type="info">
+    If a host needs more than one name, for example a load balancer alias, list them as one comma-separated string: `subjectAltName=DNS:pvcbase-master.cldrsetup.local, DNS:loadbalancer.cldrsetup.local`.
+    </Banner>
+
+3. Check every CSR before it goes to the CA. Each one must show its own FQDN as the CN and as a `DNS:` SAN, plus both server and client authentication:
+
+    ```transcript
+    [root@cldr-mngr ~]# openssl req -in /tmp/auto-tls/cldr-mngr.cldrsetup.local.csr -noout -text | grep -A1 -E 'Subject:|Alternative Name|Extended Key Usage'
+    ```
+
+### 3. Have the CSRs signed by the company CA
+
+1. Copy the five CSRs to `ipaserver`:
+
+    ```transcript
+    [root@ipaserver ~]# mkdir -p /root/auto-tls-csr
+    [root@ipaserver ~]# scp root@cldr-mngr.cldrsetup.local:/tmp/auto-tls/*.csr /root/auto-tls-csr/
+    [root@ipaserver ~]# kinit admin
+    ```
+
+2. Sign the CSR for `cldr-mngr` against its FreeIPA host principal:
+
+    ```transcript
+    [root@ipaserver ~]# ipa cert-request /root/auto-tls-csr/cldr-mngr.cldrsetup.local.csr --principal host/cldr-mngr.cldrsetup.local --profile-id caIPAserviceCert --certificate-out /root/auto-tls-csr/cldr-mngr.cldrsetup.local.pem
+    ```
+
+    Repeat for each remaining host. Change the FQDN in **three** places: the CSR path, `--principal` and `--certificate-out`.
+
+    <Banner type="info">
+    The CA's certificate profile decides what the certificate may be used for, not the CSR. `caIPAserviceCert` grants both server and client authentication. FreeIPA also replaces the requested subject with its own, `O=CLDRSETUP.LOCAL`, and Cloudera Manager accepts that. A company CA may rewrite the subject in the same way.
+    </Banner>
+
+3. Copy the signed certificates back to `cldr-mngr`:
+
+    ```transcript
+    [root@ipaserver ~]# scp /root/auto-tls-csr/*.pem root@cldr-mngr.cldrsetup.local:/tmp/auto-tls/certs/
+    ```
+
+4. Copy the CA certificate into the staging area. FreeIPA has a single root CA with no intermediates, so its root certificate is the whole chain:
+
+    ```transcript
+    [root@cldr-mngr ~]# cp /etc/ipa/ca.crt /tmp/auto-tls/ca-certs/cfssl-chain-truststore.pem
+    ```
+
+    <Banner type="info">
+    At a customer site, send the CSRs to the security team and ask for: both **TLS Web Server Authentication** and **TLS Web Client Authentication** in the Extended Key Usage, the Subject Alternative Name kept as submitted, PEM format, and the full CA chain. Company CAs usually have a root plus one or more intermediates. Build the chain file intermediates first, root last: `cat intermediate.pem root.pem > cfssl-chain-truststore.pem`.
+    </Banner>
+
+### 4. Inspect the signed certificates
+
+1. Check that each certificate carries both authentication options and its SAN:
+
+    ```transcript
+    [root@cldr-mngr ~]# openssl x509 -in /tmp/auto-tls/certs/cldr-mngr.cldrsetup.local.pem -noout -text | grep -A1 -E 'Extended Key Usage|Alternative Name'
+    ```
+
+    Look for:
+
+    ```text
+    X509v3 Extended Key Usage:
+        TLS Web Server Authentication, TLS Web Client Authentication
+    X509v3 Subject Alternative Name:
+        DNS:cldr-mngr.cldrsetup.local
+    ```
+
+    <Banner type="warning">
+    If the DNS field is missing, or either authentication option is missing, submit the CSR to the CA again and ask for a certificate that keeps the SAN and allows both server and client authentication. The optional Netscape Certificate Type extension (nsCertType) is deprecated. If your CA requires it, both SSL Server and SSL Client must be set.
+    </Banner>
+
+2. Check that each certificate chains to the CA file from step 3, and that it matches its private key. The two modulus hashes must be identical:
+
+    ```transcript
+    [root@cldr-mngr ~]# openssl verify -CAfile /tmp/auto-tls/ca-certs/cfssl-chain-truststore.pem /tmp/auto-tls/certs/cldr-mngr.cldrsetup.local.pem
+    [root@cldr-mngr ~]# openssl x509 -noout -modulus -in /tmp/auto-tls/certs/cldr-mngr.cldrsetup.local.pem | sha256sum
+    [root@cldr-mngr ~]# openssl rsa -noout -modulus -in /tmp/auto-tls/keys/cldr-mngr.cldrsetup.local-key.pem -passin file:/tmp/auto-tls/keys/key.pwd | sha256sum
+    ```
+
+    Run both checks for every host.
+
+### 5. Stage the files on the Cloudera Manager server
+
+1. Create the truststore password file. It follows the same rules as `key.pwd`:
+
+    ```transcript
+    [root@cldr-mngr ~]# openssl rand -hex 20 > /tmp/auto-tls/ca-certs/truststore.pwd
+    ```
+
+2. Confirm the staging area matches this layout:
+
+    ```text
+    /tmp/auto-tls/keys/key.pwd
+    /tmp/auto-tls/keys/<fqdn>-key.pem              one per host
+    /tmp/auto-tls/certs/<fqdn>.pem                 one per host
+    /tmp/auto-tls/ca-certs/cfssl-chain-truststore.pem
+    /tmp/auto-tls/ca-certs/truststore.pwd
+    ```
+
+3. Give `cloudera-scm` ownership of the staging area:
+
+    ```transcript
+    [root@cldr-mngr ~]# chown --recursive cloudera-scm:cloudera-scm /tmp/auto-tls
+    ```
+
+### 6. Call the generateCmca API
+
+1. Find the API version your Cloudera Manager serves. The official example uses `v41`, which is older than this build:
+
+    ```transcript
+    [root@cldr-mngr ~]# curl -u admin:admin http://cldr-mngr.cldrsetup.local:7180/api/version
+    ```
+
+2. Write the request body to a file. There is one `hostCerts` entry per host, and `cldr-mngr` appears both as `cmHostCert` and in `hostCerts`:
+
+    ```transcript
+    [root@cldr-mngr ~]# vi /tmp/auto-tls/generateCmca.json
+
+    {
+      "location" : "/opt/cloudera/AutoTLS",
+      "customCA" : true,
+      "interpretAsFilenames" : true,
+      "cmHostCert" : "/tmp/auto-tls/certs/cldr-mngr.cldrsetup.local.pem",
+      "cmHostKey" : "/tmp/auto-tls/keys/cldr-mngr.cldrsetup.local-key.pem",
+      "caCert" : "/tmp/auto-tls/ca-certs/cfssl-chain-truststore.pem",
+      "keystorePasswd" : "/tmp/auto-tls/keys/key.pwd",
+      "truststorePasswd" : "/tmp/auto-tls/ca-certs/truststore.pwd",
+      "hostCerts" : [ {
+        "hostname" : "cldr-mngr.cldrsetup.local",
+        "certificate" : "/tmp/auto-tls/certs/cldr-mngr.cldrsetup.local.pem",
+        "key" : "/tmp/auto-tls/keys/cldr-mngr.cldrsetup.local-key.pem"
+      }, {
+        "hostname" : "pvcbase-master.cldrsetup.local",
+        "certificate" : "/tmp/auto-tls/certs/pvcbase-master.cldrsetup.local.pem",
+        "key" : "/tmp/auto-tls/keys/pvcbase-master.cldrsetup.local-key.pem"
+      }, {
+        "hostname" : "pvcbase-worker1.cldrsetup.local",
+        "certificate" : "/tmp/auto-tls/certs/pvcbase-worker1.cldrsetup.local.pem",
+        "key" : "/tmp/auto-tls/keys/pvcbase-worker1.cldrsetup.local-key.pem"
+      }, {
+        "hostname" : "pvcbase-worker2.cldrsetup.local",
+        "certificate" : "/tmp/auto-tls/certs/pvcbase-worker2.cldrsetup.local.pem",
+        "key" : "/tmp/auto-tls/keys/pvcbase-worker2.cldrsetup.local-key.pem"
+      }, {
+        "hostname" : "pvcbase-worker3.cldrsetup.local",
+        "certificate" : "/tmp/auto-tls/certs/pvcbase-worker3.cldrsetup.local.pem",
+        "key" : "/tmp/auto-tls/keys/pvcbase-worker3.cldrsetup.local-key.pem"
+      } ],
+      "configureAllServices" : "true",
+      "sshPort" : 22,
+      "userName" : "root",
+      "password" : "<root_password>"
+    }
+    ```
+
+    | Key | What it does |
+    |:--|:--|
+    | location | Where Cloudera Manager writes the keystores and truststores it builds. Use the empty directory from step 1 |
+    | customCA | true runs Use Case 3. false runs Use Case 1 and ignores every certificate field |
+    | interpretAsFilenames | Treats the certificate, key and password values as file paths on the Cloudera Manager host |
+    | cmHostCert, cmHostKey | The Cloudera Manager host's own certificate and key. The certificate may be the host certificate alone or the full chain with the host certificate first |
+    | caCert | The CA chain, intermediates first and root last |
+    | keystorePasswd | The password file that locked the private keys in step 2. Cloudera Manager also uses it for the keystores it creates |
+    | truststorePasswd | The password Cloudera Manager sets on the truststores it creates |
+    | hostCerts | One certificate and key per host, the Cloudera Manager host included |
+    | userName, password | The SSH account Cloudera Manager uses to reach every host |
+
+    <Banner type="warning">
+    Check every `hostCerts` entry against `ls /tmp/auto-tls/certs /tmp/auto-tls/keys` before you send the request. The official example maps one host to another host's files and drops a `.pem` suffix. When hostnames have no regular pattern, this block is where copy-paste mistakes happen.
+    </Banner>
+
+    <Banner type="info">
+    `root` can be replaced by an account that exists on every host with passwordless sudo (NOPASSWD). Cloudera Manager can't answer a sudo password prompt. To authenticate with an SSH key instead of a password, replace `"password"` with `"privateKey"` and pass the key in PEM format as one JSON string with `\n` for each newline. `awk 'NF {sub(/\r/, ""); printf "%s\\n",$0;}' ~/.ssh/id_rsa` prints it in that form. If the key has a different banner, convert it first with `ssh-keygen -p -P "" -N "" -m pem -f ~/.ssh/id_rsa`.
+    </Banner>
+
+    <Banner type="info">
+    The optional `trustedCaCerts` key points at a PEM bundle of *other* CA certificates that Cloudera Manager imports into every host's truststore, for example the CA that signed the company's LDAPS servers. It is omitted here.
+    </Banner>
+
+3. Send the request. Replace `<api_version>` with the value from step 1:
+
+    ```transcript
+    [root@cldr-mngr ~]# curl -i -u admin:admin -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' -d @/tmp/auto-tls/generateCmca.json 'http://cldr-mngr.cldrsetup.local:7180/api/<api_version>/cm/commands/generateCmca'
+    ```
+
+    The API uses HTTP on port 7180 because TLS is not enabled yet. If you convert a deployment that already has manual TLS, use `https://` and port 7183 instead.
+
+4. Follow the command in the server log while it runs:
+
+    ```transcript
+    [root@cldr-mngr ~]# tail -f /var/log/cloudera-scm-server/cloudera-scm-server.log
+    ```
+
+### 7. Restart Cloudera Manager and the agents
+
+1. Restart Cloudera Manager Server and wait for **Started Jetty server** in the log:
+
+    ```transcript
+    [root@cldr-mngr ~]# systemctl restart cloudera-scm-server
+    [root@cldr-mngr ~]# tail -f /var/log/cloudera-scm-server/cloudera-scm-server.log
+    ```
+
+2. Restart the Cloudera Manager Agent on every host that already runs one. In this build that is only `cldr-mngr`. The cluster hosts get their agents, already configured for TLS, when the cluster is added.
+
+    ```transcript
+    [root@cldr-mngr ~]# systemctl restart cloudera-scm-agent
+    ```
+
+    <Banner type="info">
+    On an existing cluster, the official procedure goes further. Restart the agents on **all** cluster hosts, then restart the Cloudera Management Service, then restart the cluster services. After that, all services use wire encryption.
+    </Banner>
+
+### 8. Verify HTTPS with the company certificate
+
+1. Open `http://cldr-mngr.cldrsetup.local:7180` in a new incognito window. It should redirect to `https://cldr-mngr.cldrsetup.local:7183/`.
+
+    The browser warns about the certificate unless your workstation trusts the FreeIPA root CA. To remove the warning, import `/etc/ipa/ca.crt` into your workstation's trust store. On a company laptop, the company's root CA is usually trusted already.
+
+2. Confirm that the certificate Cloudera Manager serves was issued by the company CA and not by Cloudera Manager:
+
+    ```transcript
+    [root@cldr-mngr ~]# openssl s_client -connect cldr-mngr.cldrsetup.local:7183 -CAfile /etc/ipa/ca.crt </dev/null 2>/dev/null | grep -E 'subject=|issuer=|Verify return code'
+    ```
+
+    The issuer names the FreeIPA **Certificate Authority**, and the last line reads `Verify return code: 0 (ok)`.
+
+3. Log in with admin/admin. The **Add Cluster** page shows that AutoTLS is enabled.
+
+    ![Add Cluster / Select Cluster Type page showing a green banner reading AutoTLS has already been enabled, alongside a warning banner that a KDC is currently not configured](/images/cdp-7-3-2/on-premises/cm/auto-tls/autotls-enabled-select-cluster-type.png)
+
+### 9. Add hosts later
+
+Hosts that weren't in the `generateCmca` request, such as those added in [Scale the Cluster](/installations/cdp-7-3-2/on-premises/base/scale-cluster), need their certificates uploaded before the Add Hosts wizard can finish. The wizard stops and shows instructions for this upload.
+
+1. For the new host, repeat steps 2 to 5: generate the key and CSR, get it signed, inspect it, and stage it under `/tmp/auto-tls`.
+
+2. Upload the certificate with the `addCustomCerts` API. Use the same `location` as in the `generateCmca` request. The file paths are on the Cloudera Manager host:
+
+    ```transcript
+    [root@cldr-mngr ~]# curl -u admin:admin -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' -d '{ "location": "/opt/cloudera/AutoTLS", "interpretAsFilenames": true, "hostCerts": [ { "hostname": "pvcbase-worker4.cldrsetup.local", "certificate": "/tmp/auto-tls/certs/pvcbase-worker4.cldrsetup.local.pem", "key": "/tmp/auto-tls/keys/pvcbase-worker4.cldrsetup.local-key.pem" } ] }' 'https://cldr-mngr.cldrsetup.local:7183/api/<api_version>/cm/commands/addCustomCerts'
+    ```
+
+3. Continue with the Add Hosts wizard.
+
+### 10. Rotate the certificates
+
+Replace the files at the paths used in step 6 with the new certificates, then run the `generateCmca` request from step 6 again. Use `https://` and port 7183, because TLS is now enabled. You don't need `addCustomCerts` for a rotation.

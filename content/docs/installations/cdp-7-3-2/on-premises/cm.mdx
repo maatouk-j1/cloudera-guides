@@ -21,7 +21,7 @@ Cloudera Manager needs a database before it needs anything else. It uses various
 |:--|:--|
 | Install PostgreSQL 17 on cldr-mngr, enable TLS, and create the databases and service accounts every component requires | [Setup Database for Cloudera Manager](/installations/cdp-7-3-2/on-premises/cm/database) |
 | Install the Cloudera Manager Server packages, point them at the SSL-enabled database, start the service and log in to the web UI | [Install Cloudera Manager Server](/installations/cdp-7-3-2/on-premises/cm/server) |
-| Turn on Auto-TLS so Cloudera Manager issues and manages certificates for the cluster | [Enable Auto-TLS](/installations/cdp-7-3-2/on-premises/cm/auto-tls) |
+| Turn on Auto-TLS, with Cloudera Manager as the CA (Use Case 1) or with host certificates signed by the company's existing CA (Use Case 3) | [Enable Auto-TLS](/installations/cdp-7-3-2/on-premises/cm/auto-tls) |
 | Kerberize the cluster against the FreeIPA realm built during the preliminary work | [Enable Kerberos](/installations/cdp-7-3-2/on-premises/cm/kerberos) |
 | Add the Cloudera Management Service roles - Host Monitor, Service Monitor, Reports Manager and the rest | [Setup Cloudera Management Services](/installations/cdp-7-3-2/on-premises/cm/mgmt-services) |
 | Point Cloudera Manager at LDAP for external authentication | [Configure CM for external authentication using LDAP](/installations/cdp-7-3-2/on-premises/cm/ldap-auth) |
