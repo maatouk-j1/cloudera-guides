@@ -171,7 +171,7 @@ Auto-TLS should be enabled using certificates created and managed by a Cloudera 
 
 The total number of CA certificates must not exceed 10. Otherwise, pods will be evicted during initialization due to limited memory (1Gi) to process the configmap file.
 
-For the Nutanix setup, this guide uses the existing **Active Directory (AD) server** available within the Nutanix cluster for configuring Cloudera Base and Cloudera Data Services.
+The lab in this guide uses FreeIPA. A Nutanix site that already runs an **Active Directory (AD) server** within the Nutanix cluster can use it instead for configuring Cloudera Base and Cloudera Data Services, and skip the FreeIPA installation.
 
 ### External NFS (Preferable but optional; needed for CAI use case)
 
