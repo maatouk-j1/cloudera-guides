@@ -70,8 +70,12 @@ The **LDAP Distinguished Name Pattern** property is deprecated. Leave this field
     | Active Directory Domain (For AD Setup only) | `<ad_domain>` (e.g CLDRSETUP.LOCAL) |
     | LDAP User Search filter | For AD: `sAMAccountName={0}` — For LDAP: `(&(uid={0})(objectClass=person))` |
     | LDAP User Search Base | For AD: DC=cldrsetup,DC=local — For LDAP: cn=users,cn=accounts,dc=cldrsetup,dc=local |
-    | LDAP Group Search filter | For AD: `member={0}` — For LDAP: `(&(member={1})(objectClass=posixgroup))` |
+    | LDAP Group Search filter | For AD: `member={0}` — For LDAP: `(&(member={0})(objectClass=posixgroup))` |
     | LDAP Group Search Base | For AD: DC=cldrsetup,DC=local — For LDAP: cn=groups,cn=accounts,dc=cldrsetup,dc=local |
+
+    <Banner type="important">
+    `{0}` does not mean the same thing in both filters. In the **user** search filter it is replaced with the username, so `(&(uid={0})(objectClass=person))` is correct. In the **group** search filter it is replaced with the *distinguished name* of the user being authenticated, and `{1}` is the username. FreeIPA's `member` attribute holds full DNs, so the group filter must use `{0}`; with `{1}` the search returns no groups at all, Cloudera Manager never reaches the group mapping, and every user authenticates successfully with no roles. See [Configuring authentication using an LDAP-compliant identity service](https://docs.cloudera.com/cdp-private-cloud-base/7.1.9/security-kerberos-authentication/topics/cm-security-external-authentication-ldap.html).
+    </Banner>
 
 2. Below page will get open, select the appropriate options as mentioned below in the screenshot:
 
@@ -101,7 +105,7 @@ Run the command below to check the logs of `cloudera-scm-server` starting up. Wa
 LDAP authentication with properties: DN pattern=(uid=admin,cn=users,cn=accounts,dc=cldrsetup,dc=local)
 user search base=(cn=users,cn=accounts,dc=cldrsetup,dc=local) user search
 filter=((&(uid={0})(objectClass=person))) group search base=(cn=groups,cn=accounts,dc=cldrsetup,dc=local)
-group search filter=((&(member={1})(objectClass=posixgroup)))
+group search filter=((&(member={0})(objectClass=posixgroup)))
 
 2024-08-21 03:14:10,009 INFO WebServerImpl:com.cloudera.server.cmf.WebServerImpl: Authenticating against
 database, then LDAP
@@ -113,7 +117,11 @@ database, then LDAP
 
     ![Users & Roles page on the LDAP/PAM Groups tab, with an empty mapping table reading No results found and the Test LDAP Connectivity and Add LDAP/PAM Group Mapping buttons](/images/cdp-7-3-2/on-premises/cm/ldap-auth/users-roles-ldap-pam-groups-empty.png)
 
-2. **Add LDAP/PAM Group mapping** value and Roles to assign. (LDAP/PAM Group: admin, Roles: Full Administrator.)
+2. **Add LDAP/PAM Group mapping** value and Roles to assign. (LDAP/PAM Group: admins, Roles: Full Administrator.)
+
+    <Banner type="warning">
+    Enter the group name exactly as it exists in the directory. FreeIPA's built-in administrators group is `admins` — `admin` is a *member* of that group, not a group itself, and `ipa group-show admin` returns `group not found`. Cloudera Manager matches the mapping against the `cn` of each group the search returns, by exact string comparison, so a row named `admin` never matches and grants nothing. Confirm the name with `ipa group-show admins` before entering it. The screenshots below were captured with the incorrect `admin` value.
+    </Banner>
 
     ![Add LDAP/PAM Group Mapping dialog with LDAP/PAM Group set to admin and Roles set to Full Administrator, shown as a removable chip below the dropdown](/images/cdp-7-3-2/on-premises/cm/ldap-auth/add-ldap-pam-group-mapping.png)
 
@@ -124,6 +132,10 @@ database, then LDAP
     ![Test LDAP Connectivity dialog with Username admin and a masked Password field, above Cancel and Test buttons](/images/cdp-7-3-2/on-premises/cm/ldap-auth/test-ldap-connectivity.png)
 
 2. Click on **Test** to verify LDAP configuration is set up and working fine, as expected.
+
+    <Banner type="warning">
+    This tests **authentication only**. It performs a bind with the username and password you typed and reports whether the directory accepted them. It does not run the group search and does not read the group mapping table, so it returns the same green result whether the mapping is correct, wrong, or missing entirely. To verify authorization, sign in as a directory user who is not also a local Cloudera Manager account and check that the left navigation is complete — a user who matches no mapping is still signed in successfully, but with no roles and almost every menu hidden.
+    </Banner>
 
     ![Test Cloudera Manager External Authentication dialog with status Finished in 98ms and the message The user was authenticated successfully. You may still have to restart the Cloudera Manager server for the current configuration to take effect](/images/cdp-7-3-2/on-premises/cm/ldap-auth/test-external-authentication-result.png)
 
