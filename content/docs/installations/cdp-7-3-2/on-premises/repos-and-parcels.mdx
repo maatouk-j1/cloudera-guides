@@ -28,12 +28,43 @@ All the repositories and parcels below are hosted from the local `httpd` instanc
 These steps require a Cloudera username and password to access: [https://archive.cloudera.com/p/cm7/](https://archive.cloudera.com/p/cm7/)
 </Banner>
 
+Mirror the upstream layout exactly. Everything for one Cloudera Manager version lives under a single
+version directory, with the GPG keys at its root and the packages beneath `redhat9/yum/`:
+
+```text
+/var/www/html/cloudera-repos/cloudera-manager/
+└── cm7.13.2.100/
+    ├── allkeys.asc
+    ├── allkeyssha256.asc
+    ├── RPM-GPG-KEY-cloudera
+    ├── cloudera-manager.repo
+    ├── cloudera-manager-trial.repo
+    └── redhat9/
+        └── yum/
+            ├── repodata/
+            └── RPMS/
+                └── x86_64/
+                    ├── cloudera-manager-agent-7.13.2.100-81323056.el9.x86_64.rpm
+                    ├── cloudera-manager-daemons-7.13.2.100-81323056.el9.x86_64.rpm
+                    ├── cloudera-manager-server-7.13.2.100-81323056.el9.x86_64.rpm
+                    └── cloudera-manager-server-db-2-7.13.2.100-81323056.el9.x86_64.rpm
+```
+
+<Banner type="important">
+This shape is not cosmetic. The **Add Cluster** wizard's *Custom Repository* field takes the version
+directory and derives the rest itself — it fetches `allkeyssha256.asc`, falling back to `allkeys.asc`,
+from the root of the URL you give it, and the packages from `redhat9/yum/` beneath it. A mirror that
+puts the keys and the `repodata` at different levels serves both files correctly over HTTP and still
+fails the wizard, with `Failed to copy installation files` and a 404 on `allkeys.asc` in
+`/var/log/cloudera-scm-server/cloudera-scm-server.log`.
+</Banner>
+
 1. From a host connected to the Internet, download the Cloudera's repositories as shown below and transfer it to the `cldr-mngr` node. We will directly login to `cldr-mngr` and perform below steps:
 
     ```transcript
     [root@jump ~]# ssh root@cldr-mngr
-    [root@cldr-mngr ~]# mkdir -p /var/www/html/cloudera-repos/cloudera-manager/
-    [root@cldr-mngr ~]# cd /var/www/html/cloudera-repos/cloudera-manager/
+    [root@cldr-mngr ~]# mkdir -p /var/www/html/cloudera-repos/cloudera-manager/cm7.13.2.100/
+    [root@cldr-mngr ~]# cd /var/www/html/cloudera-repos/cloudera-manager/cm7.13.2.100/
     ```
 
 2. Download Cloudera Manager Repository:
@@ -72,7 +103,8 @@ These steps require a Cloudera username and password to access: [https://archive
     # 4. Prepare Target Local Repo Path
     # ================================
 
-    cd /var/www/html/cloudera-repos/cloudera-manager/
+    mkdir -p /var/www/html/cloudera-repos/cloudera-manager/cm${CM_VERSION}/
+    cd /var/www/html/cloudera-repos/cloudera-manager/cm${CM_VERSION}/
 
     # ================================
     # 5. Download Repo & GPG Key Files
@@ -97,10 +129,10 @@ These steps require a Cloudera username and password to access: [https://archive
     ```
 
     ```transcript
-    [root@cldr-mngr cloudera-manager]# pwd
-    /var/www/html/cloudera-repos/cloudera-manager
+    [root@cldr-mngr cm7.13.2.100]# pwd
+    /var/www/html/cloudera-repos/cloudera-manager/cm7.13.2.100
 
-    [root@cldr-mngr cloudera-manager]# ll
+    [root@cldr-mngr cm7.13.2.100]# ll
     total 36
     -rw-r--r--. 1 root root 2464 Apr 23 06:51 RPM-GPG-KEY-cloudera
     -rw-r--r--. 1 root root 11019 Apr 23 06:51 allkeys.asc
@@ -114,7 +146,7 @@ These steps require a Cloudera username and password to access: [https://archive
     Verify whether the username and password are already present, in which case no action is needed.
 
     ```transcript
-    [root@cldr-mngr cloudera-manager]# vi cloudera-manager.repo
+    [root@cldr-mngr cm7.13.2.100]# vi cloudera-manager.repo
     [cloudera-manager]
     name=Cloudera Manager 7.13.2.100
     baseurl=https://archive.cloudera.com/p/cm7/7.13.2.100/redhat9/yum/
@@ -138,7 +170,7 @@ These steps require a Cloudera username and password to access: [https://archive
     If they are not, update `cloudera-manager.repo` to look like the following.
 
     ```transcript
-    [root@cldr-mngr cloudera-manager]# vi cloudera-manager.repo
+    [root@cldr-mngr cm7.13.2.100]# vi cloudera-manager.repo
     [cloudera-manager]
     name=Cloudera Manager 7.13.2.100
     baseurl=https://<paywall_username>:<paywall_password>@archive.cloudera.com/p/cm7/7.13.2.100/redhat9/yum/
@@ -147,7 +179,7 @@ These steps require a Cloudera username and password to access: [https://archive
     enabled=1
     autorefresh=0
     type=rpm-md
-    [root@cldr-mngr cloudera-manager]# cd
+    [root@cldr-mngr cm7.13.2.100]# cd
     ```
 
 4. Create directory to download cloudera manager agent, daemon, and server files.
@@ -165,8 +197,8 @@ These steps require a Cloudera username and password to access: [https://archive
     # 1. Create & Navigate to RPM Directory
     # ================================
 
-    mkdir -p cm${CM_VERSION}/redhat9/yum/RPMS/x86_64/
-    cd cm${CM_VERSION}/redhat9/yum/RPMS/x86_64/
+    mkdir -p /var/www/html/cloudera-repos/cloudera-manager/cm${CM_VERSION}/redhat9/yum/RPMS/x86_64/
+    cd /var/www/html/cloudera-repos/cloudera-manager/cm${CM_VERSION}/redhat9/yum/RPMS/x86_64/
 
     # ================================
     # 2. Download Required RPMs
@@ -185,7 +217,7 @@ These steps require a Cloudera username and password to access: [https://archive
 
     ```transcript
     [root@cldr-mngr x86_64]# pwd
-    /var/www/html/cloudera-repos/cloudera-manager/cm7.13.2/redhat9/yum/RPMS/x86_64
+    /var/www/html/cloudera-repos/cloudera-manager/cm7.13.2.100/redhat9/yum/RPMS/x86_64
     [root@cldr-mngr x86_64]# ll
     total 1862092
     -rw-r--r--. 1 root root 116384320 Apr 23 06:52 cloudera-manager-agent-7.13.2.100-81323056.el9.x86_64.rpm
@@ -194,20 +226,33 @@ These steps require a Cloudera username and password to access: [https://archive
     -rw-r--r--. 1 root root      20933 Apr 23 06:52 cloudera-manager-server-db-7.13.2.100-81323056.el9.x86_64.rpm
     ```
 
-5. Run `createrepo` command to create a local repository.
+5. Run `createrepo_c` to index the packages. Point it at the `redhat9/yum` directory, **not** at the version directory and not at `cloudera-repos/cloudera-manager/`, so that `repodata` is written where the wizard and `dnf` both expect it.
 
     ```transcript
-    [root@cldr-mngr ~]# createrepo --baseurl http://$(hostname -i)/cloudera-repos/cloudera-manager/ /var/www/html/cloudera-repos/cloudera-manager/
+    [root@cldr-mngr ~]# dnf install -y createrepo_c
+    [root@cldr-mngr ~]# createrepo_c /var/www/html/cloudera-repos/cloudera-manager/cm7.13.2.100/redhat9/yum/
+    ```
+
+    Verify both halves of the layout over HTTP before going any further. Each should return `200`:
+
+    ```bash
+    B=http://$(hostname -i)/cloudera-repos/cloudera-manager/cm7.13.2.100
+    curl -s -o /dev/null -w "keys:     %{http_code}\n" $B/allkeys.asc
+    curl -s -o /dev/null -w "packages: %{http_code}\n" $B/redhat9/yum/repodata/repomd.xml
     ```
 
     <Banner type="info">
-    In a web browser please check and verify cloudera manager repository created by entering baseurl `http://13.251.65.11/cloudera-repos/cloudera-manager/`
+    `$B` is the value to paste into the **Custom Repository** field of the Add Cluster wizard later —
+    the version directory, with no operating-system path on the end.
     </Banner>
+
+    Re-run `createrepo_c` whenever an RPM is added or replaced. The index is a snapshot, and a stale
+    one sends `dnf` after files that are no longer there.
 
 6. Copy `cloudera-manager.repo` file to `/etc/yum.repos.d/` on all nodes to enable it to find the packages that are locally hosted on the admin node.
 
     ```transcript
-    [root@cldr-mngr ~]# cp /var/www/html/cloudera-repos/cloudera-manager/cloudera-manager.repo /etc/yum.repos.d/cloudera-manager.repo
+    [root@cldr-mngr ~]# cp /var/www/html/cloudera-repos/cloudera-manager/cm7.13.2.100/cloudera-manager.repo /etc/yum.repos.d/cloudera-manager.repo
     ```
 
 7. Edit `cloudera-manager.repo` file as per the customer repository location configuration in the step above, replacing `<cm_server_ip>` in `baseurl` with the IP of the repository host — `cldr-mngr` in this setup.
@@ -217,7 +262,7 @@ These steps require a Cloudera username and password to access: [https://archive
 
     [cloudera-manager]
     name=Cloudera Manager 7.13.2.100
-    baseurl=http://<cm_server_ip>/cloudera-repos/cloudera-manager/
+    baseurl=http://<cm_server_ip>/cloudera-repos/cloudera-manager/cm7.13.2.100/redhat9/yum/
     gpgcheck=0
     enabled=1
     ```
