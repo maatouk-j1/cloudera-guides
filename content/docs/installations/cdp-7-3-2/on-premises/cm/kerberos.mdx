@@ -2,7 +2,7 @@
 title: Enable Kerberos
 topicTitle: Setup Cloudera Manager Server
 topicSlug: cdp-7-3-2/on-premises/cm
-summary: Integrate the cluster with the FreeIPA KDC using the Cloudera Manager Setup KDC wizard - fix krb5.conf, enter the realm and KDC hosts, let Cloudera Manager manage krb5.conf, import the account manager credentials, then verify with kinit and klist.
+summary: Integrate the cluster with the FreeIPA KDC using the Cloudera Manager Setup KDC wizard - fix krb5.conf on every host, enter the realm and KDC hosts, leave krb5.conf unmanaged by Cloudera Manager, import the account manager credentials, then verify with kinit and klist.
 prevTitle: Enable Auto-TLS
 prevSlug: /installations/cdp-7-3-2/on-premises/cm/auto-tls
 nextTitle: Setup Cloudera Management Services
@@ -35,12 +35,25 @@ For **Active Directory**, you must have administrative privileges to the Active 
 
 ## 1. Check krb5.conf before starting
 
-Before proceeding further with KDC setup, we need to ensure that the changes to `krb5.conf` related to the default cache is not reversed. View the contents of the file `/etc/krb5.conf` after logging in to both **ipaserver** node and **cldr-mngr** node and check whether the property **default_ccache_name** is commented out. If not, then open the file and comment it out.
+Before proceeding further with KDC setup, we need to ensure that the changes to `krb5.conf` related to the default cache is not reversed. Log in to the **ipaserver** node and to **every cluster host**, view the contents of the file `/etc/krb5.conf`, and check whether the property **default_ccache_name** is commented out. If not, then open the file and comment it out, then set a file-based cache explicitly.
+
+<Banner type="warning">
+Check every cluster host, not only **ipaserver** and **cldr-mngr**. Cloudera Manager does not deploy `krb5.conf` in this guide — [section 4](#4-leave-krb5conf-unmanaged-by-cloudera-manager) leaves the file in the hands of `ipa-client-install` — so each host carries its own copy and each one has to be correct.
+</Banner>
+
+<Banner type="warning">
+`default_ccache_name` may not be in `/etc/krb5.conf` at all. Red Hat IdM hosts carry an `includedir /etc/krb5.conf.d/` line near the top of the file, and if the `sssd-kcm` package is installed it drops a fragment in that directory setting `default_ccache_name = KCM:`. Grepping `/etc/krb5.conf` alone would show nothing while the cache is still wrong, so read the fragments too, and confirm what is actually in force rather than what is written: `klist` names the resolved cache even when no ticket exists, as `No credentials cache found (filename: /tmp/krb5cc_0)` for a file-based cache or `Credentials cache 'KCM:0' not found` for KCM.
+</Banner>
+
+Cloudera states the requirement in [Step 3: Kerberos wizard](https://docs.cloudera.com/cdp-private-cloud-base/7.1.9/security-kerberos-authentication/topics/cm-security-kerberos-enabling-step3-kerberos-wizard.html): "CDP does not support the keyring credential cache", which covers both `KEYRING:persistent:%{uid}` and `KCM:`. Replace whichever is in force with a file-based cache.
 
 ```transcript
 [root@ipaserver ~]# sudo vi /etc/krb5.conf
 #default_ccache_name = KEYRING:persistent:%{uid}
+default_ccache_name = FILE:/tmp/krb5cc_%{uid}
 ```
+
+Where the Kerberos Cache Manager is in use the line reads `default_ccache_name = KCM:` instead. Comment that one out and add the same file-based line. The screenshot below predates the explicit `FILE:` line and shows only the comment.
 
 ![Terminal view of the libdefaults section of /etc/krb5.conf showing default_realm, dns_lookup_realm false, dns_lookup_kdc true, rdns false, ticket_lifetime 24h, forwardable true, udp_preference_limit 0 and the commented-out default_ccache_name line highlighted in red](/images/cdp-7-3-2/on-premises/cm/kerberos/krb5-conf-default-ccache-commented.png)
 
@@ -107,11 +120,23 @@ In this setup, we used Kerberos authentication with **RedHat FreeIPA**.
 
 ![Enter KDC Information page filled in, with Kerberos Encryption Types aes256-cts-hmac-sha1-96, a Kerberos Security Realm, KDC Server Host and KDC Admin Server Host pointing at the ipaserver FQDN, and the Domain Name(s) field populated](/images/cdp-7-3-2/on-premises/cm/kerberos/enter-kdc-information-filled.png)
 
-## 4. Let Cloudera Manager manage krb5.conf
+## 4. Leave krb5.conf unmanaged by Cloudera Manager
 
-1. On the Next Page, check the box for **Manage "krb5.conf"** to enable it through Cloudera Manager. This will install the `krb5.conf` file in all the hosts selected for the data lake.
+1. On the next page, leave the box for **Manage "krb5.conf" through Cloudera Manager** **unchecked**, and leave the file path at `/etc/krb5.conf`.
+
+    With Red Hat IdM or FreeIPA, `ipa-client-install` has already written `/etc/krb5.conf` on every host it enrolled. That file is what SSSD, the `ipa` command line and host keytab authentication read, and it carries the IdM specifics — the `includedir`, the PKINIT anchors, the canonicalization settings — that the enrollment relies on. Hand the file to Cloudera Manager and it is replaced on every host by a template built from the realm and KDC hosts you entered in the previous step, and nothing else. Leave the box unchecked and the enrollment file stays where it is.
+
+    The screenshot below shows this page with the box ticked. Leave yours unticked.
 
     ![Manage krb5.conf page of the wizard with the krb5.conf file path set to /etc/krb5.conf and the Manage krb5.conf through Cloudera Manager checkbox ticked, both flagged as Requires Server Restart](/images/cdp-7-3-2/on-premises/cm/kerberos/manage-krb5-conf.png)
+
+    <Banner type="warning">
+    Unchecking the box moves an obligation onto you. [Step 3: Kerberos wizard](https://docs.cloudera.com/cdp-private-cloud-base/7.1.9/security-kerberos-authentication/topics/cm-security-kerberos-enabling-step3-kerberos-wizard.html) states: "If left unchecked, you must ensure that the `krb5.conf` is deployed on all hosts in the cluster, including the Cloudera Manager Server host." Every one of those copies also needs the supported credential cache from [section 1](#1-check-krb5conf-before-starting). Cloudera Manager checks none of this and reports nothing. A host with a missing or wrong `krb5.conf` passes this wizard and fails much later, when its services first try to acquire a ticket.
+    </Banner>
+
+    <Banner type="info">
+    For **Active Directory**, check the box instead. Nothing on the cluster hosts owns `/etc/krb5.conf` in an AD integration, so there is no enrollment file to preserve and letting Cloudera Manager deploy one is the simpler path. Checking the box also makes the safety valves on this page available, which is where additional KDCs and cross-realm trusts are configured.
+    </Banner>
 
 2. Next, enter the credentials of an account that is allowed to create other accounts in the KDC. For FreeIPA that is the `admin` user created during the IPA server installation. In case of **AD based Kerberos**, we used *Administrator* as the username. Click **Continue**.
 
